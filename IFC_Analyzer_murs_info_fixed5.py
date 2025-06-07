@@ -869,28 +869,28 @@ def afficher_donnees_murs(murs):
         widget.destroy()
     row = 0
     if longueur_totale > 0 :
-        tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#E0F2F1", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(longueur_totale, 2)} ml", bg="#E0F2F1", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(longueur_totale, 2)} ml", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if volume_total > 0 :
-        tk.Label(grid_resume_murs, text="📦 Volume :", bg="#E0F2F1", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(volume_total, 2)} m³", bg="#E0F2F1", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text="📦 Volume :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(volume_total, 2)} m³", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if surface_brut_total > 0 :
-        tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E0F2F1", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_brut_total, 2)} m²", bg="#E0F2F1", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_brut_total, 2)} m²", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if surface_net_murs > 0 :
-        tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E0F2F1", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_net_murs, 2)} m²", bg="#E0F2F1", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_net_murs, 2)} m²", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if surface_brut > 0 :
-        tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E0F2F1", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_brut, 2)} m²", bg="#E0F2F1", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_brut, 2)} m²", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if surface_net > 0 :
-        tk.Label(grid_resume_murs, text="🏢 Cloisons de surface :", bg="#E0F2F1", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_net, 2)} m²", bg="#E0F2F1", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text="🏢 Cloisons de surface :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_net, 2)} m²", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     for widget in grid_types_murs.winfo_children() :
         widget.destroy()
@@ -1683,17 +1683,17 @@ title_frame_resume_escalier.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_escalier, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 general_frame_escalier = tk.Frame(frame_resume_escalier, bg="#E0F2F1", bd=1, relief="solid")
 general_frame_escalier.pack(fill="x", padx=5, pady=5)
-grid_resume_escalier = tk.Frame(general_frame_escalier, bg="#E0F2F1")
+grid_resume_escalier = tk.Frame(general_frame_escalier, bg="#FFFFFF")
 grid_resume_escalier.pack(pady=5)
 grid_resume_escalier.grid_columnconfigure(1, weight=1)
 # Hauteur totale
-tk.Label(grid_resume_escalier, text="Hauteur totale :", bg="#E0F2F1").grid(row=0, column=0, sticky="w", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text="Hauteur totale :", bg="#FFFFFF").grid(row=0, column=0, sticky="w", padx=5, pady=2)
 hauteur_total = sum(e[1] for e in donnees_ifc.get(ifc_actif, {}).get("escaliers", []))
-tk.Label(grid_resume_escalier, text=f"{hauteur_total:.2f}", bg="#E0F2F1").grid(row=0, column=1, sticky="e", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text=f"{hauteur_total:.2f}", bg="#FFFFFF").grid(row=0, column=1, sticky="e", padx=5, pady=2)
 # Nombre total de marches
-tk.Label(grid_resume_escalier, text="Nombre total de marches :", bg="#E0F2F1").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text="Nombre total de marches :", bg="#FFFFFF").grid(row=1, column=0, sticky="w", padx=5, pady=2)
 nb_total_marches = sum(e[4] for e in donnees_ifc.get(ifc_actif, {}).get("escaliers", []))
-tk.Label(grid_resume_escalier, text=str(nb_total_marches), bg="#E0F2F1").grid(row=1, column=1, sticky="e", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text=str(nb_total_marches), bg="#FFFFFF").grid(row=1, column=1, sticky="e", padx=5, pady=2)
 
 frame_resume_murs = tk.Frame(frame_murs, bg="#E0F2F1", width=650)
 frame_resume_murs.pack(side="right", fill="y", padx=10, pady=10)
@@ -1703,7 +1703,7 @@ title_frame_resume_murs.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_murs, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 general_frame = tk.Frame(frame_resume_murs, bg="#E0F2F1", bd=1, relief="solid")
 general_frame.pack(fill="x", padx=5, pady=5)
-grid_resume_murs = tk.Frame(general_frame, bg="#E0F2F1")
+grid_resume_murs = tk.Frame(general_frame, bg="#FFFFFF")
 grid_resume_murs.pack(pady=5)
 grid_resume_murs.grid_columnconfigure(1, weight=1)
 
@@ -1719,7 +1719,7 @@ title_frame_types_murs.pack(fill="x", padx=5, pady=(15, 0))
 # ----- Conteneur INFORMATIONS COMPLÉMENTAIRES pour MURS -----
 info_frame_murs = tk.Frame(frame_resume_murs, bg="#E0F2F1", bd=1, relief="solid")
 info_frame_murs.pack(side="bottom", fill="x", padx=5, pady=5)
-grid_infos_murs = tk.Frame(info_frame_murs, bg="#E0F2F1")
+grid_infos_murs = tk.Frame(info_frame_murs, bg="#FFFFFF")
 grid_infos_murs.pack(pady=5, fill="x")
 grid_infos_murs.grid_columnconfigure(1, weight=1)
 
@@ -1727,7 +1727,7 @@ tk.Label(title_frame_types_murs, text="INFORMATIONS COMPLÉMENTAIRES", font=TITL
 
 
 
-canvas_grid_types_murs = tk.Canvas(types_frame, bg="#E0F2F1", highlightthickness=0)
+canvas_grid_types_murs = tk.Canvas(types_frame, bg="#FFFFFF", highlightthickness=0)
 canvas_grid_types_murs.pack(side="top", fill="x", expand=False, padx=(5, 0), pady=5)
 # 👉 cacher le canvas tant qu’il est vide pour éviter le trou
 canvas_grid_types_murs.pack_forget()
@@ -1736,7 +1736,7 @@ canvas_grid_types_murs.pack_forget()
 
 
 # ---- Treeview complémentaire pour MURS --------------------------------------
-data_frame_types_murs = tk.Frame(types_frame, bg="#E0F2F1")
+data_frame_types_murs = tk.Frame(types_frame, bg="#FFFFFF")
 data_frame_types_murs.pack(fill="both", padx=5, pady=5, expand=True)
 
 tree_surfaces_murs = ttk.Treeview(data_frame_types_murs, columns=("Type", "m²"), show="headings", height=8)
@@ -1745,8 +1745,8 @@ tree_surfaces_murs.heading("Type", text="Type")
 tree_surfaces_murs.heading("m²", text="m²")
 tree_surfaces_murs.column("Type", anchor="w", width=500, stretch=True)
 tree_surfaces_murs.column("m²", anchor="e", width=80, stretch=False)
-tree_surfaces_murs.tag_configure("evenrow", background="#E0F2F1")
-tree_surfaces_murs.tag_configure("oddrow", background="#E0F2F1")
+tree_surfaces_murs.tag_configure("evenrow", background="#FFFFFF")
+tree_surfaces_murs.tag_configure("oddrow", background="#FFFFFF")
 scroll_surfaces_murs = ttk.Scrollbar(data_frame_types_murs, orient="vertical", command=tree_surfaces_murs.yview)
 tree_surfaces_murs.configure(yscrollcommand=scroll_surfaces_murs.set)
 tree_surfaces_murs.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
@@ -1763,24 +1763,32 @@ def copy_type_summary_murs(event=None):
 def filter_main_by_type_murs(event=None):
     row_id = tree_surfaces_murs.selection()
     if row_id:
-        type_sel = tree_surfaces_murs.item(row_id[0])['values'][0]
-        # mise à jour du tableau principal
-        for item in tree_murs.get_children():
-            tree_murs.delete(item)
-        murs_filtres = [mur for mur in donnees_ifc[ifc_actif]["murs"] if mur[4] == type_sel or mur[0] == type_sel]
-        
-        for idx, (nom, surface, longueur, volume, mur_type) in enumerate(murs_filtres):
-            tag = "evenrow" if idx % 2 == 0 else "oddrow"
-            tree_murs.insert("", "end", values=(nom, surface, longueur, volume, mur_type), tags=(tag,))
+        type_sel = tree_surfaces_murs.item(row_id[0])["values"][0]
+        murs_filtres = [
+            mur for mur in donnees_ifc[ifc_actif]["murs"]
+            if mur[4] == type_sel or mur[0] == type_sel
+        ]
+        afficher_donnees_murs(murs_filtres)
+        if tree_murs.get_children():
+            first = tree_murs.get_children()[0]
+            tree_murs.selection_set(first)
+            _afficher_infos_mur_nom(tree_murs.item(first)["values"][0])
 
+
+def on_select_type_mur(event=None):
+    copy_type_summary_murs(event)
+    sel = tree_surfaces_murs.selection()
+    if sel:
+        nom_sel = tree_surfaces_murs.item(sel[0])["values"][0]
+        _afficher_infos_mur_nom(nom_sel)
 
 tree_surfaces_murs.bind("<Double-1>", filter_main_by_type_murs)
-tree_surfaces_murs.bind("<Button-1>", copy_type_summary_murs)
+tree_surfaces_murs.bind("<Button-1>", on_select_type_mur)
 context_menu_surfaces_murs = tk.Menu(root, tearoff=0)
 context_menu_surfaces_murs.add_command(label="Copier", command=copy_type_summary_murs)
 tree_surfaces_murs.bind("<Button-3>", lambda e: (tree_surfaces_murs.selection_set(tree_surfaces_murs.identify_row(e.y)), context_menu_surfaces_murs.post(e.x_root, e.y_root)))
 # -----------------------------------------------------------------------------
-grid_types_murs = tk.Frame(canvas_grid_types_murs, bg="#E0F2F1")
+grid_types_murs = tk.Frame(canvas_grid_types_murs, bg="#FFFFFF")
 grid_types_murs.grid_columnconfigure(0, weight=1)
 canvas_grid_types_murs.create_window((0, 0), window=grid_types_murs, anchor="nw")
 
@@ -1789,14 +1797,21 @@ def on_configure_grid_types_murs(event):
 
 grid_types_murs.bind("<Configure>", on_configure_grid_types_murs)
 
-def afficher_infos_mur(event=None):
-    """Affiche les infos complémentaires pour le mur sélectionné."""
+def _get_info_value(info, key):
+    """Récupère une valeur insensible à la casse et aux espaces."""
+    target = key.lower().replace(" ", "").replace("_", "")
+    for k, v in info.items():
+        if k and k.lower().replace(" ", "").replace("_", "") == target:
+            return v
+    return ""
+
+def _afficher_infos_mur_nom(nom_sel):
+    """Affiche les informations complémentaires pour le mur dont le nom est
+    fourni."""
     for w in grid_infos_murs.winfo_children():
         w.destroy()
-    sel = tree_murs.selection()
-    if not sel:
+    if not nom_sel:
         return
-    nom_sel = tree_murs.item(sel[0])["values"][0]
     info = donnees_ifc.get(ifc_actif, {}).get("murs_infos", {}).get(nom_sel, {})
     mapping = [
         ("Fonction", "Fonction"),
@@ -1807,13 +1822,22 @@ def afficher_infos_mur(event=None):
         ("Storey", "Niveau"),
     ]
     for row, (key, label) in enumerate(mapping):
-        val = info.get(key, "")
+        val = _get_info_value(info, key)
         if val in (None, "None"):
             val = ""
         if key == "IsExternal" and val != "":
             val = "Oui" if bool(val) else "Non"
-        tk.Label(grid_infos_murs, text=f"{label} :", bg="#E0F2F1", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_infos_murs, text=str(val), bg="#E0F2F1", anchor="w").grid(row=row, column=1, sticky="w", padx=10)
+        tk.Label(grid_infos_murs, text=f"{label} :", bg="#FFFFFF", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_murs, text=str(val), bg="#FFFFFF", anchor="w").grid(row=row, column=1, sticky="w", padx=10)
+
+def afficher_infos_mur(event=None):
+    """Callback pour afficher les infos du mur sélectionné dans la liste
+    principale."""
+    sel = tree_murs.selection()
+    if not sel:
+        return
+    nom_sel = tree_murs.item(sel[0])["values"][0]
+    _afficher_infos_mur_nom(nom_sel)
 
 tree_murs.bind("<<TreeviewSelect>>", afficher_infos_mur)
 
