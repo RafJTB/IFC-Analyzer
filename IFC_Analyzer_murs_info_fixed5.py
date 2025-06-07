@@ -1764,18 +1764,14 @@ def filter_main_by_type_murs(event=None):
     row_id = tree_surfaces_murs.selection()
     if row_id:
         type_sel = tree_surfaces_murs.item(row_id[0])['values'][0]
-        # mise à jour du tableau principal
-        for item in tree_murs.get_children():
-            tree_murs.delete(item)
-        murs_filtres = [mur for mur in donnees_ifc[ifc_actif]["murs"] if mur[4] == type_sel or mur[0] == type_sel]
-        
-        for idx, (nom, surface, longueur, volume, mur_type) in enumerate(murs_filtres):
-            tag = "evenrow" if idx % 2 == 0 else "oddrow"
-            tree_murs.insert("", "end", values=(nom, surface, longueur, volume, mur_type), tags=(tag,))
+        murs_filtres = [mur for mur in donnees_ifc[ifc_actif]["murs"]
+                        if mur[4] == type_sel or mur[0] == type_sel]
+        afficher_donnees_murs(murs_filtres)
 
 
 tree_surfaces_murs.bind("<Double-1>", filter_main_by_type_murs)
 tree_surfaces_murs.bind("<Button-1>", copy_type_summary_murs)
+tree_surfaces_murs.bind("<<TreeviewSelect>>", afficher_infos_mur_resume)
 context_menu_surfaces_murs = tk.Menu(root, tearoff=0)
 context_menu_surfaces_murs.add_command(label="Copier", command=copy_type_summary_murs)
 tree_surfaces_murs.bind("<Button-3>", lambda e: (tree_surfaces_murs.selection_set(tree_surfaces_murs.identify_row(e.y)), context_menu_surfaces_murs.post(e.x_root, e.y_root)))
@@ -1789,14 +1785,10 @@ def on_configure_grid_types_murs(event):
 
 grid_types_murs.bind("<Configure>", on_configure_grid_types_murs)
 
-def afficher_infos_mur(event=None):
-    """Affiche les infos complémentaires pour le mur sélectionné."""
+def _update_infos_mur(nom_sel: str):
+    """Affiche les informations complémentaires pour le mur donné."""
     for w in grid_infos_murs.winfo_children():
         w.destroy()
-    sel = tree_murs.selection()
-    if not sel:
-        return
-    nom_sel = tree_murs.item(sel[0])["values"][0]
     info = donnees_ifc.get(ifc_actif, {}).get("murs_infos", {}).get(nom_sel, {})
     mapping = [
         ("Fonction", "Fonction"),
@@ -1811,9 +1803,27 @@ def afficher_infos_mur(event=None):
         if val in (None, "None"):
             val = ""
         if key == "IsExternal" and val != "":
-            val = "Oui" if bool(val) else "Non"
+            val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
         tk.Label(grid_infos_murs, text=f"{label} :", bg="#E0F2F1", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_murs, text=str(val), bg="#E0F2F1", anchor="w").grid(row=row, column=1, sticky="w", padx=10)
+
+
+def afficher_infos_mur(event=None):
+    """Affiche les informations complémentaires pour la sélection du tableau principal."""
+    sel = tree_murs.selection()
+    if not sel:
+        return
+    nom_sel = tree_murs.item(sel[0])["values"][0]
+    _update_infos_mur(nom_sel)
+
+
+def afficher_infos_mur_resume(event=None):
+    """Affiche les informations lors de la sélection dans le résumé."""
+    sel = tree_surfaces_murs.selection()
+    if not sel:
+        return
+    nom_sel = tree_surfaces_murs.item(sel[0])["values"][0]
+    _update_infos_mur(nom_sel)
 
 tree_murs.bind("<<TreeviewSelect>>", afficher_infos_mur)
 
