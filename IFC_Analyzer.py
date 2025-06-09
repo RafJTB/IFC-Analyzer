@@ -1304,16 +1304,56 @@ def appliquer_filtre_niveau_murs(niveaux):
     afficher_donnees_murs(murs_filtre)
 
 def open_filtre_niveau_murs():
+    """Affiche un menu contextuel stylisé pour filtrer par niveau."""
     niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
     if not niveaux or btn_niveau_murs is None:
         return
-    menu = tk.Menu(root, tearoff=0)
+
+    dropdown = tk.Toplevel(root)
+    dropdown.overrideredirect(True)
+    dropdown.attributes("-topmost", True)
+
+    shadow = tk.Frame(dropdown, bg="#888888")
+    shadow.pack(padx=2, pady=2)
+
+    container_frame = tk.Frame(shadow, bg="#E8F5E9", bd=1, relief="solid")
+    container_frame.pack()
+
+    listbox = tk.Listbox(
+        container_frame,
+        selectmode="extended",
+        font=("Helvetica", 10),
+        bg="#E8F5E9",
+        fg="#263238",
+        selectbackground="#4CAF50",
+        selectforeground="#FFFFFF",
+        bd=0,
+        highlightthickness=0,
+        activestyle="none",
+        height=min(len(niveaux), 10),
+        width=20,
+    )
     for n in niveaux:
-        menu.add_command(label=n, command=lambda level=n: (appliquer_filtre_niveau_murs([level]), menu.unpost()))
+        listbox.insert(tk.END, n)
+    listbox.pack(side="left", fill="both", expand=True)
+
+    scrollbar = tk.Scrollbar(container_frame, orient="vertical", command=listbox.yview)
+    scrollbar.pack(side="right", fill="y")
+    listbox.configure(yscrollcommand=scrollbar.set)
+
+    def apply_and_close(event=None):
+        selected = [listbox.get(i) for i in listbox.curselection()]
+        dropdown.destroy()
+        appliquer_filtre_niveau_murs(selected)
+
+    listbox.bind("<Double-Button-1>", apply_and_close)
+    listbox.bind("<Return>", apply_and_close)
+    listbox.bind("<FocusOut>", lambda e: dropdown.destroy())
+
     x = btn_niveau_murs.winfo_rootx()
     y = btn_niveau_murs.winfo_rooty() + btn_niveau_murs.winfo_height()
-    menu.tk_popup(x, y)
-    menu.grab_release()
+    dropdown.geometry(f"+{x}+{y}")
+    listbox.focus_set()
 
 def appliquer_filtre_zero_menuiseries():
     """Filtrer pour n’afficher que les menuiseries avec quantité égale à 0."""
