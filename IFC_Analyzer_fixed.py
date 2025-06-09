@@ -9,12 +9,10 @@ def afficher_infos_mur_resume(event=None):
 
 
 def _format_summary_value(value: float, unit: str = "") -> str:
-    """Format the value for the summary, returning 'N/A' when value is non positive."""
+    """Format the value for the summary, returning 'N/A' when the value is invalid."""
     try:
         val = float(value)
     except (TypeError, ValueError):
-        return "N/A"
-    if val <= 0:
         return "N/A"
     return f"{round(val, 2):.2f}{unit}"
 
@@ -1945,8 +1943,9 @@ def _update_infos_mur(nom_sel: str, storey: str = None):
 
 
 def _update_resume_mur(nom_sel: str):
-    """Met à jour le résumé pour le mur sélectionné."""
-    murs_source = [m for m in donnees_ifc.get(ifc_actif, {}).get("murs", []) if m[0] == nom_sel]
+    """Met à jour le résumé pour le mur ou le type sélectionné."""
+    murs_all = donnees_ifc.get(ifc_actif, {}).get("murs", [])
+    murs_source = [m for m in murs_all if m[0] == nom_sel or m[4] == nom_sel]
     if not murs_source:
         return
     surface_menuiseries_tot = sum(m[1] for m in donnees_ifc.get(ifc_actif, {}).get("menuiseries", []))
@@ -2028,13 +2027,14 @@ def afficher_infos_mur(event=None):
 
 
 def afficher_infos_mur_resume(event=None):
-    """Affiche les informations lors de la sélection dans le résumé."""
+    """Affiche les informations et met à jour le résumé pour la sélection."""
     sel = tree_surfaces_murs.selection()
     if not sel:
         hide_infos_murs()
         return
     nom_sel = tree_surfaces_murs.item(sel[0])["values"][0]
     _update_infos_mur(nom_sel)
+    _update_resume_mur(nom_sel)
 
 tree_murs.bind("<<TreeviewSelect>>", afficher_infos_mur)
 
