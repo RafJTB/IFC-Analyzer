@@ -147,10 +147,6 @@ progress_canvas = None
 tabs_frame = None
 tab_buttons = []
 
-# --- UI elements for level filtering (murs) -----
-frame_niveau_murs = None
-listbox_niveau_murs = None
-
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
 tree_surfaces_poteaux = None
@@ -929,60 +925,6 @@ def afficher_donnees_murs(murs):
         tree_surfaces_murs.insert("", "end", values=(nom_type, round(surface_type, 2)), tags=(tag_row,))
     # -------------------------------------------------------------------------
 
-def _maj_resume_murs(murs):
-    longueur_totale = volume_total = surface_brut = surface_net = 0.0
-    surface_menuiseries_ext = sum(m[1] for m in donnees_ifc[ifc_actif]["menuiseries"] if m[4] == "Extérieure")
-    surfaces_par_nom = {}
-    for nom, surface, longueur, volume, mur_type, _storey in murs:
-        longueur_totale += longueur
-        volume_total += volume
-        surfaces_par_nom[nom] = surfaces_par_nom.get(nom, 0) + surface
-        if mur_type == "IfcWallStandardCase":
-            surface_net += surface
-        else:
-            surface_brut += surface
-    surface_brut_total = surface_brut + surface_net
-    surface_net_murs = surface_brut_total - surface_menuiseries_ext
-    for widget in grid_resume_murs.winfo_children():
-        widget.destroy()
-    row = 0
-    tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=f"{round(longueur_totale, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
-    if volume_total > 0:
-        tk.Label(grid_resume_murs, text="📦 Volume :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(volume_total, 2)} m³", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=f"{round(surface_brut_total, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
-    if surface_net_murs > 0:
-        tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_net_murs, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if surface_brut > 0:
-        tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_brut, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if surface_net > 0:
-        tk.Label(grid_resume_murs, text="🏢 Cloisons de surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_net, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    tree_surfaces_murs.delete(*tree_surfaces_murs.get_children())
-    for idx, (nom, surface) in enumerate(surfaces_par_nom.items()):
-        tag_row = "evenrow" if idx % 2 == 0 else "oddrow"
-        tree_surfaces_murs.insert("", "end", values=(nom, round(surface, 2)), tags=(tag_row,))
-
-def maj_resume_murs_selection():
-    murs_all = donnees_ifc.get(ifc_actif, {}).get("murs", [])
-    sel = tree_murs.selection()
-    if not sel:
-        murs = murs_all
-    else:
-        names = [tree_murs.item(i)["values"][0] for i in sel]
-        murs = [m for m in murs_all if m[0] in names]
-    _maj_resume_murs(murs)
-
 
 
 def afficher_donnees_escaliers(escaliers):
@@ -1359,31 +1301,20 @@ def appliquer_filtre_niveau_murs(niveaux):
     afficher_donnees_murs(murs_filtre)
 
 def open_filtre_niveau_murs():
-    global frame_niveau_murs, listbox_niveau_murs
     niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
     if not niveaux:
         return
-    if frame_niveau_murs and frame_niveau_murs.winfo_exists():
-        if frame_niveau_murs.winfo_viewable():
-            frame_niveau_murs.pack_forget()
-            return
-    else:
-        frame_niveau_murs = tk.Frame(frame_murs_content, bg="#FFFFFF", bd=1, relief="solid")
-        listbox_niveau_murs = tk.Listbox(frame_niveau_murs, selectmode='multiple', height=min(5, len(niveaux)))
-        for n in niveaux:
-            listbox_niveau_murs.insert(tk.END, n)
-        listbox_niveau_murs.pack(side="left", fill="both", expand=True, padx=5, pady=5)
-        ttk.Button(frame_niveau_murs, text='Appliquer', command=apply_filtre_niveau_murs_ui).pack(side="right", padx=5, pady=5)
-    frame_niveau_murs.pack(fill="x", padx=10, pady=(0,10))
-
-def apply_filtre_niveau_murs_ui():
-    global frame_niveau_murs, listbox_niveau_murs
-    if listbox_niveau_murs is None:
-        return
-    selected = [listbox_niveau_murs.get(i) for i in listbox_niveau_murs.curselection()]
-    appliquer_filtre_niveau_murs(selected)
-    if frame_niveau_murs and frame_niveau_murs.winfo_exists():
-        frame_niveau_murs.pack_forget()
+    top = tk.Toplevel(root)
+    top.title('Filtrer par niveau')
+    lb = tk.Listbox(top, selectmode='multiple')
+    for n in niveaux:
+        lb.insert(tk.END, n)
+    lb.pack(padx=10, pady=10, fill='both', expand=True)
+    def apply():
+        selected = [lb.get(i) for i in lb.curselection()]
+        top.destroy()
+        appliquer_filtre_niveau_murs(selected)
+    ttk.Button(top, text='Appliquer', command=apply).pack(pady=(0,10))
 
 def appliquer_filtre_zero_menuiseries():
     """Filtrer pour n’afficher que les menuiseries avec quantité égale à 0."""
@@ -1845,7 +1776,7 @@ tk.Label(title_frame_filtrage_murs, text="FILTRAGE PAR NOMS", font=TITLE_FONT, b
 types_frame = tk.Frame(frame_resume_murs, bg="#E8F5E9", bd=2, relief="groove")
 types_frame.pack(fill="both", padx=5, pady=5, expand=True)
 title_frame_types_murs = tk.Frame(frame_resume_murs, bg="#004D40")
-title_frame_types_murs.pack_forget()
+title_frame_types_murs.pack(fill="x", padx=5, pady=(15, 0))
 
 # ----- Conteneur INFORMATIONS COMPLÉMENTAIRES pour MURS -----
 info_frame_murs = tk.Frame(frame_resume_murs, bg="#E8F5E9", bd=2, relief="groove")
@@ -1925,8 +1856,6 @@ def hide_infos_murs():
         w.destroy()
     if info_frame_murs.winfo_ismapped():
         info_frame_murs.pack_forget()
-    if title_frame_types_murs.winfo_ismapped():
-        title_frame_types_murs.pack_forget()
 
 def _update_infos_mur(nom_sel: str):
     """Affiche les informations complémentaires pour le mur donné."""
@@ -1946,18 +1875,11 @@ def _update_infos_mur(nom_sel: str):
             val = "N/A"
         if key == "IsExternal" and val not in ("", "N/A"):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
-        else:
-            try:
-                val = f"{float(val):.2f}"
-            except (ValueError, TypeError):
-                pass
         tk.Label(grid_infos_murs, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_murs, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
     if not info_frame_murs.winfo_ismapped():
         info_frame_murs.pack(side="bottom", fill="x", padx=5, pady=5)
-    if not title_frame_types_murs.winfo_ismapped():
-        title_frame_types_murs.pack(fill="x", padx=5, pady=(15,0))
 
 
 def afficher_infos_mur(event=None):
@@ -1965,11 +1887,9 @@ def afficher_infos_mur(event=None):
     sel = tree_murs.selection()
     if not sel:
         hide_infos_murs()
-        maj_resume_murs_selection()
         return
     nom_sel = tree_murs.item(sel[0])["values"][0]
     _update_infos_mur(nom_sel)
-    maj_resume_murs_selection()
 
 
 def afficher_infos_mur_resume(event=None):
