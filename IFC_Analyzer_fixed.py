@@ -2035,6 +2035,7 @@ def afficher_infos_mur_resume(event=None):
         return
     nom_sel = tree_surfaces_murs.item(sel[0])["values"][0]
     _update_infos_mur(nom_sel)
+    _update_resume_mur(nom_sel)
 
 tree_murs.bind("<<TreeviewSelect>>", afficher_infos_mur)
 
