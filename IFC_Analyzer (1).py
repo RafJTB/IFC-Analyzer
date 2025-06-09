@@ -375,7 +375,8 @@ def importer_ifc():
                     "IsExternal": _find_prop(["IsExternal", "External"]),
                     "Storey": storey,
                 }
-                donnees_ifc[chemin]["murs_infos"][name] = info_props
+                # Clé incluant le niveau pour distinguer les éléments identiques
+                donnees_ifc[chemin]["murs_infos"][(name, storey)] = info_props
 
                 donnees_ifc[chemin]["murs"].append((name, round(surface, 2), round(longueur, 2), round(volume, 2), mur_type, storey))
                 processed_elements += 1
@@ -871,8 +872,9 @@ def afficher_donnees_murs(murs):
     for i in tree_murs.get_children() :
         tree_murs.delete(i)
     murs_tries = sorted(murs, key=lambda x: x[0])
-    longueur_totale = volume_total = surface_brut = surface_net = 0.0
-    surface_menuiseries_ext = sum(m[1] for m in donnees_ifc[ifc_actif]["menuiseries"] if m[4] == "Extérieure")
+    longueur_totale = volume_total = 0.0
+    surface_totale = surface_cloisons = surface_murs = 0.0
+    surface_menuiseries_tot = sum(m[1] for m in donnees_ifc[ifc_actif]["menuiseries"])
     surfaces_par_nom = {}
     for idx, mur in enumerate(murs_tries) :
         nom, surface, longueur, volume, mur_type, _storey = mur
@@ -880,16 +882,16 @@ def afficher_donnees_murs(murs):
         tree_murs.insert("", "end", values=(nom, surface, longueur, volume, mur_type), tags=(tag,))
         longueur_totale += longueur
         volume_total += volume
-        if nom in surfaces_par_nom :
+        if nom in surfaces_par_nom:
             surfaces_par_nom[nom] += surface
         else:
             surfaces_par_nom[nom] = surface
-        if mur_type == "IfcWallStandardCase":
-            surface_net += surface
+        surface_totale += surface
+        if "cloison" in nom.lower():
+            surface_cloisons += surface
         else:
-            surface_brut += surface
-    surface_brut_total = surface_brut + surface_net
-    surface_net_murs = surface_brut_total - surface_menuiseries_ext
+            surface_murs += surface
+    surface_nette = surface_totale - surface_menuiseries_tot
     for widget in grid_resume_murs.winfo_children() :
         widget.destroy()
     row = 0
@@ -903,19 +905,19 @@ def afficher_donnees_murs(murs):
         row += 1
     if True:  # always show even when zero
         tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_brut_total, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_totale, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
-    if surface_net_murs > 0 :
+    if surface_nette > 0 :
         tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_net_murs, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_nette, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
-    if surface_brut > 0 :
+    if surface_murs > 0 :
         tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_brut, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_murs, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
-    if surface_net > 0 :
+    if surface_cloisons > 0 :
         tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_net, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_cloisons, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     for widget in grid_types_murs.winfo_children() :
         widget.destroy()
@@ -1876,10 +1878,18 @@ def hide_infos_murs():
     for w in grid_infos_murs.winfo_children():
         w.destroy()
 
-def _update_infos_mur(nom_sel: str):
+def _update_infos_mur(nom_sel: str, storey: str = None):
     """Affiche les informations complémentaires pour le mur donné."""
     hide_infos_murs()
-    info = donnees_ifc.get(ifc_actif, {}).get("murs_infos", {}).get(nom_sel, {})
+    infos = donnees_ifc.get(ifc_actif, {}).get("murs_infos", {})
+    info = {}
+    if storey is not None:
+        info = infos.get((nom_sel, storey), {})
+    if not info:
+        for (n, s), data in infos.items():
+            if n == nom_sel:
+                info = data
+                break
     mapping = [
         ("Fonction", "Fonction"),
         ("Largeur", "Largeur"),
@@ -1910,17 +1920,18 @@ def _update_resume_mur(nom_sel: str):
     murs_source = [m for m in donnees_ifc.get(ifc_actif, {}).get("murs", []) if m[0] == nom_sel]
     if not murs_source:
         return
-    surface_menuiseries_ext = sum(m[1] for m in donnees_ifc.get(ifc_actif, {}).get("menuiseries", []) if m[4] == "Extérieure")
-    longueur_totale = volume_total = surface_brut = surface_net = 0.0
-    for _, surface, longueur, volume, mur_type, _ in murs_source:
+    surface_ouvertures = sum(m[1] for m in donnees_ifc.get(ifc_actif, {}).get("menuiseries", []))
+    longueur_totale = volume_total = surface_totale = 0.0
+    surface_cloisons = surface_murs = 0.0
+    for nom, surface, longueur, volume, _mur_type, _ in murs_source:
         longueur_totale += longueur
         volume_total += volume
-        if mur_type == "IfcWallStandardCase":
-            surface_net += surface
+        surface_totale += surface
+        if "cloison" in nom.lower():
+            surface_cloisons += surface
         else:
-            surface_brut += surface
-    surface_brut_total = surface_brut + surface_net
-    surface_net_murs = surface_brut_total - surface_menuiseries_ext
+            surface_murs += surface
+    surface_nette = surface_totale - surface_ouvertures
     for w in grid_resume_murs.winfo_children():
         w.destroy()
     row = 0
@@ -1932,19 +1943,19 @@ def _update_resume_mur(nom_sel: str):
         tk.Label(grid_resume_murs, text=f"{round(volume_total,2)} m³", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=f"{round(surface_brut_total,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text=f"{round(surface_totale,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
-    if surface_net_murs > 0:
+    if surface_nette > 0:
         tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_net_murs,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_nette,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
-    if surface_brut > 0:
+    if surface_murs > 0:
         tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_brut,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_murs,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
-    if surface_net > 0:
+    if surface_cloisons > 0:
         tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_net,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_cloisons,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
 
 def afficher_infos_mur(event=None):
@@ -1953,8 +1964,27 @@ def afficher_infos_mur(event=None):
     if not sel:
         hide_infos_murs()
         return
-    nom_sel = tree_murs.item(sel[0])["values"][0]
-    _update_infos_mur(nom_sel)
+    values = tree_murs.item(sel[0])["values"]
+    nom_sel = values[0]
+    try:
+        surface = float(values[1])
+        longueur = float(values[2])
+        volume = float(values[3])
+    except (ValueError, TypeError):
+        surface = longueur = volume = 0.0
+    mur_type = values[4]
+    storey = None
+    for m in donnees_ifc.get(ifc_actif, {}).get("murs", []):
+        if (
+            m[0] == nom_sel
+            and abs(m[1] - surface) < 0.01
+            and abs(m[2] - longueur) < 0.01
+            and abs(m[3] - volume) < 0.01
+            and m[4] == mur_type
+        ):
+            storey = m[5]
+            break
+    _update_infos_mur(nom_sel, storey)
     _update_resume_mur(nom_sel)
 
 
