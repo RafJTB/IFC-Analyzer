@@ -5,6 +5,7 @@ def afficher_infos_mur_resume(event=None):
         return
     nom_sel = tree_surfaces_murs.item(sel[0])["values"][0]
     _update_infos_mur(nom_sel)
+    _update_resume_mur(nom_sel)
 
 def on_configure_grid_types_murs(event):
     """Réajuste la zone de scroll du canvas des types de murs."""
@@ -149,6 +150,11 @@ tab_buttons = []
 
 # Bouton filtrage par niveau (référence conservée pour le menu déroulant)
 btn_niveau_murs = None
+
+# Filtres actifs pour le tableau MURS
+filtre_texte_murs = ""
+filtre_niveaux_murs = []
+filtre_zero_murs = False
 
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
@@ -908,7 +914,7 @@ def afficher_donnees_murs(murs):
         tk.Label(grid_resume_murs, text=f"{round(surface_brut, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if surface_net > 0 :
-        tk.Label(grid_resume_murs, text="🏢 Cloisons de surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_resume_murs, text=f"{round(surface_net, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     for widget in grid_types_murs.winfo_children() :
@@ -1257,14 +1263,30 @@ def appliquer_filtre_garde_corps():
 # --------------------------------------
 # Filtres
 # --------------------------------------
+def _apply_filters_murs():
+    """Applique tous les filtres actifs sur la liste des murs."""
+    murs = donnees_ifc.get(ifc_actif, {}).get("murs", [])
+    if filtre_zero_murs:
+        murs = [m for m in murs if m[1] == 0]
+    if filtre_niveaux_murs:
+        murs = [m for m in murs if m[5] in filtre_niveaux_murs]
+    if filtre_texte_murs:
+        lower = filtre_texte_murs
+        murs = [m for m in murs if lower in m[0].lower()]
+    afficher_donnees_murs(murs)
+
 def appliquer_filtre_murs():
-    texte_filtre = entree_filtre_murs.get().lower()
-    murs_filtres = [mur for mur in donnees_ifc[ifc_actif]["murs"] if texte_filtre in mur[0].lower()]
-    afficher_donnees_murs(murs_filtres)
+    global filtre_texte_murs
+    filtre_texte_murs = entree_filtre_murs.get().lower()
+    _apply_filters_murs()
 
 def reinitialiser_filtre_murs() :
+    global filtre_texte_murs, filtre_niveaux_murs, filtre_zero_murs
     entree_filtre_murs.delete(0, tk.END)
-    afficher_donnees_murs(donnees_ifc[ifc_actif]["murs"])
+    filtre_texte_murs = ""
+    filtre_niveaux_murs = []
+    filtre_zero_murs = False
+    _apply_filters_murs()
 
 def appliquer_filtre_menuiseries() :
     texte_filtre = entree_filtre_menuiseries.get().lower()
@@ -1291,17 +1313,16 @@ def appliquer_filtre_zero_type_sol():
     afficher_donnees_type_sol(sols_zero)
 
 def appliquer_filtre_zero_murs():
-    """Filtrer pour n’afficher que les murs avec quantité égale à 0."""
-    murs_zero = [mur for mur in donnees_ifc[ifc_actif]['murs'] if mur[1] == 0]
-    afficher_donnees_murs(murs_zero)
+    """Active le filtre pour n'afficher que les murs de quantité nulle."""
+    global filtre_zero_murs
+    filtre_zero_murs = True
+    _apply_filters_murs()
 
 def appliquer_filtre_niveau_murs(niveaux):
     """Filtrer les murs selon une liste de niveaux."""
-    if not niveaux:
-        afficher_donnees_murs(donnees_ifc[ifc_actif]['murs'])
-        return
-    murs_filtre = [m for m in donnees_ifc[ifc_actif]['murs'] if m[5] in niveaux]
-    afficher_donnees_murs(murs_filtre)
+    global filtre_niveaux_murs
+    filtre_niveaux_murs = niveaux or []
+    _apply_filters_murs()
 
 def open_filtre_niveau_murs():
     niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
@@ -1583,7 +1604,7 @@ entree_filtre_murs = tk.Entry(frame_filtre_murs, width=40)
 entree_filtre_murs.pack(side="left", padx=5)
 ttk.Button(frame_filtre_murs, text="Appliquer", command=appliquer_filtre_murs).pack(side="left", padx=5)
 ttk.Button(frame_filtre_murs, text="Réinitialiser", command=reinitialiser_filtre_murs).pack(side="left", padx=5)
-ttk.Button(frame_filtre_murs, text="0", command=appliquer_filtre_zero_murs).pack(side="left", padx=5)
+ttk.Button(frame_filtre_murs, text="Qt = 0", command=appliquer_filtre_zero_murs).pack(side="left", padx=5)
 btn_niveau_murs = ttk.Button(frame_filtre_murs, text="Niveau", command=open_filtre_niveau_murs)
 btn_niveau_murs.pack(side="left", padx=5)
 print("Cadre de filtrage des murs créé")
@@ -1616,7 +1637,7 @@ entree_filtre_escalier = tk.Entry(frame_filtre_escalier, width=40)
 entree_filtre_escalier.pack(side="left", padx=5)
 ttk.Button(frame_filtre_escalier, text="Appliquer", command=appliquer_filtre_escalier).pack(side="left", padx=5)
 ttk.Button(frame_filtre_escalier, text="Réinitialiser", command=reinitialiser_filtre_escalier).pack(side="left", padx=5)
-ttk.Button(frame_filtre_escalier, text="0", command=appliquer_filtre_zero_escalier).pack(side="left", padx=5)
+ttk.Button(frame_filtre_escalier, text="Qt = 0", command=appliquer_filtre_zero_escalier).pack(side="left", padx=5)
 print("Cadre de filtrage des escaliers créé")
 
 tree_escalier = ttk.Treeview(frame_escalier_content, columns=("Nom", "HT volée", "HT contremarches", "NB contremarches", "NB marches"), show="headings")
@@ -1647,7 +1668,7 @@ entree_filtre_bord_dalle = tk.Entry(frame_filtre_bord_dalle, width=40)
 entree_filtre_bord_dalle.pack(side="left", padx=5)
 ttk.Button(frame_filtre_bord_dalle, text="Appliquer", command=appliquer_filtre_bord_dalle).pack(side="left", padx=5)
 ttk.Button(frame_filtre_bord_dalle, text="Réinitialiser", command=reinitialiser_filtre_bord_dalle).pack(side="left", padx=5)
-ttk.Button(frame_filtre_bord_dalle, text="0", command=appliquer_filtre_zero_bord_dalle).pack(side="left", padx=5)
+ttk.Button(frame_filtre_bord_dalle, text="Qt = 0", command=appliquer_filtre_zero_bord_dalle).pack(side="left", padx=5)
 
 # Tableau principal
 tree_bord_dalle = ttk.Treeview(
@@ -1922,7 +1943,7 @@ def _update_resume_mur(nom_sel: str):
         tk.Label(grid_resume_murs, text=f"{round(surface_brut,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if surface_net > 0:
-        tk.Label(grid_resume_murs, text="🏢 Cloisons de surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_resume_murs, text=f"{round(surface_net,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
 
@@ -1975,7 +1996,7 @@ entree_filtre_menuiseries = tk.Entry(frame_filtre_menuiseries, width=40)
 entree_filtre_menuiseries.pack(side="left", padx=5)
 ttk.Button(frame_filtre_menuiseries, text="Appliquer", command=appliquer_filtre_menuiseries).pack(side="left", padx=5)
 ttk.Button(frame_filtre_menuiseries, text="Réinitialiser", command=reinitialiser_filtre_menuiseries).pack(side="left", padx=5)
-ttk.Button(frame_filtre_menuiseries, text="0", command=appliquer_filtre_zero_menuiseries).pack(side="left", padx=5)
+ttk.Button(frame_filtre_menuiseries, text="Qt = 0", command=appliquer_filtre_zero_menuiseries).pack(side="left", padx=5)
 print("Cadre de filtrage des menuiseries créées")
 
 tree_menuiseries = ttk.Treeview(frame_menuiseries_content, columns=("Nom", "Surface (m²)", "Longueur ", "Hauteur (m)", "Type"), show="headings")
@@ -2096,7 +2117,7 @@ entree_filtre_type_sol = tk.Entry(frame_filtre_type_sol, width=40)
 entree_filtre_type_sol.pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_sol, text="Appliquer", command=appliquer_filtre_type_sol).pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_sol, text="Réinitialiser", command=reinitialiser_filtre_type_sol).pack(side="left", padx=5)
-ttk.Button(frame_filtre_type_sol, text="0", command=appliquer_filtre_zero_type_sol).pack(side="left", padx=5)
+ttk.Button(frame_filtre_type_sol, text="Qt = 0", command=appliquer_filtre_zero_type_sol).pack(side="left", padx=5)
 print("Cadre de filtrage des sols créé")
 
 tree_type_sol = ttk.Treeview(frame_type_sol_content, columns=("Nom", "Surface (m²)", "Longueur ", "Type"), show="headings")
@@ -2257,7 +2278,7 @@ entree_filtre_garde_corps = tk.Entry(frame_filtre_garde_corps, width=40)
 entree_filtre_garde_corps.pack(side="left", padx=5)
 ttk.Button(frame_filtre_garde_corps, text="Appliquer", command=appliquer_filtre_garde_corps).pack(side="left", padx=5)
 ttk.Button(frame_filtre_garde_corps, text="Réinitialiser", command=reinitialiser_filtre_garde_corps).pack(side="left", padx=5)
-ttk.Button(frame_filtre_garde_corps, text="0", command=appliquer_filtre_zero_garde_corps).pack(side="left", padx=5)
+ttk.Button(frame_filtre_garde_corps, text="Qt = 0", command=appliquer_filtre_zero_garde_corps).pack(side="left", padx=5)
 print("Cadre de filtrage des garde-corps créé")
 
 tree_garde_corps = ttk.Treeview(frame_garde_corps_content, columns=("Nom", "Largeur (m)", "Type"), show="headings")
@@ -2383,7 +2404,7 @@ ttk.Button(frame_filtre_poteaux, text="Appliquer",  command=appliquer_filtre_pot
 ttk.Button(frame_filtre_poteaux,
            text="Réinitialiser",
            command=reinitialiser_filtre_poteaux).pack(side="left", padx=5)
-ttk.Button(frame_filtre_poteaux, text="0", command=appliquer_filtre_zero_poteaux).pack(side="left", padx=5)
+ttk.Button(frame_filtre_poteaux, text="Qt = 0", command=appliquer_filtre_zero_poteaux).pack(side="left", padx=5)
 
 
 tree_poteaux = ttk.Treeview(
@@ -2541,7 +2562,7 @@ ttk.Button(frame_filtre_poutres, text="Appliquer",  command=appliquer_filtre_pou
 ttk.Button(frame_filtre_poutres,
            text="Réinitialiser",
            command=reinitialiser_filtre_poutres).pack(side="left", padx=5)
-ttk.Button(frame_filtre_poutres, text="0", command=appliquer_filtre_zero_poutres).pack(side="left", padx=5)
+ttk.Button(frame_filtre_poutres, text="Qt = 0", command=appliquer_filtre_zero_poutres).pack(side="left", padx=5)
 
 
 tree_poutres = ttk.Treeview(
@@ -2729,7 +2750,7 @@ entree_filtre_ep = tk.Entry(frame_filtre_ep, width=40)
 entree_filtre_ep.pack(side="left", padx=5)
 ttk.Button(frame_filtre_ep, text="Appliquer",  command=lambda: appliquer_filtre_ep()).pack(side="left", padx=5)
 ttk.Button(frame_filtre_ep, text="Réinitialiser", command=lambda: reinitialiser_filtre_ep()).pack(side="left", padx=5)
-ttk.Button(frame_filtre_ep, text="0", command=lambda: appliquer_filtre_zero_ep()).pack(side="left", padx=5)
+ttk.Button(frame_filtre_ep, text="Qt = 0", command=lambda: appliquer_filtre_zero_ep()).pack(side="left", padx=5)
 
 tree_ep = ttk.Treeview(
     frame_descente_ep_content,
@@ -2874,7 +2895,7 @@ entree_filtre_type_plafond = tk.Entry(frame_filtre_type_plafond, width=40)
 entree_filtre_type_plafond.pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_plafond, text="Appliquer", command=lambda: appliquer_filtre_type_plafond()).pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_plafond, text="Réinitialiser", command=lambda: reinitialiser_filtre_type_plafond()).pack(side="left", padx=5)
-ttk.Button(frame_filtre_type_plafond, text="0", command=lambda: appliquer_filtre_zero_type_plafond()).pack(side="left", padx=5)
+ttk.Button(frame_filtre_type_plafond, text="Qt = 0", command=lambda: appliquer_filtre_zero_type_plafond()).pack(side="left", padx=5)
 print("Cadre de filtrage des plafonds créé")
 
 # ---- Treeview principal ----
