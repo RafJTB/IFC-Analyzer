@@ -9,8 +9,14 @@ def afficher_infos_mur_resume(event=None):
 
 
 def _format_summary_value(value: float, unit: str = "") -> str:
-    """Format the value for the summary, returning 'N/A' when zero."""
-    return "N/A" if not value else f"{round(value, 2):.2f}{unit}"
+    """Format the value for the summary, returning 'N/A' when value is non positive."""
+    try:
+        val = float(value)
+    except (TypeError, ValueError):
+        return "N/A"
+    if val <= 0:
+        return "N/A"
+    return f"{round(val, 2):.2f}{unit}"
 
 def on_configure_grid_types_murs(event):
     """Réajuste la zone de scroll du canvas des types de murs."""
@@ -896,7 +902,7 @@ def afficher_donnees_murs(murs):
             surface_cloisons += surface
         else:
             surface_murs += surface
-    surface_nette = surface_totale - surface_menuiseries_tot
+    surface_nette = max(surface_totale - surface_menuiseries_tot, 0.0)
     for widget in grid_resume_murs.winfo_children():
         widget.destroy()
     left_row = right_row = 0
@@ -919,8 +925,8 @@ def afficher_donnees_murs(murs):
     if surface_totale > 0:
         ratio_murs = surface_murs / surface_totale
         ratio_cloisons = surface_cloisons / surface_totale
-        surface_murs_nette = surface_murs - surface_menuiseries_tot * ratio_murs
-        surface_cloisons_nette = surface_cloisons - surface_menuiseries_tot * ratio_cloisons
+        surface_murs_nette = max(surface_murs - surface_menuiseries_tot * ratio_murs, 0.0)
+        surface_cloisons_nette = max(surface_cloisons - surface_menuiseries_tot * ratio_cloisons, 0.0)
 
     # --- colonne droite
     tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
@@ -1954,7 +1960,7 @@ def _update_resume_mur(nom_sel: str):
             surface_cloisons += surface
         else:
             surface_murs += surface
-    surface_nette = surface_totale - surface_menuiseries_tot
+    surface_nette = max(surface_totale - surface_menuiseries_tot, 0.0)
     for w in grid_resume_murs.winfo_children():
         w.destroy()
     left_row = right_row = 0
@@ -1975,8 +1981,8 @@ def _update_resume_mur(nom_sel: str):
     if surface_totale > 0:
         ratio_murs = surface_murs / surface_totale
         ratio_cloisons = surface_cloisons / surface_totale
-        surface_murs_nette = surface_murs - surface_menuiseries_tot * ratio_murs
-        surface_cloisons_nette = surface_cloisons - surface_menuiseries_tot * ratio_cloisons
+        surface_murs_nette = max(surface_murs - surface_menuiseries_tot * ratio_murs, 0.0)
+        surface_cloisons_nette = max(surface_cloisons - surface_menuiseries_tot * ratio_cloisons, 0.0)
 
     tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
     tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
