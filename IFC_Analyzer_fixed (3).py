@@ -18,6 +18,20 @@ def _format_summary_value(value: float, unit: str = "") -> str:
         return "N/A"
     return f"{round(val, 2):.2f}{unit}"
 
+def _calc_surface_menuiseries(murs_list):
+    """Calcule la surface cumulée des menuiseries associées aux murs fournis."""
+    pairs = set()
+    infos = donnees_ifc.get(ifc_actif, {}).get("murs_infos", {})
+    for nom, _s, _l, _v, _t, storey in murs_list:
+        info = infos.get((nom, storey), {})
+        ext = info.get("IsExternal")
+        if isinstance(ext, str):
+            ext = ext.lower() in ("true", "1", "yes", "oui")
+        statut = "Extérieure" if ext else "Intérieure"
+        pairs.add((storey, statut))
+    menu = donnees_ifc.get(ifc_actif, {}).get("menuiseries", [])
+    return sum(m[1] for m in menu if (m[5], m[4]) in pairs)
+
 def on_configure_grid_types_murs(event):
     """Réajuste la zone de scroll du canvas des types de murs."""
     canvas_grid_types_murs.configure(scrollregion=canvas_grid_types_murs.bbox("all"))
@@ -893,10 +907,7 @@ def afficher_donnees_murs(murs):
     murs_tries = sorted(murs, key=lambda x: x[0])
     longueur_totale = volume_total = 0.0
     surface_totale = surface_cloisons = surface_murs = 0.0
-    levels = {m[5] for m in murs}
-    surface_menuiseries_tot = sum(
-        m[1] for m in donnees_ifc[ifc_actif]["menuiseries"] if m[5] in levels
-    )
+    surface_menuiseries_tot = _calc_surface_menuiseries(murs)
     surfaces_par_nom = {}
     for idx, mur in enumerate(murs_tries) :
         nom, surface, longueur, volume, mur_type, _storey = mur
@@ -1960,10 +1971,7 @@ def _update_resume_mur(nom_sel: str):
     murs_source = [m for m in donnees_ifc.get(ifc_actif, {}).get("murs", []) if m[0] == nom_sel]
     if not murs_source:
         return
-    levels = {m[5] for m in murs_source}
-    surface_menuiseries_tot = sum(
-        m[1] for m in donnees_ifc.get(ifc_actif, {}).get("menuiseries", []) if m[5] in levels
-    )
+    surface_menuiseries_tot = _calc_surface_menuiseries(murs_source)
     longueur_totale = volume_total = surface_totale = 0.0
     surface_cloisons = surface_murs = 0.0
     for nom, surface, longueur, volume, _mur_type, _ in murs_source:
