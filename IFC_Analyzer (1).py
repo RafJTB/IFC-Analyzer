@@ -892,33 +892,47 @@ def afficher_donnees_murs(murs):
         else:
             surface_murs += surface
     surface_nette = surface_totale - surface_menuiseries_tot
-    for widget in grid_resume_murs.winfo_children() :
+    for widget in grid_resume_murs.winfo_children():
         widget.destroy()
-    row = 0
-    if True:  # always show even when zero
-        tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(longueur_totale, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if volume_total > 0 :
-        tk.Label(grid_resume_murs, text="📦 Volume :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(volume_total, 2)} m³", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if True:  # always show even when zero
-        tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_totale, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if surface_nette > 0 :
-        tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_nette, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if surface_murs > 0 :
-        tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_murs, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if surface_cloisons > 0 :
-        tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_cloisons, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
+    left_row = right_row = 0
+    # --- colonne gauche
+    tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=f"{round(longueur_totale, 2):.2f} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    left_row += 1
+    if volume_total > 0:
+        tk.Label(grid_resume_murs, text="📦 Volume :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(volume_total, 2):.2f} m³", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        left_row += 1
+    tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=f"{round(surface_totale, 2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    left_row += 1
+    if surface_nette > 0:
+        tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_nette, 2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        left_row += 1
+
+    # --- calcul surfaces nettes par catégorie
+    surface_murs_nette = surface_cloisons_nette = 0.0
+    if surface_totale > 0:
+        ratio_murs = surface_murs / surface_totale
+        ratio_cloisons = surface_cloisons / surface_totale
+        surface_murs_nette = surface_murs - surface_ouvertures * ratio_murs
+        surface_cloisons_nette = surface_cloisons - surface_ouvertures * ratio_cloisons
+
+    # --- colonne droite
+    if surface_murs > 0:
+        tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_murs, 2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        right_row += 1
+        tk.Label(grid_resume_murs, text="🧱 Surface murs nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_murs_nette, 2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        right_row += 1
+    if surface_cloisons > 0:
+        tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_cloisons, 2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        right_row += 1
+        tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_cloisons_nette, 2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     for widget in grid_types_murs.winfo_children() :
         widget.destroy()
     # on cache canvas au départ
@@ -1791,6 +1805,7 @@ general_frame.pack(fill="x", padx=5, pady=5)
 grid_resume_murs = tk.Frame(general_frame, bg="#E8F5E9")
 grid_resume_murs.pack(pady=5)
 grid_resume_murs.grid_columnconfigure(1, weight=1)
+grid_resume_murs.grid_columnconfigure(3, weight=1)
 
 # Titre Filtrage par noms
 title_frame_filtrage_murs = tk.Frame(frame_resume_murs, bg="#004D40")
@@ -1890,13 +1905,14 @@ def _update_infos_mur(nom_sel: str, storey: str = None):
             if n == nom_sel:
                 info = data
                 break
+
+    storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
     mapping = [
         ("Fonction", "Fonction"),
         ("Largeur", "Largeur"),
         ("Hauteur non contrainte", "Hauteur non contrainte"),
         ("Matériau structurel", "Matériau structurel"),
         ("IsExternal", "Extérieur"),
-        ("Storey", "Niveau"),
     ]
     for row, (key, label) in enumerate(mapping):
         val = info.get(key, "")
@@ -1913,6 +1929,12 @@ def _update_infos_mur(nom_sel: str, storey: str = None):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
         tk.Label(grid_infos_murs, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_murs, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    # Gestion des niveaux multiples
+    label = "Niveau" if len(storeys) <= 1 else "Niveaux"
+    valeur = " - ".join(storeys) if storeys else "N/A"
+    row = len(mapping)
+    tk.Label(grid_infos_murs, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_murs, text=valeur, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 
 def _update_resume_mur(nom_sel: str):
@@ -1934,28 +1956,42 @@ def _update_resume_mur(nom_sel: str):
     surface_nette = surface_totale - surface_ouvertures
     for w in grid_resume_murs.winfo_children():
         w.destroy()
-    row = 0
-    tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=f"{round(longueur_totale,2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
+    left_row = right_row = 0
+    tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=f"{round(longueur_totale,2):.2f} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    left_row += 1
     if volume_total > 0:
-        tk.Label(grid_resume_murs, text="📦 Volume :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(volume_total,2)} m³", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=f"{round(surface_totale,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
+        tk.Label(grid_resume_murs, text="📦 Volume :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(volume_total,2):.2f} m³", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        left_row += 1
+    tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=f"{round(surface_totale,2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    left_row += 1
     if surface_nette > 0:
-        tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_nette,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
+        tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_nette,2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        left_row += 1
+
+    surface_murs_nette = surface_cloisons_nette = 0.0
+    if surface_totale > 0:
+        ratio_murs = surface_murs / surface_totale
+        ratio_cloisons = surface_cloisons / surface_totale
+        surface_murs_nette = surface_murs - surface_ouvertures * ratio_murs
+        surface_cloisons_nette = surface_cloisons - surface_ouvertures * ratio_cloisons
+
     if surface_murs > 0:
-        tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_murs,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
+        tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_murs,2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        right_row += 1
+        tk.Label(grid_resume_murs, text="🧱 Surface murs nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_murs_nette,2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        right_row += 1
     if surface_cloisons > 0:
-        tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_murs, text=f"{round(surface_cloisons,2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_cloisons,2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        right_row += 1
+        tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_murs, text=f"{round(surface_cloisons_nette,2):.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
 
 
 def afficher_infos_mur(event=None):
