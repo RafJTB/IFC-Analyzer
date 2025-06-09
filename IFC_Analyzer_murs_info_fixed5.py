@@ -143,6 +143,11 @@ progress_canvas = None
 tabs_frame = None
 tab_buttons = []
 
+# Sélection de niveaux pour le filtrage dans l'onglet MURS
+selected_niveaux = set()
+niveau_vars = {}
+button_niveau = None
+
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
 tree_surfaces_poteaux = None
@@ -167,6 +172,16 @@ def by_type_safe(ifc_file, entity):
         if "not found in schema" in str(e):
             return []
         raise             # autre RuntimeError ? on la laisse remonter
+
+def find_pset_value(psets, keys):
+    """Recherche dans tous les psets la première clé correspondante."""
+    for pset_data in psets.values():
+        if not isinstance(pset_data, dict):
+            continue
+        for k in keys:
+            if k in pset_data and pset_data[k] not in (None, ""):
+                return pset_data[k]
+    return None
 
 
 # --------------------------------------
@@ -228,6 +243,10 @@ def importer_ifc():
                 "poutres":     [],
                 "descente_ep": []
             }
+
+            # Liste des niveaux disponibles
+            storeys = [s.Name or f"Niveau {idx}" for idx, s in enumerate(ifc_file.by_type("IfcBuildingStorey"))]
+            donnees_ifc[chemin]["storeys"] = storeys
 
           
             # Estimer le nombre total d'éléments pour la progression
@@ -344,11 +363,16 @@ def importer_ifc():
                 except Exception:
                     pass
                 info_props = {
-                    "Fonction": psets.get("Construction", {}).get("Fonction") or psets.get("Construction", {}).get("Function"),
-                    "Largeur": psets.get("Construction", {}).get("Largeur") or psets.get("Construction", {}).get("Width"),
-                    "Hauteur non contrainte": psets.get("Construction", {}).get("Hauteur non contrainte") or psets.get("Construction", {}).get("UnconstrainedHeight"),
-                    "Matériau structurel": psets.get("Construction", {}).get("Matériau structurel") or psets.get("Construction", {}).get("StructuralMaterial"),
-                    "IsExternal": psets.get("Construction", {}).get("IsExternal"),
+                    "Fonction": find_pset_value(psets, ["Fonction", "Function"]),
+                    "Largeur": find_pset_value(psets, ["Largeur", "Width"]),
+                    "Hauteur non contrainte": find_pset_value(psets, [
+                        "Hauteur non contrainte",
+                        "UnconstrainedHeight",
+                        "OverallHeight",
+                        "Hauteur hors tout"
+                    ]),
+                    "Matériau structurel": find_pset_value(psets, ["Matériau structurel", "StructuralMaterial"]),
+                    "IsExternal": find_pset_value(psets, ["IsExternal"]),
                     "Storey": storey
                 }
                 donnees_ifc[chemin]["murs_infos"][name] = info_props
@@ -845,6 +869,7 @@ def switch_ifc(chemin):
 def afficher_donnees_murs(murs):
     for i in tree_murs.get_children() :
         tree_murs.delete(i)
+    info_frame_murs.pack_forget()
     murs_tries = sorted(murs, key=lambda x: x[0])
     longueur_totale = volume_total = surface_brut = surface_net = 0.0
     surface_menuiseries_ext = sum(m[1] for m in donnees_ifc[ifc_actif]["menuiseries"] if m[4] == "Extérieure")
@@ -1276,6 +1301,15 @@ def appliquer_filtre_zero_murs():
     murs_zero = [mur for mur in donnees_ifc[ifc_actif]['murs'] if mur[1] == 0]
     afficher_donnees_murs(murs_zero)
 
+def appliquer_filtre_niveau_murs():
+    """Filtrer les murs par niveaux sélectionnés."""
+    if not selected_niveaux:
+        afficher_donnees_murs(donnees_ifc[ifc_actif]['murs'])
+        return
+    infos = donnees_ifc.get(ifc_actif, {}).get('murs_infos', {})
+    murs_fil = [m for m in donnees_ifc[ifc_actif]['murs'] if infos.get(m[0], {}).get('Storey') in selected_niveaux]
+    afficher_donnees_murs(murs_fil)
+
 def appliquer_filtre_zero_menuiseries():
     """Filtrer pour n’afficher que les menuiseries avec quantité égale à 0."""
     menu_zero = [m for m in donnees_ifc[ifc_actif]['menuiseries'] if m[1] == 0]
@@ -1291,6 +1325,22 @@ def appliquer_filtre_zero_poteaux():
     """Filtrer pour n’afficher que les poteaux dont la largeur est 0."""
     poteaux_zero = [p for p in donnees_ifc[ifc_actif]["poteaux"] if p[1] == 0]
     afficher_donnees_poteaux(poteaux_zero)
+
+def ouvrir_menu_niveau():
+    menu = tk.Menu(root, tearoff=0)
+    niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
+    if not niveaux:
+        return
+    for nv in niveaux:
+        var = niveau_vars.setdefault(nv, tk.BooleanVar(value=(nv in selected_niveaux)))
+        def toggle(l=nv, v=var):
+            if v.get():
+                selected_niveaux.add(l)
+            else:
+                selected_niveaux.discard(l)
+            appliquer_filtre_niveau_murs()
+        menu.add_checkbutton(label=nv, variable=var, command=toggle)
+    menu.post(button_niveau.winfo_rootx(), button_niveau.winfo_rooty()+button_niveau.winfo_height())
 
 def reinitialiser_filtre_type_sol():
     entree_filtre_type_sol.delete(0, tk.END)
@@ -1524,6 +1574,8 @@ entree_filtre_murs.pack(side="left", padx=5)
 ttk.Button(frame_filtre_murs, text="Appliquer", command=appliquer_filtre_murs).pack(side="left", padx=5)
 ttk.Button(frame_filtre_murs, text="Réinitialiser", command=reinitialiser_filtre_murs).pack(side="left", padx=5)
 ttk.Button(frame_filtre_murs, text="0", command=appliquer_filtre_zero_murs).pack(side="left", padx=5)
+button_niveau = ttk.Button(frame_filtre_murs, text="Niveau", command=lambda: ouvrir_menu_niveau())
+button_niveau.pack(side="left", padx=5)
 print("Cadre de filtrage des murs créé")
 
 tree_murs = ttk.Treeview(frame_murs_content, columns=("Nom", "Surface (m²)", "Longueur ", "Volume (m³)", "Type"), show="headings")
@@ -1719,6 +1771,7 @@ title_frame_types_murs.pack(fill="x", padx=5, pady=(15, 0))
 # ----- Conteneur INFORMATIONS COMPLÉMENTAIRES pour MURS -----
 info_frame_murs = tk.Frame(frame_resume_murs, bg="white", bd=1, relief="solid")
 info_frame_murs.pack(side="bottom", fill="x", padx=5, pady=5)
+info_frame_murs.pack_forget()
 grid_infos_murs = tk.Frame(info_frame_murs, bg="white")
 grid_infos_murs.pack(pady=5, fill="x")
 grid_infos_murs.grid_columnconfigure(1, weight=1)
@@ -1787,6 +1840,8 @@ grid_types_murs.bind("<Configure>", on_configure_grid_types_murs)
 
 def _update_infos_mur(nom_sel: str):
     """Affiche les informations complémentaires pour le mur donné."""
+    if not info_frame_murs.winfo_ismapped():
+        info_frame_murs.pack(side="bottom", fill="x", padx=5, pady=5)
     for w in grid_infos_murs.winfo_children():
         w.destroy()
     info = donnees_ifc.get(ifc_actif, {}).get("murs_infos", {}).get(nom_sel, {})
@@ -1805,13 +1860,14 @@ def _update_infos_mur(nom_sel: str):
         if key == "IsExternal" and val not in ("", "N/A"):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
         tk.Label(grid_infos_murs, text=f"{label} :", bg="white", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_infos_murs, text=str(val), bg="white", anchor="w").grid(row=row, column=1, sticky="w", padx=10)
+        tk.Label(grid_infos_murs, text=str(val), bg="white", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 
 def afficher_infos_mur(event=None):
     """Affiche les informations complémentaires pour la sélection du tableau principal."""
     sel = tree_murs.selection()
     if not sel:
+        info_frame_murs.pack_forget()
         return
     nom_sel = tree_murs.item(sel[0])["values"][0]
     _update_infos_mur(nom_sel)
@@ -1821,6 +1877,7 @@ def afficher_infos_mur_resume(event=None):
     """Affiche les informations lors de la sélection dans le résumé."""
     sel = tree_surfaces_murs.selection()
     if not sel:
+        info_frame_murs.pack_forget()
         return
     nom_sel = tree_surfaces_murs.item(sel[0])["values"][0]
     _update_infos_mur(nom_sel)
