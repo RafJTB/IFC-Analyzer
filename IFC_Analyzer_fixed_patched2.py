@@ -2005,10 +2005,37 @@ def _update_infos_mur(nom_sel: str, storey: str = None):
 
 
 def _update_resume_mur(nom_sel: str):
-    """Met à jour le résumé pour le mur sélectionné."""
-    murs_source = [m for m in donnees_ifc.get(ifc_actif, {}).get("murs", []) if m[0] == nom_sel]
+    """Met à jour le résumé pour le mur sélectionné en se basant uniquement sur
+    les murs actuellement visibles dans le tableau principal."""
+
+    murs_source = []
+    for item in tree_murs.get_children():
+        values = tree_murs.item(item).get("values", [])
+        if not values or values[0] != nom_sel:
+            continue
+        nom, surf, lg, vol, mur_type = values
+        try:
+            surf = float(surf)
+            lg = float(lg)
+            vol = float(vol)
+        except (ValueError, TypeError):
+            surf = lg = vol = 0.0
+        storey = None
+        for m in donnees_ifc.get(ifc_actif, {}).get("murs", []):
+            if (
+                m[0] == nom
+                and abs(m[1] - surf) < 0.01
+                and abs(m[2] - lg) < 0.01
+                and abs(m[3] - vol) < 0.01
+                and m[4] == mur_type
+            ):
+                storey = m[5]
+                break
+        murs_source.append((nom, surf, lg, vol, mur_type, storey))
+
     if not murs_source:
         return
+
     surface_menuiseries_tot = _calc_surface_menuiseries(murs_source)
     longueur_totale = volume_total = surface_totale = 0.0
     surface_cloisons = surface_murs = 0.0
