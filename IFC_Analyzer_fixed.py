@@ -2145,14 +2145,8 @@ def filter_main_by_type_menuiseries(event=None):
     row_id = tree_surfaces_menuiseries.selection()
     if row_id:
         type_sel = tree_surfaces_menuiseries.item(row_id[0])['values'][0]
-        # mise à jour du tableau principal
-        for item in tree_menuiseries.get_children():
-            tree_menuiseries.delete(item)
         menu_filtres = [m for m in donnees_ifc[ifc_actif]["menuiseries"] if m[0] == type_sel]
-        
-        for idx, (nom, surface, longueur, hauteur, menuiserie_type, *_rest) in enumerate(menu_filtres):
-            tag = "evenrow" if idx % 2 == 0 else "oddrow"
-            tree_menuiseries.insert("", "end", values=(nom, surface, longueur, hauteur, menuiserie_type), tags=(tag,))
+        afficher_donnees_menuiseries(menu_filtres)
 
 
 tree_surfaces_menuiseries.bind("<Double-1>", filter_main_by_type_menuiseries)
@@ -2318,16 +2312,8 @@ def filter_main_by_type(event):
     if row:
         tree_surfaces_type_sol.selection_set(row)
         type_sel = tree_surfaces_type_sol.item(row)['values'][0]
-        # mise à jour du tableau principal
-        # suppresion des lignes existantes
-        for item in tree_type_sol.get_children():
-            tree_type_sol.delete(item)
-        # affichage des sols filtrés
         sols_filtres = [sol for sol in donnees_ifc[ifc_actif]["sols"] if sol[0] == type_sel]
-        for idx, (nom, surface, longueur, revetement_type) in enumerate(sols_filtres):
-            tag = "evenrow" if idx % 2 == 0 else "oddrow"
-            tree_type_sol.insert("", "end", values=(nom, surface, longueur, revetement_type), tags=(tag,))
-        # ne pas toucher au résumé en droit
+        afficher_donnees_type_sol(sols_filtres)
 
 tree_surfaces_type_sol.bind("<Double-1>", filter_main_by_type)
 tree_surfaces_type_sol.bind("<Button-1>", copy_type_summary)
@@ -2460,11 +2446,8 @@ def filter_main_by_type_gc(event=None):
     sel = tree_surfaces_garde_corps.selection()
     if sel:
         lib = tree_surfaces_garde_corps.item(sel[0])["values"][0]
-        tree_garde_corps.delete(*tree_garde_corps.get_children())
-        for idx, (nom, larg, t) in enumerate(donnees_ifc[ifc_actif]["garde_corps"]):
-            if nom == lib:
-                tag = "evenrow" if idx % 2 == 0 else "oddrow"
-                tree_garde_corps.insert("", "end", values=(nom, larg, t), tags=(tag,))
+        filtres = [g for g in donnees_ifc[ifc_actif]["garde_corps"] if g[0] == lib]
+        afficher_donnees_garde_corps(filtres)
 tree_surfaces_garde_corps.bind("<Double-1>", filter_main_by_type_gc)
 # Menu contextuel pour copier
 context_menu_gc = tk.Menu(root, tearoff=0)
@@ -2561,12 +2544,8 @@ def filter_main_by_type_poteaux(event=None):
     row_id = tree_surfaces_poteaux.selection()
     if row_id:
         type_sel = tree_surfaces_poteaux.item(row_id[0])['values'][0]
-        # Filtre le tableau principal POTEaux
-        for item in tree_poteaux.get_children(): tree_poteaux.delete(item)
         filt = [p for p in donnees_ifc[ifc_actif]['poteaux'] if p[0] == type_sel]
-        for idx, (nom, larg, surface, volume, typ) in enumerate(filt):
-            tag = 'evenrow' if idx % 2 == 0 else 'oddrow'
-            tree_poteaux.insert('', 'end', values=(nom, larg, surface, volume, typ), tags=(tag,))
+        afficher_donnees_poteaux(filt)
 
 def copy_type_summary_poteaux(event=None):
     sel = tree_surfaces_poteaux.selection()
@@ -2728,13 +2707,8 @@ def filter_main_by_type_poutres(event=None):
     row_id = tree_surfaces_poutres.selection()
     if row_id:
         type_sel = tree_surfaces_poutres.item(row_id[0])['values'][0]
-        # mise à jour du tableau principal
-        for item in tree_poutres.get_children():
-            tree_poutres.delete(item)
         poutres_filtres = [p for p in donnees_ifc[ifc_actif]["poutres"] if p[0] == type_sel]
-        for idx, (nom, largeur, surface, volume, poutre_type) in enumerate(poutres_filtres):
-            tag = "evenrow" if idx % 2 == 0 else "oddrow"
-            tree_poutres.insert("", "end", values=(nom, largeur, surface, volume, poutre_type), tags=(tag,))
+        afficher_donnees_poutres(poutres_filtres)
 
 tree_surfaces_poutres.bind("<Double-1>", filter_main_by_type_poutres)
 tree_surfaces_poutres.bind("<Button-1>", copy_type_summary_poutres)
