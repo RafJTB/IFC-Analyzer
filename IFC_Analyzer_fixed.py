@@ -431,8 +431,16 @@ def importer_ifc():
                     surface = q.get("Area", largeur * hauteur)
                 except Exception as e:
                     print(f"Erreur extraction menuiserie {name} : {e}")
+                storey = ""
+                for rel in getattr(el, "ContainedInStructure", []):
+                    container = rel.RelatingStructure
+                    if container and container.is_a("IfcBuildingStorey"):
+                        storey = container.Name or ""
+                        break
                 statut = "Extérieure" if is_external else "Intérieure"
-                menuiseries_temp.append((name, round(surface, 2), round(largeur, 2), round(hauteur, 2), statut))
+                menuiseries_temp.append(
+                    (name, round(surface, 2), round(largeur, 2), round(hauteur, 2), statut, storey)
+                )
                 processed_elements += 1
                 if processed_elements % 10 == 0: # Mettre à jour tous les 10 éléments
                     update_progress(processed_elements, total_elements)
@@ -885,7 +893,10 @@ def afficher_donnees_murs(murs):
     murs_tries = sorted(murs, key=lambda x: x[0])
     longueur_totale = volume_total = 0.0
     surface_totale = surface_cloisons = surface_murs = 0.0
-    surface_menuiseries_tot = sum(m[1] for m in donnees_ifc[ifc_actif]["menuiseries"])
+    levels = {m[5] for m in murs}
+    surface_menuiseries_tot = sum(
+        m[1] for m in donnees_ifc[ifc_actif]["menuiseries"] if m[5] in levels
+    )
     surfaces_par_nom = {}
     for idx, mur in enumerate(murs_tries) :
         nom, surface, longueur, volume, mur_type, _storey = mur
@@ -1019,7 +1030,7 @@ def afficher_donnees_menuiseries(menuiseries):
     surfaces_par_nom = {}
     nombre_par_nom = {} # Pour compter le nombre de menuiseries par type
     for idx, menuiserie in enumerate(menuiseries_tries) :
-        nom, surface, longueur, hauteur, menuiserie_type = menuiserie
+        nom, surface, longueur, hauteur, menuiserie_type, *_rest = menuiserie
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_menuiseries.insert("", "end", values=(nom, surface, longueur, hauteur, menuiserie_type), tags=(tag,))
         longueur_totale += longueur
@@ -1949,7 +1960,10 @@ def _update_resume_mur(nom_sel: str):
     murs_source = [m for m in donnees_ifc.get(ifc_actif, {}).get("murs", []) if m[0] == nom_sel]
     if not murs_source:
         return
-    surface_menuiseries_tot = sum(m[1] for m in donnees_ifc.get(ifc_actif, {}).get("menuiseries", []))
+    levels = {m[5] for m in murs_source}
+    surface_menuiseries_tot = sum(
+        m[1] for m in donnees_ifc.get(ifc_actif, {}).get("menuiseries", []) if m[5] in levels
+    )
     longueur_totale = volume_total = surface_totale = 0.0
     surface_cloisons = surface_murs = 0.0
     for nom, surface, longueur, volume, _mur_type, _ in murs_source:
@@ -2136,7 +2150,7 @@ def filter_main_by_type_menuiseries(event=None):
             tree_menuiseries.delete(item)
         menu_filtres = [m for m in donnees_ifc[ifc_actif]["menuiseries"] if m[0] == type_sel]
         
-        for idx, (nom, surface, longueur, hauteur, menuiserie_type) in enumerate(menu_filtres):
+        for idx, (nom, surface, longueur, hauteur, menuiserie_type, *_rest) in enumerate(menu_filtres):
             tag = "evenrow" if idx % 2 == 0 else "oddrow"
             tree_menuiseries.insert("", "end", values=(nom, surface, longueur, hauteur, menuiserie_type), tags=(tag,))
 
