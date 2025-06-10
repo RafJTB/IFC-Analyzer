@@ -228,11 +228,17 @@ tab_buttons = []
 
 # Bouton filtrage par niveau (référence conservée pour le menu déroulant)
 btn_niveau_murs = None
+btn_niveau_menuiseries = None
 
 # Filtres actifs pour le tableau MURS
 filtre_texte_murs = ""
 filtre_niveaux_murs = []
 filtre_zero_murs = False
+
+# Filtres actifs pour le tableau MENUISERIES
+filtre_texte_menuiseries = ""
+filtre_niveaux_menuiseries = []
+filtre_zero_menuiseries = False
 
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
@@ -1402,14 +1408,33 @@ def reinitialiser_filtre_murs() :
     filtre_zero_murs = False
     _apply_filters_murs()
 
-def appliquer_filtre_menuiseries() :
-    texte_filtre = entree_filtre_menuiseries.get().lower()
-    menuiseries_filtres = [menu for menu in donnees_ifc[ifc_actif]["menuiseries"] if texte_filtre in menu[0].lower()]
-    afficher_donnees_menuiseries(menuiseries_filtres)
+# ----- Filtres pour MENUISERIES -----
+def _get_filtered_menuiseries():
+    menu = donnees_ifc.get(ifc_actif, {}).get("menuiseries", [])
+    if filtre_zero_menuiseries:
+        menu = [m for m in menu if m[1] == 0]
+    if filtre_niveaux_menuiseries:
+        menu = [m for m in menu if m[5] in filtre_niveaux_menuiseries]
+    if filtre_texte_menuiseries:
+        lower = filtre_texte_menuiseries
+        menu = [m for m in menu if lower in m[0].lower()]
+    return menu
 
-def reinitialiser_filtre_menuiseries() :
+def _apply_filters_menuiseries():
+    afficher_donnees_menuiseries(_get_filtered_menuiseries())
+
+def appliquer_filtre_menuiseries():
+    global filtre_texte_menuiseries
+    filtre_texte_menuiseries = entree_filtre_menuiseries.get().lower()
+    _apply_filters_menuiseries()
+
+def reinitialiser_filtre_menuiseries():
+    global filtre_texte_menuiseries, filtre_niveaux_menuiseries, filtre_zero_menuiseries
     entree_filtre_menuiseries.delete(0, tk.END)
-    afficher_donnees_menuiseries(donnees_ifc[ifc_actif]["menuiseries"])
+    filtre_texte_menuiseries = ""
+    filtre_niveaux_menuiseries = []
+    filtre_zero_menuiseries = False
+    _apply_filters_menuiseries()
 
 # ---------- Filtre TYPE DE SOL ----------
 def appliquer_filtre_type_sol():
@@ -1450,10 +1475,29 @@ def open_filtre_niveau_murs():
     menu.tk_popup(x, y)
     menu.grab_release()
 
+def appliquer_filtre_niveau_menuiseries(niveaux):
+    """Filtrer les menuiseries selon une liste de niveaux."""
+    global filtre_niveaux_menuiseries
+    filtre_niveaux_menuiseries = niveaux or []
+    _apply_filters_menuiseries()
+
+def open_filtre_niveau_menuiseries():
+    niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
+    if not niveaux or btn_niveau_menuiseries is None:
+        return
+    menu = tk.Menu(root, tearoff=0)
+    for n in niveaux:
+        menu.add_command(label=n, command=lambda level=n: (appliquer_filtre_niveau_menuiseries([level]), menu.unpost()))
+    x = btn_niveau_menuiseries.winfo_rootx()
+    y = btn_niveau_menuiseries.winfo_rooty() + btn_niveau_menuiseries.winfo_height()
+    menu.tk_popup(x, y)
+    menu.grab_release()
+
 def appliquer_filtre_zero_menuiseries():
     """Filtrer pour n’afficher que les menuiseries avec quantité égale à 0."""
-    menu_zero = [m for m in donnees_ifc[ifc_actif]['menuiseries'] if m[1] == 0]
-    afficher_donnees_menuiseries(menu_zero)
+    global filtre_zero_menuiseries
+    filtre_zero_menuiseries = True
+    _apply_filters_menuiseries()
 
 def appliquer_filtre_zero_garde_corps():
     """Filtrer pour n’afficher que les garde-corps avec quantité égale à 0."""
@@ -2159,6 +2203,8 @@ entree_filtre_menuiseries.pack(side="left", padx=5)
 ttk.Button(frame_filtre_menuiseries, text="Appliquer", command=appliquer_filtre_menuiseries).pack(side="left", padx=5)
 ttk.Button(frame_filtre_menuiseries, text="Réinitialiser", command=reinitialiser_filtre_menuiseries).pack(side="left", padx=5)
 ttk.Button(frame_filtre_menuiseries, text="Qt = 0", command=appliquer_filtre_zero_menuiseries).pack(side="left", padx=5)
+btn_niveau_menuiseries = ttk.Button(frame_filtre_menuiseries, text="Niveau", command=open_filtre_niveau_menuiseries)
+btn_niveau_menuiseries.pack(side="left", padx=5)
 print("Cadre de filtrage des menuiseries créées")
 
 tree_menuiseries = ttk.Treeview(frame_menuiseries_content, columns=("Nom", "Surface (m²)", "Longueur ", "Hauteur (m)", "Type"), show="headings")
@@ -2228,14 +2274,8 @@ def filter_main_by_type_menuiseries(event=None):
     row_id = tree_surfaces_menuiseries.selection()
     if row_id:
         type_sel = tree_surfaces_menuiseries.item(row_id[0])['values'][0]
-        # mise à jour du tableau principal
-        for item in tree_menuiseries.get_children():
-            tree_menuiseries.delete(item)
         menu_filtres = [m for m in donnees_ifc[ifc_actif]["menuiseries"] if m[0] == type_sel]
-        
-        for idx, (nom, surface, longueur, hauteur, menuiserie_type, *_rest) in enumerate(menu_filtres):
-            tag = "evenrow" if idx % 2 == 0 else "oddrow"
-            tree_menuiseries.insert("", "end", values=(nom, surface, longueur, hauteur, menuiserie_type), tags=(tag,))
+        afficher_donnees_menuiseries(menu_filtres)
 
 
 tree_surfaces_menuiseries.bind("<Double-1>", filter_main_by_type_menuiseries)
