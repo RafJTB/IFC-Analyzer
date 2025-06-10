@@ -2258,9 +2258,13 @@ types_frame_menuiseries.pack(fill="both", padx=5, pady=5, expand=True)
 data_frame_types_menuiseries = tk.Frame(types_frame_menuiseries, bg="#E8F5E9")
 data_frame_types_menuiseries.pack(fill="both", expand=True, padx=5, pady=5)
 
-tree_surfaces_menuiseries = ttk.Treeview(data_frame_types_menuiseries, columns=("Type", "m²", "U"), show="headings")
+tree_surfaces_menuiseries = ttk.Treeview(
+    data_frame_types_menuiseries,
+    columns=("Type", "m²", "U"),
+    show="headings",
+    style="Green.Treeview",
+)
 for col in ("Type", "m²", "U"):
-    tree_surfaces_menuiseries.configure(style="Summary.Treeview")
     tree_surfaces_menuiseries.heading(col, text=col)
 tree_surfaces_menuiseries.column("Type", anchor="w", width=200)
 tree_surfaces_menuiseries.column("m²", anchor="e", width=60, stretch=False)
@@ -2287,7 +2291,7 @@ def filter_main_by_type_menuiseries(event=None):
         afficher_donnees_menuiseries(menu_filtres)
 
 
-tree_surfaces_menuiseries.bind("<Double-1>", filter_main_by_type_menuiseries)
+tree_surfaces_menuiseries.bind("<ButtonRelease-1>", filter_main_by_type_menuiseries)
 tree_surfaces_menuiseries.bind("<Button-1>", copy_type_summary_menuiseries)
 context_menu_surfaces_menuiseries = tk.Menu(root, tearoff=0)
 context_menu_surfaces_menuiseries.add_command(label="Copier", command=copy_type_summary_menuiseries)
@@ -2356,27 +2360,22 @@ def _update_infos_menuiseries(nom_sel: str, storey: str = None):
         ("Données d'identification(Type)/Description", "Description", False),
     ]
     row = 0
-    for key, label, is_numeric in mapping:
+    for key, label, _is_numeric in mapping:
         val = info.get(key, "")
         if val in (None, "None", ""):
-            if is_numeric:
-                val = "0"
-            else:
-                val = ""
-        elif isinstance(val, (int, float)):
-            val = f"{val:.2f}" if is_numeric else str(val)
+            val = "N/A"
         else:
             try:
-                val = f"{float(val):.2f}" if is_numeric else str(val)
+                val = f"{float(val):.2f}"
             except (TypeError, ValueError):
-                pass
+                val = str(val)
         if key == "Pset_WindowCommon/IsExternal" and val not in ("", "N/A"):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
         tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_menuiseries, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     label = "Niveau" if len(storeys) <= 1 else "Niveaux"
-    valeur = " - ".join(storeys) if storeys else ""
+    valeur = " - ".join(storeys) if storeys else "N/A"
     # row already incremented through mapping
     tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_infos_menuiseries, text=valeur, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
