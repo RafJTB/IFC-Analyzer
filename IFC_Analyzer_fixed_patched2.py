@@ -2158,18 +2158,18 @@ frame_resume_menuiseries.pack_propagate(False)
 title_frame_resume_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#004D40")
 title_frame_resume_menuiseries.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_menuiseries, text="RÉSUMÉ", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-general_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="white", bd=1, relief="solid")
+general_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_menuiseries.pack(fill="x", padx=5, pady=5)
-grid_resume_menuiseries = tk.Frame(general_frame_menuiseries, bg="white")
+grid_resume_menuiseries = tk.Frame(general_frame_menuiseries, bg="#E8F5E9")
 grid_resume_menuiseries.pack(pady=5)
 grid_resume_menuiseries.grid_columnconfigure(1, weight=1)
 
-types_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="white", bd=1, relief="solid")
+types_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
 types_frame_menuiseries.pack(fill="x", padx=5, pady=5)
 
 
 # ---- Treeview complémentaire pour MENUISERIES -------------------------------
-data_frame_types_menuiseries = tk.Frame(types_frame_menuiseries, bg="white")
+data_frame_types_menuiseries = tk.Frame(types_frame_menuiseries, bg="#E8F5E9")
 data_frame_types_menuiseries.pack(fill="both", padx=5, pady=5)
 
 tree_surfaces_menuiseries = ttk.Treeview(data_frame_types_menuiseries, columns=("Type", "m²", "U"), show="headings", height=8)
@@ -2179,8 +2179,8 @@ for col in ("Type", "m²", "U"):
 tree_surfaces_menuiseries.column("Type", anchor="w", width=200)
 tree_surfaces_menuiseries.column("m²", anchor="e", width=60, stretch=False)
 tree_surfaces_menuiseries.column("U", anchor="e", width=40, stretch=False)
-tree_surfaces_menuiseries.tag_configure("evenrow", background="white")
-tree_surfaces_menuiseries.tag_configure("oddrow", background="white")
+tree_surfaces_menuiseries.tag_configure("evenrow", background="#E8F5E9")
+tree_surfaces_menuiseries.tag_configure("oddrow", background="#E8F5E9")
 scroll_surfaces_menuiseries = ttk.Scrollbar(data_frame_types_menuiseries, orient="vertical", command=tree_surfaces_menuiseries.yview)
 tree_surfaces_menuiseries.configure(yscrollcommand=scroll_surfaces_menuiseries.set)
 tree_surfaces_menuiseries.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
@@ -2213,13 +2213,13 @@ context_menu_surfaces_menuiseries = tk.Menu(root, tearoff=0)
 context_menu_surfaces_menuiseries.add_command(label="Copier", command=copy_type_summary_menuiseries)
 tree_surfaces_menuiseries.bind("<Button-3>", lambda e: (tree_surfaces_menuiseries.selection_set(tree_surfaces_menuiseries.identify_row(e.y)), context_menu_surfaces_menuiseries.post(e.x_root, e.y_root)))
 # -----------------------------------------------------------------------------
-grid_types_menuiseries_container = tk.Frame(types_frame_menuiseries, bg="white", bd=1, relief="solid")
+grid_types_menuiseries_container = tk.Frame(types_frame_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
 # grid_types_menuiseries_container.pack(fill="x", padx=5, pady=5)  # removed empty frame
 # Masquer par défaut le conteneur vide pour supprimer l\'espace inutile
 grid_types_menuiseries_container.pack_forget()
 
 
-canvas_grid_types_menuiseries = tk.Canvas(grid_types_menuiseries_container, bg="white", highlightthickness=0, height=150)
+canvas_grid_types_menuiseries = tk.Canvas(grid_types_menuiseries_container, bg="#E8F5E9", highlightthickness=0, height=150)
 canvas_grid_types_menuiseries.pack(side="left", fill="x", expand=True, padx=(5, 0), pady=5)
 
 scrollbar_grid_types_menuiseries = tk.Scrollbar(grid_types_menuiseries_container, orient="vertical", command=canvas_grid_types_menuiseries.yview)
@@ -2243,6 +2243,84 @@ print("Frame de CV des menuiseries créées")
 title_frame_types_menuiseries_bottom = tk.Frame(frame_resume_menuiseries, bg="#004D40")
 title_frame_types_menuiseries_bottom.pack(fill="x", padx=5, pady=(0, 0))
 tk.Label(title_frame_types_menuiseries_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+info_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
+info_frame_menuiseries.pack(fill="x", padx=5, pady=5)
+grid_infos_menuiseries = tk.Frame(info_frame_menuiseries, bg="#E8F5E9")
+grid_infos_menuiseries.pack(pady=5, fill="x")
+grid_infos_menuiseries.grid_columnconfigure(1, weight=1)
+grid_infos_menuiseries.grid_columnconfigure(0, weight=1)
+
+def hide_infos_menuiseries():
+    """Masque le bloc d'informations complémentaires."""
+    for w in grid_infos_menuiseries.winfo_children():
+        w.destroy()
+
+def _update_infos_menuiseries(nom_sel: str, storey: str = None):
+    """Affiche les informations complémentaires pour la menuiserie donnée."""
+    hide_infos_menuiseries()
+    infos = donnees_ifc.get(ifc_actif, {}).get("menuiseries_infos", {})
+    info = {}
+    if storey is not None:
+        info = infos.get((nom_sel, storey), {})
+    if not info:
+        for (n, s), data in infos.items():
+            if n == nom_sel:
+                info = data
+                break
+    storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
+    mapping = [
+        ("Contraintes/Niveau", "Contraintes/Niveau"),
+        ("Cotes(Type)/Cadre_epaisseur", "Cadre épaisseur"),
+        ("Cotes(Type)/Cadre_profondeur", "Cadre profondeur"),
+        ("Données(Type)/COM_Codification type", "COM_Codification type"),
+        ("Pset_WindowCommon/IsExternal", "Extérieur"),
+        ("Données d'identification(Type)/Description", "Description"),
+    ]
+    for row, (key, label) in enumerate(mapping):
+        val = info.get(key, "")
+        if val in (None, "None", ""):
+            val = "N/A"
+        elif isinstance(val, (int, float)):
+            val = f"{val:.2f}"
+        else:
+            try:
+                val = f"{float(val):.2f}"
+            except (TypeError, ValueError):
+                pass
+        if key == "Pset_WindowCommon/IsExternal" and val not in ("", "N/A"):
+            val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
+        tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_menuiseries, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    label = "Niveau" if len(storeys) <= 1 else "Niveaux"
+    valeur = " - ".join(storeys) if storeys else "N/A"
+    row = len(mapping)
+    tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_menuiseries, text=valeur, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+
+def afficher_infos_menuiseries(event=None):
+    sel = tree_menuiseries.selection()
+    if not sel:
+        hide_infos_menuiseries()
+        return
+    values = tree_menuiseries.item(sel[0])["values"]
+    nom_sel = values[0]
+    storey = None
+    for m in donnees_ifc.get(ifc_actif, {}).get("menuiseries", []):
+        if m[0] == nom_sel:
+            storey = m[5]
+            break
+    _update_infos_menuiseries(nom_sel, storey)
+
+def afficher_infos_menuiseries_resume(event=None):
+    sel = tree_surfaces_menuiseries.selection()
+    if not sel:
+        hide_infos_menuiseries()
+        return
+    nom_sel = tree_surfaces_menuiseries.item(sel[0])["values"][0]
+    _update_infos_menuiseries(nom_sel)
+
+tree_menuiseries.bind("<<TreeviewSelect>>", afficher_infos_menuiseries)
+tree_surfaces_menuiseries.bind("<<TreeviewSelect>>", afficher_infos_menuiseries_resume)
 
 frame_type_sol_content = tk.Frame(frame_type_sol, bg="#FAFAFA")
 frame_type_sol_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
