@@ -70,6 +70,21 @@ def _calc_surface_menuiseries(murs_list):
     return surface_menuiseries
 
 
+def _calc_total_facade_surface():
+    """Retourne la surface totale des murs extérieurs du projet."""
+    infos = donnees_ifc.get(ifc_actif, {}).get("murs_infos", {})
+    murs = donnees_ifc.get(ifc_actif, {}).get("murs", [])
+    total = 0.0
+    for nom, surface, _l, _v, _t, storey in murs:
+        info = infos.get((nom, storey), {})
+        ext = info.get("IsExternal")
+        if isinstance(ext, str):
+            ext = ext.lower() in ("true", "1", "yes", "oui")
+        if ext:
+            total += surface
+    return total
+
+
 def on_configure_grid_types_murs(event):
     """Réajuste la zone de scroll du canvas des types de murs."""
     canvas_grid_types_murs.configure(scrollregion=canvas_grid_types_murs.bbox("all"))
@@ -1096,33 +1111,44 @@ def afficher_donnees_menuiseries(menuiseries):
         else:
             surfaces_par_nom[nom] = surface
             nombre_par_nom[nom] = 1
-    for widget in grid_resume_menuiseries.winfo_children() :
+    for widget in grid_resume_menuiseries.winfo_children():
         widget.destroy()
-    row = 0
-    if count > 0 :
-        tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if True:  # always show even when zero
-        tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(longueur_totale, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if True:  # always show even when zero
-        tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(surface_totale, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if surface_mint > 0 :
-        tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mint, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if surface_mext > 0 :
-        tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mext, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
-    if embrasures > 0 :
-        tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(embrasures, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-        row += 1
+
+    left_row = right_row = 0
+
+    if count > 0:
+        tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        left_row += 1
+
+    tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{round(longueur_totale, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    left_row += 1
+
+    tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{round(surface_totale, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    left_row += 1
+
+    if embrasures > 0:
+        tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(embrasures, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        left_row += 1
+
+    if surface_mint > 0:
+        tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mint, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        right_row += 1
+
+    if surface_mext > 0:
+        tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mext, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        right_row += 1
+
+    facade_total = _calc_total_facade_surface()
+    pourc_vitree = (surface_mext / facade_total * 100) if facade_total > 0 else 0.0
+    tk.Label(grid_resume_menuiseries, text="% de Façades vitrées :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{round(pourc_vitree, 2)} %", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    right_row += 1
     for widget in grid_types_menuiseries.winfo_children() :
         widget.destroy()
     # Configurer les colonnes pour limiter la largeur
@@ -2163,6 +2189,7 @@ general_frame_menuiseries.pack(fill="x", padx=5, pady=5)
 grid_resume_menuiseries = tk.Frame(general_frame_menuiseries, bg="#E8F5E9")
 grid_resume_menuiseries.pack(pady=5)
 grid_resume_menuiseries.grid_columnconfigure(1, weight=1)
+grid_resume_menuiseries.grid_columnconfigure(3, weight=1)
 
 # Section Filtrage par noms (mimique de l'onglet MURS)
 title_frame_filtrage_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#004D40")
@@ -2174,9 +2201,9 @@ types_frame_menuiseries.pack(fill="both", padx=5, pady=5, expand=True)
 
 # ---- Treeview complémentaire pour MENUISERIES -------------------------------
 data_frame_types_menuiseries = tk.Frame(types_frame_menuiseries, bg="#E8F5E9")
-data_frame_types_menuiseries.pack(fill="both", padx=5, pady=5)
+data_frame_types_menuiseries.pack(fill="both", expand=True, padx=5, pady=5)
 
-tree_surfaces_menuiseries = ttk.Treeview(data_frame_types_menuiseries, columns=("Type", "m²", "U"), show="headings", height=8)
+tree_surfaces_menuiseries = ttk.Treeview(data_frame_types_menuiseries, columns=("Type", "m²", "U"), show="headings")
 for col in ("Type", "m²", "U"):
     tree_surfaces_menuiseries.configure(style="Summary.Treeview")
     tree_surfaces_menuiseries.heading(col, text=col)
