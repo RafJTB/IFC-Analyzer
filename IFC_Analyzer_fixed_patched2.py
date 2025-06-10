@@ -2260,7 +2260,7 @@ data_frame_types_menuiseries.pack(fill="both", expand=True, padx=5, pady=5)
 
 tree_surfaces_menuiseries = ttk.Treeview(data_frame_types_menuiseries, columns=("Type", "m²", "U"), show="headings")
 for col in ("Type", "m²", "U"):
-    tree_surfaces_menuiseries.configure(style="Summary.Treeview")
+    tree_surfaces_menuiseries.configure(style="Green.Treeview")
     tree_surfaces_menuiseries.heading(col, text=col)
 tree_surfaces_menuiseries.column("Type", anchor="w", width=200)
 tree_surfaces_menuiseries.column("m²", anchor="e", width=60, stretch=False)
@@ -2349,37 +2349,81 @@ def _update_infos_menuiseries(nom_sel: str, storey: str = None):
                 break
     storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
     mapping = [
-        ("Cotes(Type)/Cadre_epaisseur", "Cadre épaisseur", True),
-        ("Cotes(Type)/Cadre_profondeur", "Cadre profondeur", True),
-        ("Données(Type)/COM_Codification type", "COM_Codification type", False),
-        ("Pset_WindowCommon/IsExternal", "Extérieur", False),
-        ("Données d'identification(Type)/Description", "Description", False),
+        ("Cotes(Type)/Cadre_epaisseur", "Cadre épaisseur"),
+        ("Cotes(Type)/Cadre_profondeur", "Cadre profondeur"),
+        ("Données(Type)/COM_Codification type", "COM_Codification type"),
+        ("Pset_WindowCommon/IsExternal", "Extérieur"),
+        ("Données d'identification(Type)/Description", "Description"),
     ]
     row = 0
-    for key, label, is_numeric in mapping:
+    for key, label in mapping:
         val = info.get(key, "")
         if val in (None, "None", ""):
-            if is_numeric:
-                val = "0"
-            else:
-                val = ""
-        elif isinstance(val, (int, float)):
-            val = f"{val:.2f}" if is_numeric else str(val)
+            val = "N/A"
         else:
-            try:
-                val = f"{float(val):.2f}" if is_numeric else str(val)
-            except (TypeError, ValueError):
-                pass
+            if isinstance(val, (int, float)):
+                val = f"{val:.2f}"
+            else:
+                try:
+                    val = f"{float(val):.2f}"
+                except (TypeError, ValueError):
+                    pass
         if key == "Pset_WindowCommon/IsExternal" and val not in ("", "N/A"):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
         tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_menuiseries, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     label = "Niveau" if len(storeys) <= 1 else "Niveaux"
-    valeur = " - ".join(storeys) if storeys else ""
+    valeur = " - ".join(storeys) if storeys else "N/A"
     # row already incremented through mapping
     tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_infos_menuiseries, text=valeur, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+
+def _update_resume_menuiseries(nom_sel: str):
+    """Met à jour le résumé pour la menuiserie sélectionnée."""
+    menu_src = [m for m in _get_filtered_menuiseries() if m[0] == nom_sel]
+    if not menu_src:
+        return
+    longueur_totale = surface_totale = surface_mint = surface_mext = embrasures = 0.0
+    count = 0
+    for nom, surface, longueur, hauteur, menu_type, *_ in menu_src:
+        longueur_totale += longueur
+        surface_totale += surface
+        count += 1
+        if menu_type == "Extérieure":
+            surface_mext += surface
+            embrasures += (longueur * 2 + hauteur * 2)
+        else:
+            surface_mint += surface
+    for w in grid_resume_menuiseries.winfo_children():
+        w.destroy()
+    left_row = right_row = 0
+    if count > 0:
+        tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        left_row += 1
+    tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{longueur_totale:.2f} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    left_row += 1
+    tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{surface_totale:.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    left_row += 1
+    if embrasures > 0:
+        tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{embrasures:.2f} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        left_row += 1
+    if surface_mint > 0:
+        tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{surface_mint:.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        right_row += 1
+    if surface_mext > 0:
+        tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{surface_mext:.2f} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        right_row += 1
+    facade_total = _calc_total_facade_surface()
+    pourc_vitree = (surface_mext / facade_total * 100) if facade_total > 0 else 0.0
+    tk.Label(grid_resume_menuiseries, text="% de Façades vitrées :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{pourc_vitree:.2f} %", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
 
 def afficher_infos_menuiseries(event=None):
     sel = tree_menuiseries.selection()
@@ -2394,6 +2438,7 @@ def afficher_infos_menuiseries(event=None):
             storey = m[5]
             break
     _update_infos_menuiseries(nom_sel, storey)
+    _update_resume_menuiseries(nom_sel)
 
 def afficher_infos_menuiseries_resume(event=None):
     sel = tree_surfaces_menuiseries.selection()
@@ -2402,6 +2447,7 @@ def afficher_infos_menuiseries_resume(event=None):
         return
     nom_sel = tree_surfaces_menuiseries.item(sel[0])["values"][0]
     _update_infos_menuiseries(nom_sel)
+    _update_resume_menuiseries(nom_sel)
 
 tree_menuiseries.bind("<<TreeviewSelect>>", afficher_infos_menuiseries)
 tree_surfaces_menuiseries.bind("<<TreeviewSelect>>", afficher_infos_menuiseries_resume)
