@@ -1000,11 +1000,6 @@ def afficher_donnees_murs(murs):
     right_row += 1
     tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
     tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
-
-    # Met à jour le tableau récapitulatif des surfaces pour n'afficher que le mur sélectionné
-    tree_surfaces_murs.delete(*tree_surfaces_murs.get_children())
-    tag_row = "evenrow"
-    tree_surfaces_murs.insert("", "end", values=(nom_sel, round(surface_totale, 2)), tags=(tag_row,))
     for widget in grid_types_murs.winfo_children() :
         widget.destroy()
     # on cache canvas au départ
@@ -2010,37 +2005,10 @@ def _update_infos_mur(nom_sel: str, storey: str = None):
 
 
 def _update_resume_mur(nom_sel: str):
-    """Met à jour le résumé pour le mur sélectionné en se basant uniquement sur
-    les murs actuellement visibles dans le tableau principal."""
-
-    murs_source = []
-    for item in tree_murs.get_children():
-        values = tree_murs.item(item).get("values", [])
-        if not values or values[0] != nom_sel:
-            continue
-        nom, surf, lg, vol, mur_type = values
-        try:
-            surf = float(surf)
-            lg = float(lg)
-            vol = float(vol)
-        except (ValueError, TypeError):
-            surf = lg = vol = 0.0
-        storey = None
-        for m in donnees_ifc.get(ifc_actif, {}).get("murs", []):
-            if (
-                m[0] == nom
-                and abs(m[1] - surf) < 0.01
-                and abs(m[2] - lg) < 0.01
-                and abs(m[3] - vol) < 0.01
-                and m[4] == mur_type
-            ):
-                storey = m[5]
-                break
-        murs_source.append((nom, surf, lg, vol, mur_type, storey))
-
+    """Met à jour le résumé pour le mur sélectionné."""
+    murs_source = [m for m in donnees_ifc.get(ifc_actif, {}).get("murs", []) if m[0] == nom_sel]
     if not murs_source:
         return
-
     surface_menuiseries_tot = _calc_surface_menuiseries(murs_source)
     longueur_totale = volume_total = surface_totale = 0.0
     surface_cloisons = surface_murs = 0.0
@@ -2087,10 +2055,6 @@ def _update_resume_mur(nom_sel: str):
     right_row += 1
     tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
     tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
-
-    # Mise à jour du tableau récapitulatif pour ne montrer que ce mur
-    tree_surfaces_murs.delete(*tree_surfaces_murs.get_children())
-    tree_surfaces_murs.insert("", "end", values=(nom_sel, round(surface_totale, 2)), tags=("evenrow",))
 
 
 def afficher_infos_mur(event=None):
