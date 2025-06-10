@@ -1346,8 +1346,9 @@ def appliquer_filtre_garde_corps():
 # --------------------------------------
 # Filtres
 # --------------------------------------
-def _apply_filters_murs():
-    """Applique tous les filtres actifs sur la liste des murs."""
+
+def _get_filtered_murs():
+    """Retourne la liste des murs après application des filtres actifs."""
     murs = donnees_ifc.get(ifc_actif, {}).get("murs", [])
     if filtre_zero_murs:
         murs = [m for m in murs if m[1] == 0]
@@ -1356,7 +1357,11 @@ def _apply_filters_murs():
     if filtre_texte_murs:
         lower = filtre_texte_murs
         murs = [m for m in murs if lower in m[0].lower()]
-    afficher_donnees_murs(murs)
+    return murs
+
+def _apply_filters_murs():
+    """Applique tous les filtres actifs sur la liste des murs."""
+    afficher_donnees_murs(_get_filtered_murs())
 
 def appliquer_filtre_murs():
     global filtre_texte_murs
@@ -2006,7 +2011,8 @@ def _update_infos_mur(nom_sel: str, storey: str = None):
 
 def _update_resume_mur(nom_sel: str):
     """Met à jour le résumé pour le mur sélectionné."""
-    murs_source = [m for m in donnees_ifc.get(ifc_actif, {}).get("murs", []) if m[0] == nom_sel]
+    # Utiliser uniquement les murs actuellement visibles (après filtres)
+    murs_source = [m for m in _get_filtered_murs() if m[0] == nom_sel]
     if not murs_source:
         return
     surface_menuiseries_tot = _calc_surface_menuiseries(murs_source)
