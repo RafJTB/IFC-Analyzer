@@ -319,6 +319,7 @@ def importer_ifc():
                 "murs_infos": {},
                 "storeys":    [],
                 "menuiseries": [],
+                "menuiseries_infos": {},
                 "sols":        [],
                 "plafonds":    [],
                 "garde_corps": [],
@@ -511,6 +512,14 @@ def importer_ifc():
                         storey = container.Name or ""
                         break
                 statut = "Extérieure" if is_external else "Intérieure"
+                info_menu = {
+                    "Cotes(Type)/Cadre_epaisseur": psets.get("Cotes(Type)", {}).get("Cadre_epaisseur"),
+                    "Cotes(Type)/Cadre_profondeur": psets.get("Cotes(Type)", {}).get("Cadre_profondeur"),
+                    "Données(Type)/COM_Codification type": psets.get("Données(Type)", {}).get("COM_Codification type"),
+                    "Pset_WindowCommon/IsExternal": psets.get("Pset_WindowCommon", {}).get("IsExternal"),
+                    "Données d'identification(Type)/Description": psets.get("Données d'identification(Type)", {}).get("Description"),
+                }
+                donnees_ifc[chemin]["menuiseries_infos"][(name, storey)] = info_menu
                 menuiseries_temp.append(
                     (name, round(surface, 2), round(largeur, 2), round(hauteur, 2), statut, storey)
                 )
@@ -1767,7 +1776,7 @@ btn_niveau_murs = ttk.Button(frame_filtre_murs, text="Niveau", command=open_filt
 btn_niveau_murs.pack(side="left", padx=5)
 print("Cadre de filtrage des murs créé")
 
-tree_murs = ttk.Treeview(frame_murs_content, columns=("Nom", "Surface (m²)", "Longueur ", "Volume (m³)", "Type"), show="headings")
+tree_murs = ttk.Treeview(frame_murs_content, columns=("Nom", "Surface (m²)", "Longueur ", "Volume (m³)", "Type"), show="headings", style="Green.Treeview")
 for col in ("Nom", "Surface (m²)", "Longueur ", "Volume (m³)", "Type") :
     tree_murs.heading(col, text=col)
 # Définir des largeurs minimales et permettre l'étirement proportionnel
@@ -1776,8 +1785,8 @@ tree_murs.column("Surface (m²)", anchor="center", width=40, minwidth=40, stretc
 tree_murs.column("Longueur ", anchor="center", width=40, minwidth=40, stretch=True)
 tree_murs.column("Volume (m³)", anchor="center", width=40, minwidth=40, stretch=True)
 tree_murs.column("Type", anchor="center", width=40, minwidth=40, stretch=True)
-tree_murs.tag_configure("evenrow", background="#F5F5F5")
-tree_murs.tag_configure("oddrow", background="#FFFFFF")
+tree_murs.tag_configure("evenrow", background="#E8F5E9")
+tree_murs.tag_configure("oddrow", background="#E8F5E9")
 tree_murs.tag_configure("redrow", background="#EF9A9A")
 scroll_murs = ttk.Scrollbar(frame_murs_content, orient="vertical", command=tree_murs.yview)
 tree_murs.configure(yscrollcommand=scroll_murs.set)
@@ -2312,7 +2321,7 @@ print("Frame de CV des menuiseries créées")
 
 # --- Nouveau titre "INFORMATIONS COMPLÉMENTAIRES" sous le tableau MENUISERIES
 title_frame_types_menuiseries_bottom = tk.Frame(frame_resume_menuiseries, bg="#004D40")
-title_frame_types_menuiseries_bottom.pack(fill="x", padx=5, pady=(0, 0))
+title_frame_types_menuiseries_bottom.pack(fill="x", padx=5, pady=(15, 0))
 tk.Label(title_frame_types_menuiseries_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
 info_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
 info_frame_menuiseries.pack(fill="x", padx=5, pady=5)
