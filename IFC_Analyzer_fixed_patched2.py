@@ -1000,6 +1000,11 @@ def afficher_donnees_murs(murs):
     right_row += 1
     tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
     tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+
+    # Met à jour le tableau récapitulatif des surfaces pour n'afficher que le mur sélectionné
+    tree_surfaces_murs.delete(*tree_surfaces_murs.get_children())
+    tag_row = "evenrow"
+    tree_surfaces_murs.insert("", "end", values=(nom_sel, round(surface_totale, 2)), tags=(tag_row,))
     for widget in grid_types_murs.winfo_children() :
         widget.destroy()
     # on cache canvas au départ
@@ -2082,6 +2087,10 @@ def _update_resume_mur(nom_sel: str):
     right_row += 1
     tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
     tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+
+    # Mise à jour du tableau récapitulatif pour ne montrer que ce mur
+    tree_surfaces_murs.delete(*tree_surfaces_murs.get_children())
+    tree_surfaces_murs.insert("", "end", values=(nom_sel, round(surface_totale, 2)), tags=("evenrow",))
 
 
 def afficher_infos_mur(event=None):
