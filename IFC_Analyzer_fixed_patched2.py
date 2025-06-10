@@ -1100,28 +1100,28 @@ def afficher_donnees_menuiseries(menuiseries):
         widget.destroy()
     row = 0
     if count > 0 :
-        tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="white", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="white", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if True:  # always show even when zero
-        tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="white", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(longueur_totale, 2)} ml", bg="white", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(longueur_totale, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if True:  # always show even when zero
-        tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="white", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(surface_totale, 2)} m²", bg="white", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(surface_totale, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if surface_mint > 0 :
-        tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="white", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mint, 2)} m²", bg="white", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mint, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if surface_mext > 0 :
-        tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="white", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mext, 2)} m²", bg="white", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mext, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     if embrasures > 0 :
-        tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="white", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(embrasures, 2)} ml", bg="white", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(embrasures, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     for widget in grid_types_menuiseries.winfo_children() :
         widget.destroy()
@@ -2164,8 +2164,12 @@ grid_resume_menuiseries = tk.Frame(general_frame_menuiseries, bg="#E8F5E9")
 grid_resume_menuiseries.pack(pady=5)
 grid_resume_menuiseries.grid_columnconfigure(1, weight=1)
 
+# Section Filtrage par noms (mimique de l'onglet MURS)
+title_frame_filtrage_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#004D40")
+title_frame_filtrage_menuiseries.pack(fill="x", padx=5, pady=(15, 0))
+tk.Label(title_frame_filtrage_menuiseries, text="FILTRAGE PAR NOMS", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
 types_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
-types_frame_menuiseries.pack(fill="x", padx=5, pady=5)
+types_frame_menuiseries.pack(fill="both", padx=5, pady=5, expand=True)
 
 
 # ---- Treeview complémentaire pour MENUISERIES -------------------------------
@@ -2269,31 +2273,35 @@ def _update_infos_menuiseries(nom_sel: str, storey: str = None):
                 break
     storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
     mapping = [
-        ("Contraintes/Niveau", "Contraintes/Niveau"),
-        ("Cotes(Type)/Cadre_epaisseur", "Cadre épaisseur"),
-        ("Cotes(Type)/Cadre_profondeur", "Cadre profondeur"),
-        ("Données(Type)/COM_Codification type", "COM_Codification type"),
-        ("Pset_WindowCommon/IsExternal", "Extérieur"),
-        ("Données d'identification(Type)/Description", "Description"),
+        ("Cotes(Type)/Cadre_epaisseur", "Cadre épaisseur", True),
+        ("Cotes(Type)/Cadre_profondeur", "Cadre profondeur", True),
+        ("Données(Type)/COM_Codification type", "COM_Codification type", False),
+        ("Pset_WindowCommon/IsExternal", "Extérieur", False),
+        ("Données d'identification(Type)/Description", "Description", False),
     ]
-    for row, (key, label) in enumerate(mapping):
+    row = 0
+    for key, label, is_numeric in mapping:
         val = info.get(key, "")
         if val in (None, "None", ""):
-            val = "N/A"
+            if is_numeric:
+                val = "0"
+            else:
+                val = ""
         elif isinstance(val, (int, float)):
-            val = f"{val:.2f}"
+            val = f"{val:.2f}" if is_numeric else str(val)
         else:
             try:
-                val = f"{float(val):.2f}"
+                val = f"{float(val):.2f}" if is_numeric else str(val)
             except (TypeError, ValueError):
                 pass
         if key == "Pset_WindowCommon/IsExternal" and val not in ("", "N/A"):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
         tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_menuiseries, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+        row += 1
     label = "Niveau" if len(storeys) <= 1 else "Niveaux"
-    valeur = " - ".join(storeys) if storeys else "N/A"
-    row = len(mapping)
+    valeur = " - ".join(storeys) if storeys else ""
+    # row already incremented through mapping
     tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_infos_menuiseries, text=valeur, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
