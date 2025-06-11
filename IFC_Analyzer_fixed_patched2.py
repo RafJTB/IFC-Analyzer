@@ -240,6 +240,10 @@ filtre_texte_menuiseries = ""
 filtre_niveaux_menuiseries = []
 filtre_zero_menuiseries = False
 
+# Filtres actifs pour le tableau TYPE DE SOL
+filtre_texte_type_sol = ""
+filtre_zero_type_sol = False
+
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
 tree_surfaces_poteaux = None
@@ -1208,9 +1212,20 @@ def afficher_donnees_type_sol(sols=None):
 
 
     # --- maj du résumé
-    label_longueur_totale_type_sol.config(text=f"{round(longueur_totale, 2)} ml")
-    label_surface_brut_type_sol.config(text=f"{round(surface_totale, 2)} m²")
-    label_surface_net_type_sol.config(text=f"{round(surface_totale, 2)} m²")  # même valeur ici
+    for w in grid_resume_type_sol.winfo_children():
+        w.destroy()
+    row = 0
+    tk.Label(grid_resume_type_sol, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=f"{len(sols)} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_type_sol, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
     # --- bloc "Surfaces par type" remplacé par Treeview
     # Mise à jour du Treeview des surfaces par type
@@ -1432,6 +1447,19 @@ def _get_filtered_menuiseries():
 def _apply_filters_menuiseries():
     afficher_donnees_menuiseries(_get_filtered_menuiseries())
 
+# ----- Filtres pour TYPE DE SOL -----
+def _get_filtered_type_sol():
+    sols = donnees_ifc.get(ifc_actif, {}).get("sols", [])
+    if filtre_zero_type_sol:
+        sols = [s for s in sols if s[1] == 0]
+    if filtre_texte_type_sol:
+        lower = filtre_texte_type_sol
+        sols = [s for s in sols if lower in s[0].lower()]
+    return sols
+
+def _apply_filters_type_sol():
+    afficher_donnees_type_sol(_get_filtered_type_sol())
+
 def appliquer_filtre_menuiseries():
     global filtre_texte_menuiseries
     filtre_texte_menuiseries = entree_filtre_menuiseries.get().lower()
@@ -1447,18 +1475,16 @@ def reinitialiser_filtre_menuiseries():
 
 # ---------- Filtre TYPE DE SOL ----------
 def appliquer_filtre_type_sol():
-    """Même logique que MURS / MENUISERIES, mais pour les sols."""
-    texte = entree_filtre_type_sol.get().lower()
-    sols_filtres = [
-        sol for sol in donnees_ifc[ifc_actif]["sols"]
-        if texte in sol[0].lower()        # sol[0] = Nom
-    ]
-    afficher_donnees_type_sol(sols_filtres)
+    """Active le filtrage texte pour les sols."""
+    global filtre_texte_type_sol
+    filtre_texte_type_sol = entree_filtre_type_sol.get().lower()
+    _apply_filters_type_sol()
 
 def appliquer_filtre_zero_type_sol():
     """Filtrer pour n’afficher que les sols avec surface (m²) égale à 0."""
-    sols_zero = [sol for sol in donnees_ifc[ifc_actif]["sols"] if sol[1] == 0]
-    afficher_donnees_type_sol(sols_zero)
+    global filtre_zero_type_sol
+    filtre_zero_type_sol = True
+    _apply_filters_type_sol()
 
 def appliquer_filtre_zero_murs():
     """Active le filtre pour n'afficher que les murs de quantité nulle."""
@@ -1520,12 +1546,12 @@ def appliquer_filtre_zero_poteaux():
     afficher_donnees_poteaux(poteaux_zero)
 
 def reinitialiser_filtre_type_sol():
+    global filtre_texte_type_sol, filtre_zero_type_sol
     entree_filtre_type_sol.delete(0, tk.END)
-    afficher_donnees_type_sol()
+    filtre_texte_type_sol = ""
+    filtre_zero_type_sol = False
+    _apply_filters_type_sol()
 
-def reinitialiser_filtre_type_sol() :
-    entree_filtre_type_sol.delete(0, tk.END)
-    afficher_donnees_type_sol()
 
 def appliquer_filtre_garde_corps():
     texte = entree_filtre_garde_corps.get().lower()
@@ -2421,6 +2447,32 @@ def _update_resume_menuiseries(nom_sel: str):
     tk.Label(grid_resume_menuiseries, text="% de Façades vitrées :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
     tk.Label(grid_resume_menuiseries, text=f"{pourc_vitree:.2f} %", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
 
+def _update_resume_type_sol(nom_sel: str):
+    """Met à jour le résumé pour le revêtement de sol sélectionné."""
+    sols_src = [s for s in _get_filtered_type_sol() if s[0] == nom_sel]
+    if not sols_src:
+        return
+    longueur_totale = surface_totale = 0.0
+    count = 0
+    for nom, surface, longueur, *_ in sols_src:
+        longueur_totale += longueur
+        surface_totale += surface
+        count += 1
+    for w in grid_resume_type_sol.winfo_children():
+        w.destroy()
+    row = 0
+    tk.Label(grid_resume_type_sol, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=f"{count} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_type_sol, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+
 def afficher_infos_menuiseries(event=None):
     sel = tree_menuiseries.selection()
     if not sel:
@@ -2461,153 +2513,93 @@ ttk.Button(frame_filtre_type_sol, text="Qt = 0", command=appliquer_filtre_zero_t
 print("Cadre de filtrage des sols créé")
 
 tree_type_sol = ttk.Treeview(frame_type_sol_content, columns=("Nom", "Surface (m²)", "Longueur ", "Type"), show="headings")
-for col in ("Nom", "Surface (m²)", "Longueur ", "Type") :
+for col in ("Nom", "Surface (m²)", "Longueur ", "Type"):
     tree_type_sol.heading(col, text=col)
-    tree_type_sol.column(col, anchor="center", width=80) # Réduit de 120 à 80
-tree_type_sol.column("Nom", width=120) # Réduit de 200 à 120
-tree_type_sol.tag_configure("evenrow", background="#FFFFFF")
+tree_type_sol.column("Nom", anchor="center", width=120, minwidth=120, stretch=True)
+tree_type_sol.column("Surface (m²)", anchor="center", width=80, minwidth=80, stretch=True)
+tree_type_sol.column("Longueur ", anchor="center", width=80, minwidth=80, stretch=True)
+tree_type_sol.column("Type", anchor="center", width=80, minwidth=80, stretch=True)
+tree_type_sol.tag_configure("evenrow", background="#E8F5E9")
 tree_type_sol.tag_configure("oddrow", background="#FFFFFF")
 scroll_type_sol = ttk.Scrollbar(frame_type_sol_content, orient="vertical", command=tree_type_sol.yview)
 tree_type_sol.configure(yscrollcommand=scroll_type_sol.set)
 tree_type_sol.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_type_sol.pack(side="right", fill="y")
-
-# Menu contextuel pour copier le texte de la colonne Nom
-def copy_nom_type_sol():
-    sel = tree_type_sol.selection()
-    if sel:
-        nom = tree_type_sol.item(sel[0])['values'][0]
-        root.clipboard_clear()
-        root.clipboard_append(nom)
-
-context_menu_type_sol = tk.Menu(root, tearoff=0)
-context_menu_type_sol.add_command(label="Copier", command=copy_nom_type_sol)
-
-def show_context_menu_type_sol(event):
-    row_id = tree_type_sol.identify_row(event.y)
-    if row_id:
-        tree_type_sol.selection_set(row_id)
-        context_menu_type_sol.post(event.x_root, event.y_root)
-
-tree_type_sol.bind("<Button-3>", show_context_menu_type_sol)
-
 print("Arborescence des sols créée")
 
 frame_resume_type_sol = tk.Frame(frame_type_sol, bg="white", width=650)
 frame_resume_type_sol.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_type_sol.pack_propagate(False)
-# Titre "Résumé" pour TYPE DE SOL avec fond vert foncé
 title_frame_resume_type_sol = tk.Frame(frame_resume_type_sol, bg="#004D40")
 title_frame_resume_type_sol.pack(fill="x", padx=5, pady=(5,0))
-tk.Label(title_frame_resume_type_sol,
-         text="RÉSUMÉ",
-         font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
-general_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="white",
-                                  bd=1, relief="solid")   # ← bordure noire 1 px
+tk.Label(title_frame_resume_type_sol, text="RÉSUMÉ", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+general_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_type_sol.pack(fill="x", padx=5, pady=5)
-
-grid_resume_type_sol = tk.Frame(general_frame_type_sol, bg="white")
+grid_resume_type_sol = tk.Frame(general_frame_type_sol, bg="#E8F5E9")
 grid_resume_type_sol.pack(pady=5)
+grid_resume_type_sol.grid_columnconfigure(1, weight=1)
+grid_resume_type_sol.grid_columnconfigure(3, weight=1)
 
-tk.Label(grid_resume_type_sol, text="📏 Longueur :",  bg="white",
-         font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_longueur_totale_type_sol = tk.Label(grid_resume_type_sol, text="0.00 ml",
-         bg="white", font=("Helvetica", 10, "bold"))
-label_longueur_totale_type_sol.grid(row=0, column=1, sticky="e", padx=10)
+title_frame_filtrage_type_sol = tk.Frame(frame_resume_type_sol, bg="#004D40")
+title_frame_filtrage_type_sol.pack(fill="x", padx=5, pady=(15, 0))
+tk.Label(title_frame_filtrage_type_sol, text="FILTRAGE PAR NOMS", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+types_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove")
+types_frame_type_sol.pack(fill="both", padx=5, pady=5, expand=True)
 
-tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="white",
-         font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
-label_surface_brut_type_sol = tk.Label(grid_resume_type_sol, text="0.00 m²",
-         bg="white", font=("Helvetica", 10, "bold"))
-label_surface_brut_type_sol.grid(row=1, column=1, sticky="e", padx=10)
+data_frame_types_type_sol = tk.Frame(types_frame_type_sol, bg="#E8F5E9")
+data_frame_types_type_sol.pack(fill="both", expand=True, padx=5, pady=5)
 
-tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="white",
-         font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
-label_surface_net_type_sol = tk.Label(grid_resume_type_sol, text="0.00 m²",
-         bg="white", font=("Helvetica", 10, "bold"))
-label_surface_net_type_sol.grid(row=2, column=1, sticky="e", padx=10)
-
-
-# ---- séparateur horizontal (vert foncé) -------------
-
-# ---- bloc "Surfaces par type" remplacé par Treeview ----
-# ---- cadre de données pour Surfaces par type ----
-data_frame_surfaces_type_sol = tk.Frame(frame_resume_type_sol, bg="white", bd=1, relief="solid")
-data_frame_surfaces_type_sol.pack(fill="x", padx=5, pady=5)
-
-title_frame_surfaces_type_sol = tk.Frame(frame_resume_type_sol, bg="#004D40")
-title_frame_surfaces_type_sol.pack(fill="x", padx=5, pady=(15, 0))
-tk.Label(title_frame_surfaces_type_sol,
-         text="INFORMATIONS COMPLÉMENTAIRES",
-         font=("Helvetica", 12, "bold"),
-         bg="#004D40", fg="white").pack(pady=5)
-
-# Création du Treeview pour les surfaces par type
-tree_surfaces_type_sol = ttk.Treeview(data_frame_surfaces_type_sol, columns=("Type", "m²"),
-                                      show="headings", height=10)
-tree_surfaces_type_sol.configure(style="Summary.Treeview")
-tree_surfaces_type_sol.heading("Type", text="Type")
-tree_surfaces_type_sol.heading("m²", text="m²")
+tree_surfaces_type_sol = ttk.Treeview(data_frame_types_type_sol, columns=("Type", "m²", "U"), show="headings")
+for col in ("Type", "m²", "U"):
+    tree_surfaces_type_sol.configure(style="Green.Treeview")
+    tree_surfaces_type_sol.heading(col, text=col)
 tree_surfaces_type_sol.column("Type", anchor="w", width=200)
-tree_surfaces_type_sol.column("m²", anchor="e", width=80)
-# Harmonisation couleur de fond
-tree_surfaces_type_sol.tag_configure("evenrow", background="white")
-tree_surfaces_type_sol.tag_configure("oddrow", background="white")
-# Scrollbar pour l'arbre
-scroll_surfaces_type_sol = ttk.Scrollbar(data_frame_surfaces_type_sol,
-                                         orient="vertical",
-                                         command=tree_surfaces_type_sol.yview)
+tree_surfaces_type_sol.column("m²", anchor="e", width=60, stretch=False)
+tree_surfaces_type_sol.column("U", anchor="e", width=40, stretch=False)
+tree_surfaces_type_sol.tag_configure("evenrow", background="#E8F5E9")
+tree_surfaces_type_sol.tag_configure("oddrow", background="#E8F5E9")
+scroll_surfaces_type_sol = ttk.Scrollbar(data_frame_types_type_sol, orient="vertical", command=tree_surfaces_type_sol.yview)
 tree_surfaces_type_sol.configure(yscrollcommand=scroll_surfaces_type_sol.set)
 tree_surfaces_type_sol.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
+scroll_surfaces_type_sol.pack(side="right", fill="y")
 
-# Menu contextuel et double-clic pour le résumé des surfaces par type
-def copy_type_summary(event=None):
+def copy_type_summary_type_sol(event=None):
     sel = tree_surfaces_type_sol.selection()
     if sel:
-        t = tree_surfaces_type_sol.item(sel[0])['values'][0]
+        text_to_copy = "\n".join(["\t".join(map(str, tree_surfaces_type_sol.item(i)["values"])) for i in sel])
         root.clipboard_clear()
-        root.clipboard_append(t)
+        root.clipboard_append(text_to_copy)
 
-def filter_main_by_type(event):
-    # Filtrer uniquement le tableau principal sans toucher au résumé
-    row = tree_surfaces_type_sol.identify_row(event.y)
-    if row:
-        tree_surfaces_type_sol.selection_set(row)
-        type_sel = tree_surfaces_type_sol.item(row)['values'][0]
-        # mise à jour du tableau principal
-        # suppresion des lignes existantes
-        for item in tree_type_sol.get_children():
-            tree_type_sol.delete(item)
-        # affichage des sols filtrés
-        sols_filtres = [sol for sol in donnees_ifc[ifc_actif]["sols"] if sol[0] == type_sel]
-        for idx, (nom, surface, longueur, revetement_type) in enumerate(sols_filtres):
-            tag = "evenrow" if idx % 2 == 0 else "oddrow"
-            tree_type_sol.insert("", "end", values=(nom, surface, longueur, revetement_type), tags=(tag,))
-        # ne pas toucher au résumé en droit
+def filter_main_by_type_type_sol(event=None):
+    row_id = tree_surfaces_type_sol.selection()
+    if row_id:
+        type_sel = tree_surfaces_type_sol.item(row_id[0])['values'][0]
+        sols_filtres = [s for s in donnees_ifc[ifc_actif]["sols"] if s[0] == type_sel]
+        afficher_donnees_type_sol(sols_filtres)
 
-tree_surfaces_type_sol.bind("<Double-1>", filter_main_by_type)
-tree_surfaces_type_sol.bind("<Button-1>", copy_type_summary)
-
-# Menu contextuel pour copier depuis Résumé
+tree_surfaces_type_sol.bind("<Double-1>", filter_main_by_type_type_sol)
+tree_surfaces_type_sol.bind("<Button-1>", copy_type_summary_type_sol)
 context_menu_surfaces_type_sol = tk.Menu(root, tearoff=0)
-context_menu_surfaces_type_sol.add_command(label="Copier", command=copy_type_summary)
+context_menu_surfaces_type_sol.add_command(label="Copier", command=copy_type_summary_type_sol)
+tree_surfaces_type_sol.bind("<Button-3>", lambda e: (tree_surfaces_type_sol.selection_set(tree_surfaces_type_sol.identify_row(e.y)), context_menu_surfaces_type_sol.post(e.x_root, e.y_root)))
 
-def show_context_menu_surfaces_type_sol(event):
-    row = tree_surfaces_type_sol.identify_row(event.y)
-    if row:
-        tree_surfaces_type_sol.selection_set(row)
-        context_menu_surfaces_type_sol.post(event.x_root, event.y_root)
+def afficher_infos_type_sol(event=None):
+    sel = tree_type_sol.selection()
+    if not sel:
+        return
+    nom_sel = tree_type_sol.item(sel[0])["values"][0]
+    _update_resume_type_sol(nom_sel)
 
-tree_surfaces_type_sol.bind("<Button-3>", show_context_menu_surfaces_type_sol)
+def afficher_infos_type_sol_resume(event=None):
+    sel = tree_surfaces_type_sol.selection()
+    if not sel:
+        return
+    nom_sel = tree_surfaces_type_sol.item(sel[0])["values"][0]
+    _update_resume_type_sol(nom_sel)
 
+tree_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol)
+tree_surfaces_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol_resume)
 
-scroll_surfaces_type_sol.pack(side="right", fill="y")
-# Activation du scroll vertical avec la molette de la souris
-tree_surfaces_type_sol.bind("<MouseWheel>", lambda e: tree_surfaces_type_sol.yview_scroll(int(-1*(e.delta/120)), "units"))
-tree_surfaces_type_sol.bind("<Button-4>", lambda e: tree_surfaces_type_sol.yview_scroll(-1, "units"))
-tree_surfaces_type_sol.bind("<Button-5>", lambda e: tree_surfaces_type_sol.yview_scroll(1, "units"))
-
-print("Cadre de CV des sols créés")
 
 frame_garde_corps_content = tk.Frame(frame_garde_corps, bg="#FAFAFA")
 frame_garde_corps_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
