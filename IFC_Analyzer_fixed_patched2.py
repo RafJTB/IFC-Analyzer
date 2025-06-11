@@ -316,6 +316,17 @@ def clean_string(value) :
         return ""
     return value.replace(" - Inconnu", "").replace(" - Non spécifié", "").strip()
 
+# Normalize strings by removing accents and lowercasing
+import unicodedata
+
+def _normalize_key(text: str) -> str:
+    """Return a case-insensitive and accent-free representation of *text*."""
+    if not isinstance(text, str):
+        return ""
+    text = unicodedata.normalize('NFD', text)
+    text = ''.join(ch for ch in text if unicodedata.category(ch) != 'Mn')
+    return text.lower().strip()
+
 # ---------- utils -------------------------------------------------
 def by_type_safe(ifc_file, entity):
     """Renvoie la liste des entités demandées ou [] si le schéma ne la connaît pas."""
@@ -508,11 +519,11 @@ def importer_ifc():
                 except Exception:
                     pass
                 def _find_prop(names):
+                    names_norm = {_normalize_key(n) for n in names}
                     for ps in psets.values():
                         if isinstance(ps, dict):
-                            for n in names:
-                                if n in ps and ps[n] not in (None, ""):
-                                    val = ps[n]
+                            for key, val in ps.items():
+                                if _normalize_key(key) in names_norm and val not in (None, ""):
                                     if isinstance(val, str):
                                         val = val.replace(",", ".")
                                         try:
@@ -648,11 +659,11 @@ def importer_ifc():
                         break
 
                 def _find_prop(names):
+                    names_norm = {_normalize_key(n) for n in names}
                     for p in psets.values():
                         if isinstance(p, dict):
-                            for n in names:
-                                if n in p and p[n] not in (None, ""):
-                                    val = p[n]
+                            for key, val in p.items():
+                                if _normalize_key(key) in names_norm and val not in (None, ""):
                                     if isinstance(val, str):
                                         val = val.replace(",", ".")
                                         try:
@@ -2789,6 +2800,7 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
         ("Cotes / Élévation haut", "Cotes / Élévation haut"),
         ("Cotes / Élévation base", "Cotes / Élévation base"),
         ("Cotes / Épaisseur", "Cotes / Épaisseur"),
+        ("Contraintes / Niveau", "Contraintes / Niveau"),
     ]
     for row, (key, label) in enumerate(mapping):
         val = info.get(key)
