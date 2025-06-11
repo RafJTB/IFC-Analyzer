@@ -1229,15 +1229,19 @@ def afficher_donnees_type_sol(sols=None):
 
     longueur_totale = surface_totale = 0.0
     surfaces_par_nom = {}
+    storeys_par_nom = {}
 
     # -- remplissage
-    for idx, (nom, surface, longueur, revetement_type, _storey) in enumerate(sols):
+    for idx, (nom, surface, longueur, revetement_type, storey) in enumerate(sols):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_type_sol.insert("", "end",
             values=(nom, surface, longueur, revetement_type), tags=(tag,))
         longueur_totale += longueur
         surface_totale  += surface
         surfaces_par_nom[nom] = surfaces_par_nom.get(nom, 0) + surface
+        storeys_par_nom.setdefault(nom, set())
+        if storey:
+            storeys_par_nom[nom].add(storey)
 
 
     # --- maj du résumé
@@ -1264,7 +1268,8 @@ def afficher_donnees_type_sol(sols=None):
         if surface <= 0:
             continue
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
-        tree_surfaces_type_sol.insert("", "end", values=(nom, round(surface, 2)), tags=(tag,))
+        niveaux = ", ".join(sorted(storeys_par_nom.get(nom, [])))
+        tree_surfaces_type_sol.insert("", "end", values=(nom, niveaux, round(surface, 2)), tags=(tag,))
     # Ajustement automatique de la largeur de la colonne m²
     font = tkFont.Font()
     max_w = font.measure("m²")
@@ -2143,15 +2148,15 @@ def _update_infos_mur(nom_sel: str, storey: str = None):
     ]
     for row, (key, label) in enumerate(mapping):
         val = info.get(key, "")
-        if val in (None, "None", ""):
-            val = "N/A"
+        if val in (None, "None"):
+            val = ""
         elif isinstance(val, (int, float)):
             val = f"{val:.2f}"
         else:
             try:
                 val = f"{float(val):.2f}"
             except (TypeError, ValueError):
-                pass
+                val = str(val) if val is not None else ""
         if key == "IsExternal" and val not in ("", "N/A"):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
         tk.Label(grid_infos_murs, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
@@ -2602,13 +2607,13 @@ types_frame_type_sol.pack(fill="both", padx=5, pady=5, expand=True)
 data_frame_types_type_sol = tk.Frame(types_frame_type_sol, bg="#E8F5E9")
 data_frame_types_type_sol.pack(fill="both", expand=True, padx=5, pady=5)
 
-tree_surfaces_type_sol = ttk.Treeview(data_frame_types_type_sol, columns=("Type", "m²", "U"), show="headings")
-for col in ("Type", "m²", "U"):
+tree_surfaces_type_sol = ttk.Treeview(data_frame_types_type_sol, columns=("Type", "Niveau(s)", "m²"), show="headings")
+for col in ("Type", "Niveau(s)", "m²"):
     tree_surfaces_type_sol.configure(style="Green.Treeview")
     tree_surfaces_type_sol.heading(col, text=col)
 tree_surfaces_type_sol.column("Type", anchor="w", width=200)
+tree_surfaces_type_sol.column("Niveau(s)", anchor="w", width=120, stretch=True)
 tree_surfaces_type_sol.column("m²", anchor="e", width=60, stretch=False)
-tree_surfaces_type_sol.column("U", anchor="e", width=40, stretch=False)
 tree_surfaces_type_sol.tag_configure("evenrow", background="#E8F5E9")
 tree_surfaces_type_sol.tag_configure("oddrow", background="#E8F5E9")
 scroll_surfaces_type_sol = ttk.Scrollbar(data_frame_types_type_sol, orient="vertical", command=tree_surfaces_type_sol.yview)
@@ -2690,15 +2695,15 @@ def _update_infos_type_sol(nom_sel: str):
     ]
     for row, (key, label) in enumerate(mapping):
         val = info.get(key, "")
-        if val in (None, "None", ""):
-            val = "N/A"
+        if val in (None, "None"):
+            val = ""
         elif isinstance(val, (int, float)):
             val = f"{val:.2f}"
         else:
             try:
                 val = f"{float(val):.2f}"
             except (TypeError, ValueError):
-                pass
+                val = str(val) if val is not None else ""
         tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_type_sol, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
