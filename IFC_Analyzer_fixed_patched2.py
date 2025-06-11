@@ -1206,17 +1206,15 @@ def afficher_donnees_menuiseries(menuiseries):
     grid_types_menuiseries.columnconfigure(3, weight=0, minsize=10) # Toile
     grid_types_menuiseries.columnconfigure(4, weight=0, minsize=40) # Unités
     for i, (nom, surface) in enumerate(surfaces_par_nom.items()):
-        # labels hidden for clean UI
-        pass
         tag_row = "evenrow" if i % 2 == 0 else "oddrow"
-        tree_surfaces_menuiseries.insert("", "end", values=(nom, round(surface,2), nombre_par_nom[nom]), tags=(tag_row,))
+        tree_surfaces_menuiseries.insert("", "end", values=(nom, nombre_par_nom[nom]), tags=(tag_row,))
 
     # --- Mise à jour du Treeview résumé par type pour MENUISERIES ------------
     tree_surfaces_menuiseries.delete(*tree_surfaces_menuiseries.get_children())
     for jdx, (nom_type, surface_type) in enumerate(surfaces_par_nom.items()):
         count_type = nombre_par_nom[nom_type]
         tag_row = "evenrow" if jdx % 2 == 0 else "oddrow"
-        tree_surfaces_menuiseries.insert("", "end", values=(nom_type, round(surface_type, 2), count_type), tags=(tag_row,))
+        tree_surfaces_menuiseries.insert("", "end", values=(nom_type, count_type), tags=(tag_row,))
     # -------------------------------------------------------------------------
 
 def afficher_donnees_type_sol(sols=None):
@@ -1229,7 +1227,6 @@ def afficher_donnees_type_sol(sols=None):
 
     longueur_totale = surface_totale = 0.0
     surfaces_par_nom = {}
-    storeys_par_nom = {}
 
     # -- remplissage
     for idx, (nom, surface, longueur, revetement_type, storey) in enumerate(sols):
@@ -1239,18 +1236,12 @@ def afficher_donnees_type_sol(sols=None):
         longueur_totale += longueur
         surface_totale  += surface
         surfaces_par_nom[nom] = surfaces_par_nom.get(nom, 0) + surface
-        storeys_par_nom.setdefault(nom, set())
-        if storey:
-            storeys_par_nom[nom].add(storey)
 
 
     # --- maj du résumé
     for w in grid_resume_type_sol.winfo_children():
         w.destroy()
     row = 0
-    tk.Label(grid_resume_type_sol, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_type_sol, text=f"{len(sols)} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
     tk.Label(grid_resume_type_sol, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
@@ -1268,8 +1259,7 @@ def afficher_donnees_type_sol(sols=None):
         if surface <= 0:
             continue
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
-        niveaux = ", ".join(sorted(storeys_par_nom.get(nom, [])))
-        tree_surfaces_type_sol.insert("", "end", values=(nom, niveaux, round(surface, 2)), tags=(tag,))
+        tree_surfaces_type_sol.insert("", "end", values=(nom, round(surface, 2)), tags=(tag,))
     # Ajustement automatique de la largeur de la colonne m²
     font = tkFont.Font()
     max_w = font.measure("m²")
@@ -2339,12 +2329,11 @@ types_frame_menuiseries.pack(fill="both", padx=5, pady=5, expand=True)
 data_frame_types_menuiseries = tk.Frame(types_frame_menuiseries, bg="#E8F5E9")
 data_frame_types_menuiseries.pack(fill="both", expand=True, padx=5, pady=5)
 
-tree_surfaces_menuiseries = ttk.Treeview(data_frame_types_menuiseries, columns=("Type", "m²", "U"), show="headings")
-for col in ("Type", "m²", "U"):
+tree_surfaces_menuiseries = ttk.Treeview(data_frame_types_menuiseries, columns=("Type", "U"), show="headings")
+for col in ("Type", "U"):
     tree_surfaces_menuiseries.configure(style="Green.Treeview")
     tree_surfaces_menuiseries.heading(col, text=col)
 tree_surfaces_menuiseries.column("Type", anchor="w", width=200)
-tree_surfaces_menuiseries.column("m²", anchor="e", width=60, stretch=False)
 tree_surfaces_menuiseries.column("U", anchor="e", width=40, stretch=False)
 tree_surfaces_menuiseries.tag_configure("evenrow", background="#E8F5E9")
 tree_surfaces_menuiseries.tag_configure("oddrow", background="#E8F5E9")
@@ -2508,17 +2497,12 @@ def _update_resume_type_sol(nom_sel: str):
     if not sols_src:
         return
     longueur_totale = surface_totale = 0.0
-    count = 0
     for nom, surface, longueur, *_ in sols_src:
         longueur_totale += longueur
         surface_totale += surface
-        count += 1
     for w in grid_resume_type_sol.winfo_children():
         w.destroy()
     row = 0
-    tk.Label(grid_resume_type_sol, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_type_sol, text=f"{count} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
     tk.Label(grid_resume_type_sol, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
@@ -2607,12 +2591,11 @@ types_frame_type_sol.pack(fill="both", padx=5, pady=5, expand=True)
 data_frame_types_type_sol = tk.Frame(types_frame_type_sol, bg="#E8F5E9")
 data_frame_types_type_sol.pack(fill="both", expand=True, padx=5, pady=5)
 
-tree_surfaces_type_sol = ttk.Treeview(data_frame_types_type_sol, columns=("Type", "Niveau(s)", "m²"), show="headings")
-for col in ("Type", "Niveau(s)", "m²"):
+tree_surfaces_type_sol = ttk.Treeview(data_frame_types_type_sol, columns=("Type", "m²"), show="headings")
+for col in ("Type", "m²"):
     tree_surfaces_type_sol.configure(style="Green.Treeview")
     tree_surfaces_type_sol.heading(col, text=col)
 tree_surfaces_type_sol.column("Type", anchor="w", width=200)
-tree_surfaces_type_sol.column("Niveau(s)", anchor="w", width=120, stretch=True)
 tree_surfaces_type_sol.column("m²", anchor="e", width=60, stretch=False)
 tree_surfaces_type_sol.tag_configure("evenrow", background="#E8F5E9")
 tree_surfaces_type_sol.tag_configure("oddrow", background="#E8F5E9")
@@ -2687,11 +2670,11 @@ def _update_infos_type_sol(nom_sel: str):
         if n == nom_sel:
             info = data
             break
+    storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
     mapping = [
         ("Cotes / Élévation haut", "Cotes / Élévation haut"),
         ("Cotes / Élévation base", "Cotes / Élévation base"),
         ("Cotes / Épaisseur", "Cotes / Épaisseur"),
-        ("Contraintes / Niveau", "Contraintes / Niveau"),
     ]
     for row, (key, label) in enumerate(mapping):
         val = info.get(key, "")
@@ -2706,6 +2689,11 @@ def _update_infos_type_sol(nom_sel: str):
                 val = str(val) if val is not None else ""
         tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_type_sol, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    label = "Niveau" if len(storeys) <= 1 else "Niveaux"
+    niveaux = " - ".join(storeys)
+    row = len(mapping)
+    tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_type_sol, text=niveaux, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 
 frame_garde_corps_content = tk.Frame(frame_garde_corps, bg="#FAFAFA")
