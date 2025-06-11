@@ -229,6 +229,7 @@ tab_buttons = []
 # Bouton filtrage par niveau (référence conservée pour le menu déroulant)
 btn_niveau_murs = None
 btn_niveau_menuiseries = None
+btn_niveau_type_sol = None
 
 # Filtres actifs pour le tableau MURS
 filtre_texte_murs = ""
@@ -243,6 +244,7 @@ filtre_zero_menuiseries = False
 # Filtres actifs pour le tableau TYPE DE SOL
 filtre_texte_type_sol = ""
 filtre_zero_type_sol = False
+filtre_niveaux_type_sol = []
 
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
@@ -325,6 +327,7 @@ def importer_ifc():
                 "menuiseries": [],
                 "menuiseries_infos": {},
                 "sols":        [],
+                "sols_infos": {},
                 "plafonds":    [],
                 "garde_corps": [],
                 "poteaux":     [],
@@ -535,6 +538,7 @@ def importer_ifc():
             print(f"Menuiseries chargées : {len(donnees_ifc[chemin]['menuiseries'])}")
                         # Sols
             donnees_ifc[chemin]["sols"] = []
+            donnees_ifc[chemin]["sols_infos"] = {}
             for i, obj in enumerate(revetements_sol):
                 nom = clean_string(obj.Name) or ""
                 # Retire références numériques ET les deux-petits-points qui traînent en bout
@@ -544,7 +548,7 @@ def importer_ifc():
 
                 surface = longueur = 0.0
                 revetement_type = obj.is_a()
-
+                
                 try:
                     psets = ifcopenshell.util.element.get_psets(obj)
                     quantity = psets.get("BaseQuantities", {})
@@ -552,14 +556,39 @@ def importer_ifc():
                     longueur = quantity.get("Perimeter", 0.0) or quantity.get("Length", 0.0)
                 except Exception as e:
                     print(f"Erreur extraction sol {nom} : {e}")
+                    psets = {}
+                    quantity = {}
 
                 famille  = "Sol"
                 type_sol = nom or "N/A"
                 name     = f"{famille} - {type_sol}" if type_sol != "N/A" else famille
 
+                storey = ""
+                for rel in getattr(obj, "ContainedInStructure", []):
+                    container = rel.RelatingStructure
+                    if container and container.is_a("IfcBuildingStorey"):
+                        storey = container.Name or ""
+                        break
+
+                def _find_prop(names):
+                    for p in psets.values():
+                        if isinstance(p, dict):
+                            for n in names:
+                                if n in p and p[n] not in (None, ""):
+                                    return p[n]
+                    return None
+
+                info_sol = {
+                    "Cotes / Élévation haut": _find_prop(["Élévation haut", "ElevationTop"]),
+                    "Cotes / Élévation base": _find_prop(["Élévation base", "ElevationBase"]),
+                    "Cotes / Épaisseur": _find_prop(["Épaisseur", "Thickness"]),
+                    "Contraintes / Niveau": storey,
+                }
+
                 donnees_ifc[chemin]["sols"].append(
-                    (name, round(surface, 2), round(longueur, 2), revetement_type)
+                    (name, round(surface, 2), round(longueur, 2), revetement_type, storey)
                 )
+                donnees_ifc[chemin]["sols_infos"][(name, storey)] = info_sol
 
                 processed_elements += 1
                 if processed_elements % 10 == 0:
@@ -1202,7 +1231,7 @@ def afficher_donnees_type_sol(sols=None):
     surfaces_par_nom = {}
 
     # -- remplissage
-    for idx, (nom, surface, longueur, revetement_type) in enumerate(sols):
+    for idx, (nom, surface, longueur, revetement_type, _storey) in enumerate(sols):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_type_sol.insert("", "end",
             values=(nom, surface, longueur, revetement_type), tags=(tag,))
@@ -1452,6 +1481,8 @@ def _get_filtered_type_sol():
     sols = donnees_ifc.get(ifc_actif, {}).get("sols", [])
     if filtre_zero_type_sol:
         sols = [s for s in sols if s[1] == 0]
+    if filtre_niveaux_type_sol:
+        sols = [s for s in sols if s[4] in filtre_niveaux_type_sol]
     if filtre_texte_type_sol:
         lower = filtre_texte_type_sol
         sols = [s for s in sols if lower in s[0].lower()]
@@ -1528,6 +1559,24 @@ def open_filtre_niveau_menuiseries():
     menu.tk_popup(x, y)
     menu.grab_release()
 
+def appliquer_filtre_niveau_type_sol(niveaux):
+    """Filtrer les revêtements de sol selon une liste de niveaux."""
+    global filtre_niveaux_type_sol
+    filtre_niveaux_type_sol = niveaux or []
+    _apply_filters_type_sol()
+
+def open_filtre_niveau_type_sol():
+    niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
+    if not niveaux or btn_niveau_type_sol is None:
+        return
+    menu = tk.Menu(root, tearoff=0)
+    for n in niveaux:
+        menu.add_command(label=n, command=lambda level=n: (appliquer_filtre_niveau_type_sol([level]), menu.unpost()))
+    x = btn_niveau_type_sol.winfo_rootx()
+    y = btn_niveau_type_sol.winfo_rooty() + btn_niveau_type_sol.winfo_height()
+    menu.tk_popup(x, y)
+    menu.grab_release()
+
 def appliquer_filtre_zero_menuiseries():
     """Filtrer pour n’afficher que les menuiseries avec quantité égale à 0."""
     global filtre_zero_menuiseries
@@ -1546,10 +1595,11 @@ def appliquer_filtre_zero_poteaux():
     afficher_donnees_poteaux(poteaux_zero)
 
 def reinitialiser_filtre_type_sol():
-    global filtre_texte_type_sol, filtre_zero_type_sol
+    global filtre_texte_type_sol, filtre_zero_type_sol, filtre_niveaux_type_sol
     entree_filtre_type_sol.delete(0, tk.END)
     filtre_texte_type_sol = ""
     filtre_zero_type_sol = False
+    filtre_niveaux_type_sol = []
     _apply_filters_type_sol()
 
 
@@ -2510,6 +2560,8 @@ entree_filtre_type_sol.pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_sol, text="Appliquer", command=appliquer_filtre_type_sol).pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_sol, text="Réinitialiser", command=reinitialiser_filtre_type_sol).pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_sol, text="Qt = 0", command=appliquer_filtre_zero_type_sol).pack(side="left", padx=5)
+btn_niveau_type_sol = ttk.Button(frame_filtre_type_sol, text="Niveau", command=open_filtre_niveau_type_sol)
+btn_niveau_type_sol.pack(side="left", padx=5)
 print("Cadre de filtrage des sols créé")
 
 tree_type_sol = ttk.Treeview(frame_type_sol_content, columns=("Nom", "Surface (m²)", "Longueur ", "Type"), show="headings")
@@ -2519,7 +2571,8 @@ tree_type_sol.column("Nom", anchor="center", width=120, minwidth=120, stretch=Tr
 tree_type_sol.column("Surface (m²)", anchor="center", width=80, minwidth=80, stretch=True)
 tree_type_sol.column("Longueur ", anchor="center", width=80, minwidth=80, stretch=True)
 tree_type_sol.column("Type", anchor="center", width=80, minwidth=80, stretch=True)
-tree_type_sol.tag_configure("evenrow", background="#E8F5E9")
+tree_type_sol.configure(style="Treeview")
+tree_type_sol.tag_configure("evenrow", background="#F5F5F5")
 tree_type_sol.tag_configure("oddrow", background="#FFFFFF")
 scroll_type_sol = ttk.Scrollbar(frame_type_sol_content, orient="vertical", command=tree_type_sol.yview)
 tree_type_sol.configure(yscrollcommand=scroll_type_sol.set)
@@ -2586,19 +2639,68 @@ tree_surfaces_type_sol.bind("<Button-3>", lambda e: (tree_surfaces_type_sol.sele
 def afficher_infos_type_sol(event=None):
     sel = tree_type_sol.selection()
     if not sel:
+        hide_infos_type_sol()
         return
     nom_sel = tree_type_sol.item(sel[0])["values"][0]
+    _update_infos_type_sol(nom_sel)
     _update_resume_type_sol(nom_sel)
 
 def afficher_infos_type_sol_resume(event=None):
     sel = tree_surfaces_type_sol.selection()
     if not sel:
+        hide_infos_type_sol()
         return
     nom_sel = tree_surfaces_type_sol.item(sel[0])["values"][0]
+    _update_infos_type_sol(nom_sel)
     _update_resume_type_sol(nom_sel)
 
 tree_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol)
 tree_surfaces_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol_resume)
+
+# --- Nouveau titre "INFORMATIONS COMPLÉMENTAIRES" sous le tableau TYPE DE SOL
+title_frame_types_type_sol_bottom = tk.Frame(frame_resume_type_sol, bg="#004D40")
+title_frame_types_type_sol_bottom.pack(fill="x", padx=5, pady=(15, 0))
+tk.Label(title_frame_types_type_sol_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+info_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove")
+info_frame_type_sol.pack(fill="x", padx=5, pady=5)
+grid_infos_type_sol = tk.Frame(info_frame_type_sol, bg="#E8F5E9")
+grid_infos_type_sol.pack(pady=5, fill="x")
+grid_infos_type_sol.grid_columnconfigure(1, weight=1)
+grid_infos_type_sol.grid_columnconfigure(0, weight=1)
+
+def hide_infos_type_sol():
+    """Masque le bloc d'informations complémentaires des sols."""
+    for w in grid_infos_type_sol.winfo_children():
+        w.destroy()
+
+def _update_infos_type_sol(nom_sel: str):
+    """Affiche les informations complémentaires pour le revêtement de sol donné."""
+    hide_infos_type_sol()
+    infos = donnees_ifc.get(ifc_actif, {}).get("sols_infos", {})
+    info = {}
+    for (n, _s), data in infos.items():
+        if n == nom_sel:
+            info = data
+            break
+    mapping = [
+        ("Cotes / Élévation haut", "Cotes / Élévation haut"),
+        ("Cotes / Élévation base", "Cotes / Élévation base"),
+        ("Cotes / Épaisseur", "Cotes / Épaisseur"),
+        ("Contraintes / Niveau", "Contraintes / Niveau"),
+    ]
+    for row, (key, label) in enumerate(mapping):
+        val = info.get(key, "")
+        if val in (None, "None", ""):
+            val = "N/A"
+        elif isinstance(val, (int, float)):
+            val = f"{val:.2f}"
+        else:
+            try:
+                val = f"{float(val):.2f}"
+            except (TypeError, ValueError):
+                pass
+        tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_type_sol, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 
 frame_garde_corps_content = tk.Frame(frame_garde_corps, bg="#FAFAFA")
