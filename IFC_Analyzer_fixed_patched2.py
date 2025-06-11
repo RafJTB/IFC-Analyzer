@@ -512,7 +512,14 @@ def importer_ifc():
                         if isinstance(ps, dict):
                             for n in names:
                                 if n in ps and ps[n] not in (None, ""):
-                                    return ps[n]
+                                    val = ps[n]
+                                    if isinstance(val, str):
+                                        val = val.replace(",", ".")
+                                        try:
+                                            return float(val)
+                                        except ValueError:
+                                            return val
+                                    return val
                     return None
 
                 info_props = {
@@ -645,7 +652,14 @@ def importer_ifc():
                         if isinstance(p, dict):
                             for n in names:
                                 if n in p and p[n] not in (None, ""):
-                                    return p[n]
+                                    val = p[n]
+                                    if isinstance(val, str):
+                                        val = val.replace(",", ".")
+                                        try:
+                                            return float(val)
+                                        except ValueError:
+                                            return val
+                                    return val
                     return None
 
                 net_area = quantity.get("NetArea") or quantity.get("NetSideArea") or quantity.get("NetFloorArea")
@@ -2775,7 +2789,6 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
         ("Cotes / Élévation haut", "Cotes / Élévation haut"),
         ("Cotes / Élévation base", "Cotes / Élévation base"),
         ("Cotes / Épaisseur", "Cotes / Épaisseur"),
-        ("Surface nette", "Surface nette"),
     ]
     for row, (key, label) in enumerate(mapping):
         val = info.get(key)
@@ -2785,8 +2798,10 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
             val = f"{val:.2f}"
         else:
             try:
+                if isinstance(val, str):
+                    val = val.replace(",", ".")
                 val = f"{float(val):.2f}"
-            except (TypeError, ValueError):
+            except (TypeError, ValueError, AttributeError):
                 val = str(val)
         tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_type_sol, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
