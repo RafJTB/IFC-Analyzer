@@ -519,11 +519,17 @@ def importer_ifc():
                 except Exception:
                     pass
                 def _find_prop(names):
+                    """Return the value for the first matching property in *psets*.
+
+                    Matching is done in a case-insensitive and accent-free manner
+                    and allows partial matches to better support varying
+                    nomenclatures found in IFC exports."""
                     names_norm = {_normalize_key(n) for n in names}
                     for ps in psets.values():
                         if isinstance(ps, dict):
                             for key, val in ps.items():
-                                if _normalize_key(key) in names_norm and val not in (None, ""):
+                                norm_key = _normalize_key(key)
+                                if any(norm in norm_key for norm in names_norm) and val not in (None, ""):
                                     if isinstance(val, str):
                                         val = val.replace(",", ".")
                                         try:
@@ -659,11 +665,16 @@ def importer_ifc():
                         break
 
                 def _find_prop(names):
+                    """Return the value for the first matching property in *psets*.
+
+                    The search is accent and case insensitive and supports
+                    partial matching to cope with different IFC exporters."""
                     names_norm = {_normalize_key(n) for n in names}
                     for p in psets.values():
                         if isinstance(p, dict):
                             for key, val in p.items():
-                                if _normalize_key(key) in names_norm and val not in (None, ""):
+                                norm_key = _normalize_key(key)
+                                if any(norm in norm_key for norm in names_norm) and val not in (None, ""):
                                     if isinstance(val, str):
                                         val = val.replace(",", ".")
                                         try:
@@ -675,8 +686,20 @@ def importer_ifc():
 
                 net_area = quantity.get("NetArea") or quantity.get("NetSideArea") or quantity.get("NetFloorArea")
                 info_sol = {
-                    "Cotes / Élévation haut": _find_prop(["Élévation haut", "ElevationTop"]),
-                    "Cotes / Élévation base": _find_prop(["Élévation base", "ElevationBase"]),
+                    "Cotes / Élévation haut": _find_prop([
+                        "Élévation haut",
+                        "Élévation en haut",
+                        "ElevationTop",
+                        "Elevation At Top",
+                        "TopElevation",
+                    ]),
+                    "Cotes / Élévation base": _find_prop([
+                        "Élévation base",
+                        "Élévation à la base",
+                        "ElevationBase",
+                        "Elevation At Base",
+                        "BaseElevation",
+                    ]),
                     "Cotes / Épaisseur": _find_prop(["Épaisseur", "Thickness"]),
                     "Surface nette": net_area,
                     "Contraintes / Niveau": storey,
@@ -2800,7 +2823,6 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
         ("Cotes / Élévation haut", "Cotes / Élévation haut"),
         ("Cotes / Élévation base", "Cotes / Élévation base"),
         ("Cotes / Épaisseur", "Cotes / Épaisseur"),
-        ("Contraintes / Niveau", "Contraintes / Niveau"),
     ]
     for row, (key, label) in enumerate(mapping):
         val = info.get(key)
