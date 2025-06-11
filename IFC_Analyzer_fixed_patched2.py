@@ -1730,6 +1730,21 @@ def reinitialiser_filtre_garde_corps():
     maj_largeur_par_type_garde_corps()
 
 
+def reinitialiser_tous_filtres(event=None):
+    """Réinitialise les filtres de tous les onglets."""
+    reinitialiser_filtre_murs()
+    reinitialiser_filtre_menuiseries()
+    reinitialiser_filtre_type_sol()
+    reinitialiser_filtre_garde_corps()
+    reinitialiser_filtre_escalier()
+    reinitialiser_filtre_bord_dalle()
+    reinitialiser_filtre_poteaux()
+    reinitialiser_filtre_poutres()
+    reinitialiser_filtre_ep()
+    reinitialiser_filtre_type_plafond()
+    reinitialiser_filtre_resume_gc()
+
+
 # --------------------------------------
 # Exportation Excel
 # --------------------------------------
@@ -1963,7 +1978,9 @@ tk.Label(frame_filtre_murs, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left
 entree_filtre_murs = tk.Entry(frame_filtre_murs, width=40)
 entree_filtre_murs.pack(side="left", padx=5)
 ttk.Button(frame_filtre_murs, text="Appliquer", command=appliquer_filtre_murs).pack(side="left", padx=5)
-ttk.Button(frame_filtre_murs, text="Réinitialiser", command=reinitialiser_filtre_murs).pack(side="left", padx=5)
+btn_reset_murs = ttk.Button(frame_filtre_murs, text="Réinitialiser", command=reinitialiser_filtre_murs)
+btn_reset_murs.pack(side="left", padx=5)
+btn_reset_murs.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_murs, text="Qt = 0", command=appliquer_filtre_zero_murs).pack(side="left", padx=5)
 btn_niveau_murs = ttk.Button(frame_filtre_murs, text="Niveau", command=open_filtre_niveau_murs)
 btn_niveau_murs.pack(side="left", padx=5)
@@ -1996,7 +2013,9 @@ tk.Label(frame_filtre_escalier, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="
 entree_filtre_escalier = tk.Entry(frame_filtre_escalier, width=40)
 entree_filtre_escalier.pack(side="left", padx=5)
 ttk.Button(frame_filtre_escalier, text="Appliquer", command=appliquer_filtre_escalier).pack(side="left", padx=5)
-ttk.Button(frame_filtre_escalier, text="Réinitialiser", command=reinitialiser_filtre_escalier).pack(side="left", padx=5)
+btn_reset_escalier = ttk.Button(frame_filtre_escalier, text="Réinitialiser", command=reinitialiser_filtre_escalier)
+btn_reset_escalier.pack(side="left", padx=5)
+btn_reset_escalier.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_escalier, text="Qt = 0", command=appliquer_filtre_zero_escalier).pack(side="left", padx=5)
 print("Cadre de filtrage des escaliers créé")
 
@@ -2027,7 +2046,9 @@ tk.Label(frame_filtre_bord_dalle, text="🔎 Filtrer :", bg="#FFFFFF").pack(side
 entree_filtre_bord_dalle = tk.Entry(frame_filtre_bord_dalle, width=40)
 entree_filtre_bord_dalle.pack(side="left", padx=5)
 ttk.Button(frame_filtre_bord_dalle, text="Appliquer", command=appliquer_filtre_bord_dalle).pack(side="left", padx=5)
-ttk.Button(frame_filtre_bord_dalle, text="Réinitialiser", command=reinitialiser_filtre_bord_dalle).pack(side="left", padx=5)
+btn_reset_bord_dalle = ttk.Button(frame_filtre_bord_dalle, text="Réinitialiser", command=reinitialiser_filtre_bord_dalle)
+btn_reset_bord_dalle.pack(side="left", padx=5)
+btn_reset_bord_dalle.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_bord_dalle, text="Qt = 0", command=appliquer_filtre_zero_bord_dalle).pack(side="left", padx=5)
 
 # Tableau principal
@@ -2403,7 +2424,9 @@ tk.Label(frame_filtre_menuiseries, text="🔎 Filtrer :", bg="#FFFFFF").pack(sid
 entree_filtre_menuiseries = tk.Entry(frame_filtre_menuiseries, width=40)
 entree_filtre_menuiseries.pack(side="left", padx=5)
 ttk.Button(frame_filtre_menuiseries, text="Appliquer", command=appliquer_filtre_menuiseries).pack(side="left", padx=5)
-ttk.Button(frame_filtre_menuiseries, text="Réinitialiser", command=reinitialiser_filtre_menuiseries).pack(side="left", padx=5)
+btn_reset_menuiseries = ttk.Button(frame_filtre_menuiseries, text="Réinitialiser", command=reinitialiser_filtre_menuiseries)
+btn_reset_menuiseries.pack(side="left", padx=5)
+btn_reset_menuiseries.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_menuiseries, text="Qt = 0", command=appliquer_filtre_zero_menuiseries).pack(side="left", padx=5)
 btn_niveau_menuiseries = ttk.Button(frame_filtre_menuiseries, text="Niveau", command=open_filtre_niveau_menuiseries)
 btn_niveau_menuiseries.pack(side="left", padx=5)
@@ -2670,7 +2693,9 @@ tk.Label(frame_filtre_type_sol, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="
 entree_filtre_type_sol = tk.Entry(frame_filtre_type_sol, width=40)
 entree_filtre_type_sol.pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_sol, text="Appliquer", command=appliquer_filtre_type_sol).pack(side="left", padx=5)
-ttk.Button(frame_filtre_type_sol, text="Réinitialiser", command=reinitialiser_filtre_type_sol).pack(side="left", padx=5)
+btn_reset_type_sol = ttk.Button(frame_filtre_type_sol, text="Réinitialiser", command=reinitialiser_filtre_type_sol)
+btn_reset_type_sol.pack(side="left", padx=5)
+btn_reset_type_sol.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_type_sol, text="Qt = 0", command=appliquer_filtre_zero_type_sol).pack(side="left", padx=5)
 btn_niveau_type_sol = ttk.Button(frame_filtre_type_sol, text="Niveau", command=open_filtre_niveau_type_sol)
 btn_niveau_type_sol.pack(side="left", padx=5)
@@ -2853,7 +2878,9 @@ tk.Label(frame_filtre_garde_corps, text="🔎 Filtrer :", bg="#FFFFFF").pack(sid
 entree_filtre_garde_corps = tk.Entry(frame_filtre_garde_corps, width=40)
 entree_filtre_garde_corps.pack(side="left", padx=5)
 ttk.Button(frame_filtre_garde_corps, text="Appliquer", command=appliquer_filtre_garde_corps).pack(side="left", padx=5)
-ttk.Button(frame_filtre_garde_corps, text="Réinitialiser", command=reinitialiser_filtre_garde_corps).pack(side="left", padx=5)
+btn_reset_garde_corps = ttk.Button(frame_filtre_garde_corps, text="Réinitialiser", command=reinitialiser_filtre_garde_corps)
+btn_reset_garde_corps.pack(side="left", padx=5)
+btn_reset_garde_corps.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_garde_corps, text="Qt = 0", command=appliquer_filtre_zero_garde_corps).pack(side="left", padx=5)
 print("Cadre de filtrage des garde-corps créé")
 
@@ -2977,9 +3004,11 @@ tk.Label(frame_filtre_poteaux, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="l
 entree_filtre_poteaux = tk.Entry(frame_filtre_poteaux, width=40)
 entree_filtre_poteaux.pack(side="left", padx=5)
 ttk.Button(frame_filtre_poteaux, text="Appliquer",  command=appliquer_filtre_poteaux).pack(side="left", padx=5)
-ttk.Button(frame_filtre_poteaux,
+btn_reset_poteaux = ttk.Button(frame_filtre_poteaux,
            text="Réinitialiser",
-           command=reinitialiser_filtre_poteaux).pack(side="left", padx=5)
+           command=reinitialiser_filtre_poteaux)
+btn_reset_poteaux.pack(side="left", padx=5)
+btn_reset_poteaux.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_poteaux, text="Qt = 0", command=appliquer_filtre_zero_poteaux).pack(side="left", padx=5)
 
 
@@ -3135,9 +3164,11 @@ tk.Label(frame_filtre_poutres, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="l
 entree_filtre_poutres = tk.Entry(frame_filtre_poutres, width=40)
 entree_filtre_poutres.pack(side="left", padx=5)
 ttk.Button(frame_filtre_poutres, text="Appliquer",  command=appliquer_filtre_poutres).pack(side="left", padx=5)
-ttk.Button(frame_filtre_poutres,
+btn_reset_poutres = ttk.Button(frame_filtre_poutres,
            text="Réinitialiser",
-           command=reinitialiser_filtre_poutres).pack(side="left", padx=5)
+           command=reinitialiser_filtre_poutres)
+btn_reset_poutres.pack(side="left", padx=5)
+btn_reset_poutres.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_poutres, text="Qt = 0", command=appliquer_filtre_zero_poutres).pack(side="left", padx=5)
 
 
@@ -3325,7 +3356,9 @@ tk.Label(frame_filtre_ep, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left",
 entree_filtre_ep = tk.Entry(frame_filtre_ep, width=40)
 entree_filtre_ep.pack(side="left", padx=5)
 ttk.Button(frame_filtre_ep, text="Appliquer",  command=lambda: appliquer_filtre_ep()).pack(side="left", padx=5)
-ttk.Button(frame_filtre_ep, text="Réinitialiser", command=lambda: reinitialiser_filtre_ep()).pack(side="left", padx=5)
+btn_reset_ep = ttk.Button(frame_filtre_ep, text="Réinitialiser", command=lambda: reinitialiser_filtre_ep())
+btn_reset_ep.pack(side="left", padx=5)
+btn_reset_ep.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_ep, text="Qt = 0", command=lambda: appliquer_filtre_zero_ep()).pack(side="left", padx=5)
 
 tree_ep = ttk.Treeview(
@@ -3470,7 +3503,9 @@ tk.Label(frame_filtre_type_plafond, text="🔎 Filtrer :", bg="#FFFFFF").pack(si
 entree_filtre_type_plafond = tk.Entry(frame_filtre_type_plafond, width=40)
 entree_filtre_type_plafond.pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_plafond, text="Appliquer", command=lambda: appliquer_filtre_type_plafond()).pack(side="left", padx=5)
-ttk.Button(frame_filtre_type_plafond, text="Réinitialiser", command=lambda: reinitialiser_filtre_type_plafond()).pack(side="left", padx=5)
+btn_reset_type_plafond = ttk.Button(frame_filtre_type_plafond, text="Réinitialiser", command=lambda: reinitialiser_filtre_type_plafond())
+btn_reset_type_plafond.pack(side="left", padx=5)
+btn_reset_type_plafond.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_type_plafond, text="Qt = 0", command=lambda: appliquer_filtre_zero_type_plafond()).pack(side="left", padx=5)
 print("Cadre de filtrage des plafonds créé")
 
