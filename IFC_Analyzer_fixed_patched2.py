@@ -88,18 +88,38 @@ def _calc_total_facade_surface():
 def _calc_surface_nette_sols(sols_list):
     """Retourne la surface nette des sols passés en paramètre.
 
-    La surface nette correspond à la surface brute de dalle diminuée de la
-    somme des sections des éléments verticaux traversant cette dalle
-    (poteaux, poutres, etc.). Les dimensions nécessaires sont approchées à
-    partir des données disponibles dans ``donnees_ifc``.
+    Si la surface nette est disponible dans les ``sols_infos`` pour tous les
+    éléments sélectionnés, cette valeur est utilisée. À défaut, la surface nette
+    est approximée en retranchant l'empreinte des poteaux et poutres présents
+    dans le projet à la surface brute cumulée.
     """
+
+    infos = donnees_ifc.get(ifc_actif, {}).get("sols_infos", {})
+
+    net_total = 0.0
+    all_have_net = True
+    for nom, surface, _len, _tp, storey in sols_list:
+        info = infos.get((nom, storey), {})
+        net_val = info.get("Surface nette")
+        if net_val in (None, "", "None"):
+            all_have_net = False
+            break
+        try:
+            net_total += float(net_val)
+        except (TypeError, ValueError):
+            all_have_net = False
+            break
+
+    if all_have_net:
+        return net_total
+
     surface_brute = sum(s[1] for s in sols_list)
     data = donnees_ifc.get(ifc_actif, {})
 
     surface_obstacles = 0.0
 
     # Empreinte approximative des poteaux : largeur²
-    for nom, largeur, _surf, _vol, _tp in data.get("poteaux", []):
+    for _nom, largeur, _surf, _vol, _tp in data.get("poteaux", []):
         try:
             larg = float(largeur)
         except (TypeError, ValueError):
@@ -108,7 +128,7 @@ def _calc_surface_nette_sols(sols_list):
             surface_obstacles += larg * larg
 
     # Empreinte approximative des poutres : volume / longueur
-    for nom, longueur, _surf, volume, _tp in data.get("poutres", []):
+    for _nom, longueur, _surf, volume, _tp in data.get("poutres", []):
         try:
             longu = float(longueur)
             vol = float(volume)
@@ -588,8 +608,22 @@ def importer_ifc():
                 try:
                     psets = ifcopenshell.util.element.get_psets(obj)
                     quantity = psets.get("BaseQuantities", {})
-                    surface  = quantity.get("GrossArea", 0.0) or quantity.get("Area", 0.0)
-                    longueur = quantity.get("Perimeter", 0.0) or quantity.get("Length", 0.0)
+                    # Recherche de la surface en privilégiant la surface nette si disponible
+                    surface_keys = ("NetArea", "NetSideArea", "NetFloorArea", "GrossArea", "Area")
+                    surface = 0.0
+                    for k in surface_keys:
+                        val = quantity.get(k)
+                        if val:
+                            surface = val
+                            break
+
+                    length_keys = ("Perimeter", "Périmètre", "Perimetre", "Length", "Longueur", "Width")
+                    longueur = 0.0
+                    for k in length_keys:
+                        val = quantity.get(k)
+                        if val:
+                            longueur = val
+                            break
                 except Exception as e:
                     print(f"Erreur extraction sol {nom} : {e}")
                     psets = {}
@@ -614,10 +648,12 @@ def importer_ifc():
                                     return p[n]
                     return None
 
+                net_area = quantity.get("NetArea") or quantity.get("NetSideArea") or quantity.get("NetFloorArea")
                 info_sol = {
                     "Cotes / Élévation haut": _find_prop(["Élévation haut", "ElevationTop"]),
                     "Cotes / Élévation base": _find_prop(["Élévation base", "ElevationBase"]),
                     "Cotes / Épaisseur": _find_prop(["Épaisseur", "Thickness"]),
+                    "Surface nette": net_area,
                     "Contraintes / Niveau": storey,
                 }
 
@@ -2529,9 +2565,9 @@ def _update_resume_menuiseries(nom_sel: str):
     tk.Label(grid_resume_menuiseries, text="% de Façades vitrées :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
     tk.Label(grid_resume_menuiseries, text=f"{pourc_vitree:.2f} %", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
 
-def _update_resume_type_sol(nom_sel: str):
+def _update_resume_type_sol(nom_sel: str, storey: str = None):
     """Met à jour le résumé pour le revêtement de sol sélectionné."""
-    sols_src = [s for s in _get_filtered_type_sol() if s[0] == nom_sel]
+    sols_src = [s for s in _get_filtered_type_sol() if s[0] == nom_sel and (storey is None or s[4] == storey)]
     if not sols_src:
         return
     longueur_totale = surface_totale = 0.0
@@ -2668,9 +2704,26 @@ def afficher_infos_type_sol(event=None):
     if not sel:
         hide_infos_type_sol()
         return
-    nom_sel = tree_type_sol.item(sel[0])["values"][0]
-    _update_infos_type_sol(nom_sel)
-    _update_resume_type_sol(nom_sel)
+    values = tree_type_sol.item(sel[0])["values"]
+    nom_sel = values[0]
+    try:
+        surface = float(values[1])
+        longueur = float(values[2])
+    except (ValueError, TypeError):
+        surface = longueur = 0.0
+    rev_type = values[3]
+    storey = None
+    for s in donnees_ifc.get(ifc_actif, {}).get("sols", []):
+        if (
+            s[0] == nom_sel
+            and abs(s[1] - surface) < 0.01
+            and abs(s[2] - longueur) < 0.01
+            and s[3] == rev_type
+        ):
+            storey = s[4]
+            break
+    _update_infos_type_sol(nom_sel, storey)
+    _update_resume_type_sol(nom_sel, storey)
 
 def afficher_infos_type_sol_resume(event=None):
     sel = tree_surfaces_type_sol.selection()
@@ -2700,20 +2753,29 @@ def hide_infos_type_sol():
     for w in grid_infos_type_sol.winfo_children():
         w.destroy()
 
-def _update_infos_type_sol(nom_sel: str):
+def _update_infos_type_sol(nom_sel: str, storey: str = None):
     """Affiche les informations complémentaires pour le revêtement de sol donné."""
     hide_infos_type_sol()
     infos = donnees_ifc.get(ifc_actif, {}).get("sols_infos", {})
     info = {}
-    for (n, _s), data in infos.items():
-        if n == nom_sel:
-            info = data
-            break
+    if storey is not None:
+        info = infos.get((nom_sel, storey), {})
+        if not info:
+            for (n, s), data in infos.items():
+                if n == nom_sel:
+                    info = data
+                    break
+    else:
+        for (n, _s), data in infos.items():
+            if n == nom_sel:
+                info = data
+                break
     storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
     mapping = [
         ("Cotes / Élévation haut", "Cotes / Élévation haut"),
         ("Cotes / Élévation base", "Cotes / Élévation base"),
         ("Cotes / Épaisseur", "Cotes / Épaisseur"),
+        ("Surface nette", "Surface nette"),
     ]
     for row, (key, label) in enumerate(mapping):
         val = info.get(key)
