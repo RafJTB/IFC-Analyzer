@@ -2814,10 +2814,9 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
                     info = data
                     break
     else:
-        for (n, _s), data in infos.items():
-            if n == nom_sel:
-                info = data
-                break
+        # Lorsqu'on sélectionne seulement un type dans le résumé,
+        # on n'affiche pas les informations détaillées mais "N/A".
+        info = {}
     storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
     mapping = [
         ("Cotes / Élévation haut", "Cotes / Élévation haut"),
