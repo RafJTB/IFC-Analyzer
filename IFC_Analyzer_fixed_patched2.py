@@ -85,6 +85,42 @@ def _calc_total_facade_surface():
     return total
 
 
+def _calc_surface_nette_sols(sols_list):
+    """Retourne la surface nette des sols passés en paramètre.
+
+    La surface nette correspond à la surface brute de dalle diminuée de la
+    somme des sections des éléments verticaux traversant cette dalle
+    (poteaux, poutres, etc.). Les dimensions nécessaires sont approchées à
+    partir des données disponibles dans ``donnees_ifc``.
+    """
+    surface_brute = sum(s[1] for s in sols_list)
+    data = donnees_ifc.get(ifc_actif, {})
+
+    surface_obstacles = 0.0
+
+    # Empreinte approximative des poteaux : largeur²
+    for nom, largeur, _surf, _vol, _tp in data.get("poteaux", []):
+        try:
+            larg = float(largeur)
+        except (TypeError, ValueError):
+            continue
+        if larg > 0:
+            surface_obstacles += larg * larg
+
+    # Empreinte approximative des poutres : volume / longueur
+    for nom, longueur, _surf, volume, _tp in data.get("poutres", []):
+        try:
+            longu = float(longueur)
+            vol = float(volume)
+        except (TypeError, ValueError):
+            continue
+        if longu > 0:
+            surface_obstacles += vol / longu
+
+    surface_nette = surface_brute - surface_obstacles
+    return max(surface_nette, 0.0)
+
+
 def on_configure_grid_types_murs(event):
     """Réajuste la zone de scroll du canvas des types de murs."""
     canvas_grid_types_murs.configure(scrollregion=canvas_grid_types_murs.bbox("all"))
@@ -1248,8 +1284,10 @@ def afficher_donnees_type_sol(sols=None):
     tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
+    surface_nette = _calc_surface_nette_sols(sols)
+
     tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
     # --- bloc "Surfaces par type" remplacé par Treeview
     # Mise à jour du Treeview des surfaces par type
@@ -2509,8 +2547,9 @@ def _update_resume_type_sol(nom_sel: str):
     tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
+    surface_nette = _calc_surface_nette_sols(sols_src)
     tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
 def afficher_infos_menuiseries(event=None):
     sel = tree_menuiseries.selection()
@@ -2677,20 +2716,20 @@ def _update_infos_type_sol(nom_sel: str):
         ("Cotes / Épaisseur", "Cotes / Épaisseur"),
     ]
     for row, (key, label) in enumerate(mapping):
-        val = info.get(key, "")
-        if val in (None, "None"):
-            val = ""
+        val = info.get(key)
+        if val in (None, "", "None"):
+            val = "N/A"
         elif isinstance(val, (int, float)):
             val = f"{val:.2f}"
         else:
             try:
                 val = f"{float(val):.2f}"
             except (TypeError, ValueError):
-                val = str(val) if val is not None else ""
+                val = str(val)
         tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_type_sol, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
     label = "Niveau" if len(storeys) <= 1 else "Niveaux"
-    niveaux = " - ".join(storeys)
+    niveaux = " - ".join(storeys) if storeys else "N/A"
     row = len(mapping)
     tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_infos_type_sol, text=niveaux, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
