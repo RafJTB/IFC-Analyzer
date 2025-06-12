@@ -1,7 +1,3 @@
-import customtkinter as ctk
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("green")
-
 def afficher_infos_mur_resume(event=None):
     """Affiche les infos complémentaires pour la sélection dans le résumé."""
     sel = tree_surfaces_murs.selection()
@@ -1085,7 +1081,7 @@ def importer_ifc():
 def update_ifc_tabs(new_ifc) :
     global ifc_actif, tabs_frame, tab_buttons
     if not tabs_frame :
-        tabs_frame = ctk.CTkFrame(header_frame, fg_color="#004D40")
+        tabs_frame = tk.Frame(header_frame, bg="#004D40")
         tabs_frame.pack(side="left", padx=10, pady=5)
     for btn in tab_buttons :
         btn.destroy()
@@ -1102,7 +1098,7 @@ def update_ifc_tabs(new_ifc) :
         nom_fichier = os.path.basename(chemin)
         display_name = nom_fichier[:15] + "..." if len(nom_fichier) > 15 else nom_fichier
         # Créer un cadre pour chaque bouton
-        btn_frame = ctk.CTkFrame(tabs_frame, fg_color="#004D40")
+        btn_frame = tk.Frame(tabs_frame, bg="#004D40")
         btn_frame.pack(side="left", padx=2)
         # Créer le bouton ttk avec takefocus=False pour supprimer les bordures en pointillés
         btn = ttk.Button(btn_frame, text=display_name, style="Tab.TButton", command=lambda c=chemin: switch_ifc(c), takefocus=False)
@@ -1122,14 +1118,14 @@ def update_active_tab(frame_dict) :
         # Réinitialiser tous les frames
         frame = frame_dict.get(btn)
         if frame :
-            frame.config(fg_color="#004D40")
+            frame.config(bg="#004D40")
         chemin = btn.cget("text")
         if len(chemin) > 15 :
             chemin = chemin[:15] + "..."
         if os.path.basename(ifc_actif) == chemin or os.path.basename(ifc_actif)[:15] + "..." == chemin :
             btn.configure(style="ActiveTab.TButton")
             if frame :
-                frame.config(fg_color="#004D40") # Le frame reste en fond sombre, seule la couleur du bouton change
+                frame.config(bg="#004D40") # Le frame reste en fond sombre, seule la couleur du bouton change
         else:
             btn.configure(style="Tab.TButton")
     # Mettre à jour l'affichage des données
@@ -1192,17 +1188,17 @@ def afficher_donnees_murs(murs):
         widget.destroy()
     left_row = right_row = 0
     # --- colonne gauche
-    ctk.CTkLabel(grid_resume_murs, text="📏 Longueur :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(longueur_totale, " ml"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="📦 Volume :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(volume_total, " m³"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📦 Volume :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(volume_total, " m³"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="📐 Surface brute :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_totale, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="📏 Surface nette :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_nette, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
 
     # --- calcul surfaces nettes par catégorie
@@ -1214,17 +1210,17 @@ def afficher_donnees_murs(murs):
         surface_cloisons_nette = max(surface_cloisons - surface_menuiseries_tot * ratio_cloisons, 0.0)
 
     # --- colonne droite
-    ctk.CTkLabel(grid_resume_murs, text="🧱 Surface murs :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_murs, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="🧱 Surface murs nette :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_murs_nette, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🧱 Surface murs nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="🏢 Surface de cloisons :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_cloisons, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="🏢 Surface de cloisons nette :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     for widget in grid_types_murs.winfo_children() :
         widget.destroy()
     # on cache canvas au départ
@@ -1327,37 +1323,37 @@ def afficher_donnees_menuiseries(menuiseries):
     left_row = right_row = 0
 
     if count > 0:
-        ctk.CTkLabel(grid_resume_menuiseries, text="🔢 Nombre total :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-        ctk.CTkLabel(grid_resume_menuiseries, text=f"{count} U", fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
         left_row += 1
 
-    ctk.CTkLabel(grid_resume_menuiseries, text="📏 Longueur :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_menuiseries, text=f"{round(longueur_totale, 2)} ml", fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{round(longueur_totale, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
 
-    ctk.CTkLabel(grid_resume_menuiseries, text="📐 Surface :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_menuiseries, text=f"{round(surface_totale, 2)} m²", fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{round(surface_totale, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
 
     if embrasures > 0:
-        ctk.CTkLabel(grid_resume_menuiseries, text="🪟 Embrasures :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-        ctk.CTkLabel(grid_resume_menuiseries, text=f"{round(embrasures, 2)} ml", fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(embrasures, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
         left_row += 1
 
     if surface_mint > 0:
-        ctk.CTkLabel(grid_resume_menuiseries, text="📐 Surface MINT :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-        ctk.CTkLabel(grid_resume_menuiseries, text=f"{round(surface_mint, 2)} m²", fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mint, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
         right_row += 1
 
     if surface_mext > 0:
-        ctk.CTkLabel(grid_resume_menuiseries, text="📐 Surface MEXT :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-        ctk.CTkLabel(grid_resume_menuiseries, text=f"{round(surface_mext, 2)} m²", fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mext, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
         right_row += 1
 
     facade_total = _calc_total_facade_surface()
     pourc_vitree = (surface_mext / facade_total * 100) if facade_total > 0 else 0.0
-    ctk.CTkLabel(grid_resume_menuiseries, text="% de Façades vitrées :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_menuiseries, text=f"{round(pourc_vitree, 2)} %", fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="% de Façades vitrées :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{round(pourc_vitree, 2)} %", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
     for widget in grid_types_menuiseries.winfo_children() :
         widget.destroy()
@@ -1404,16 +1400,16 @@ def afficher_donnees_type_sol(sols=None):
     for w in grid_resume_type_sol.winfo_children():
         w.destroy()
     row = 0
-    ctk.CTkLabel(grid_resume_type_sol, text="📏 Longueur :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
-    ctk.CTkLabel(grid_resume_type_sol, text="📐 Surface brute :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
     surface_nette = _calc_surface_nette_sols(sols)
 
-    ctk.CTkLabel(grid_resume_type_sol, text="🏠 Surface nette :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
     # --- bloc "Surfaces par type" remplacé par Treeview
     # Mise à jour du Treeview des surfaces par type
@@ -1457,11 +1453,11 @@ def afficher_donnees_garde_corps(garde_corps=None):
     for w in grid_resume_garde_corps.winfo_children():
         w.destroy()
     row = 0
-    ctk.CTkLabel(grid_resume_garde_corps, text="📏 Longueur :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_garde_corps, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     # ligne vide pour conserver la hauteur
     row += 1
-    ctk.CTkLabel(grid_resume_garde_corps, text="", fg_color="#E8F5E9").grid(row=row, column=0, pady=2)
+    tk.Label(grid_resume_garde_corps, text="", bg="#E8F5E9").grid(row=row, column=0, pady=2)
 
     maj_largeur_par_type_garde_corps(garde_corps)
 
@@ -1531,11 +1527,11 @@ def maj_par_type_poutres(poutres=None):
         agg[nom] = agg.get(nom, 0) + longu
     # injection
     for i, (nom, longu) in enumerate(sorted(agg.items())):
-        ctk.CTkLabel(grid_types_poutres, text="🧱", fg_color="white")\
+        tk.Label(grid_types_poutres, text="🧱", bg="white")\
             .grid(row=i, column=0, padx=10, sticky="w")
-        ctk.CTkLabel(grid_types_poutres, text=f"{nom} :", fg_color="white", width=60, anchor="w")\
+        tk.Label(grid_types_poutres, text=f"{nom} :", bg="white", width=60, anchor="w")\
             .grid(row=i, column=1)
-        ctk.CTkLabel(grid_types_poutres, text=f"{round(longu,2)} m", fg_color="white")\
+        tk.Label(grid_types_poutres, text=f"{round(longu,2)} m", bg="white")\
             .grid(row=i, column=2, padx=(0, 20), sticky="e")
 
 def appliquer_filtre_poutres():
@@ -1849,7 +1845,7 @@ def exporter_excel():
 # Configuration de l'Interface Graphique
 # --------------------------------------
 try:
-    root = ctk.CTk()
+    root = tk.Tk()
 
     # --- Style for green Treeviews ---
     style = ttk.Style()
@@ -1859,7 +1855,7 @@ try:
                      foreground=[("selected", "black")])
     root.title("🏢 Analyseur IFC")
     root.geometry("1200x750")
-    root.configure(fg_color="#FAFAFA")
+    root.configure(bg="#FAFAFA")
     print("Fenêtre Tkinter initialisée")
 except Exception as e:
     print(f"Erreur d'initialisation Tkinter : {e}")
@@ -1900,16 +1896,16 @@ style.map("Reset.TButton", background=[("active", "#E53935")])
 style.configure("redrow.Treeview", background="#EF9A9A")
 print("Styles configurés")
 
-header_frame = ctk.CTkFrame(root, fg_color="#004D40")
+header_frame = tk.Frame(root, bg="#004D40")
 header_frame.pack(side="top", fill="x")
 print("Cadre d'en-tête créé")
-ctk.CTkLabel(header_frame, text="🏢 IFC Analyzer", font=("Helvetica", 16, "bold"), fg_color="#004D40", text_color="#FFFFFF").pack(side="left", padx=20, pady=10)
-ctk.CTkLabel(header_frame, text="par Rafael Jeantin", font=("Helvetica", 8, "italic"), fg_color="#004D40", text_color="#B0BEC5").pack(side="left", padx=5, pady=10)
+tk.Label(header_frame, text="🏢 IFC Analyzer", font=("Helvetica", 16, "bold"), bg="#004D40", fg="#FFFFFF").pack(side="left", padx=20, pady=10)
+tk.Label(header_frame, text="par Rafael Jeantin", font=("Helvetica", 8, "italic"), bg="#004D40", fg="#B0BEC5").pack(side="left", padx=5, pady=10)
 ttk.Button(header_frame, text="📥 Importer IFC", command=importer_ifc).pack(side="right", padx=10, pady=10)
 ttk.Button(header_frame, text="📤 Exporter Excel", command=exporter_excel).pack(side="right", padx=10, pady=10)
 print("Éléments du header ajoutés")
 
-sidebar_frame = ctk.CTkFrame(root, fg_color="#263238", width=172)
+sidebar_frame = tk.Frame(root, bg="#263238", width=172)
 sidebar_frame.pack(side="left", fill="y")
 sidebar_frame.pack_propagate(False)
 print("Cadre de la barre latérale créé")
@@ -1933,7 +1929,7 @@ class Tooltip :
         self.tooltip_window = tk.Toplevel(self.widget)
         self.tooltip_window.wm_overrideredirect(True)
         self.tooltip_window.wm_geometry(f"+{x}+{y}")
-        label = ctk.CTkLabel(self.tooltip_window, text=self.text, background="#FFFFE0", relief="solid", borderwidth=1, font=("Helvetica", 10))
+        label = tk.Label(self.tooltip_window, text=self.text, background="#FFFFE0", relief="solid", borderwidth=1, font=("Helvetica", 10))
         label.pack()
 
     def hide_tooltip(self, event=None) :
@@ -1943,14 +1939,14 @@ class Tooltip :
 
 def create_nav_button(emoji, text, command, tooltip_text) :
     global selected_button
-    btn_frame = ctk.CTkFrame(sidebar_frame, fg_color="#263238", height=30)
+    btn_frame = tk.Frame(sidebar_frame, bg="#263238", height=30)
     btn_frame.pack(fill="x", padx=2, pady=2)
     canvas = tk.Canvas(btn_frame, bg="#263238", highlightthickness=0, height=30)
     canvas.pack(fill="x")
-    btn = ctk.CTkButton(canvas, fg_color="#263238", border_width=0, command=lambda: [set_selected(btn), command()])
+    btn = tk.Button(canvas, bg="#263238", bd=0, command=lambda: [set_selected(btn), command()])
     btn.place(relx=0, rely=0, relwidth=1, relheight=1)
-    emoji_label = ctk.CTkLabel(canvas, text=emoji, font=("Helvetica", 12), fg_color="#263238", text_color="#ECEFF1", width=1, anchor="w")
-    text_label = ctk.CTkLabel(canvas, text=text, font=("Helvetica", 9), fg_color="#263238", text_color="#ECEFF1", anchor="w")
+    emoji_label = tk.Label(canvas, text=emoji, font=("Helvetica", 12), bg="#263238", fg="#ECEFF1", width=1, anchor="w")
+    text_label = tk.Label(canvas, text=text, font=("Helvetica", 9), bg="#263238", fg="#ECEFF1", anchor="w")
     canvas.create_window(10, 15, window=emoji_label, anchor="w")
     canvas.create_window(35, 15, window=text_label, anchor="w")
     Tooltip(btn_frame, tooltip_text)
@@ -1959,13 +1955,13 @@ def create_nav_button(emoji, text, command, tooltip_text) :
     def on_enter(e) :
         if btn != selected_button :
             canvas.config(bg="#37474F")
-            emoji_label.config(fg_color="#37474F", text_color="#ECEFF1")
-            text_label.config(fg_color="#37474F", text_color="#ECEFF1")
+            emoji_label.config(bg="#37474F", fg="#ECEFF1")
+            text_label.config(bg="#37474F", fg="#ECEFF1")
     def on_leave(e) :
         if btn != selected_button :
             canvas.config(bg="#263238")
-            emoji_label.config(fg_color="#263238", text_color="#ECEFF1")
-            text_label.config(fg_color="#263238", text_color="#ECEFF1")
+            emoji_label.config(bg="#263238", fg="#ECEFF1")
+            text_label.config(bg="#263238", fg="#ECEFF1")
     btn_frame.bind("<Enter>", on_enter)
     btn_frame.bind("<Leave>", on_leave)
     emoji_label.bind("<Enter>", on_enter)
@@ -1984,7 +1980,7 @@ def set_selected(btn) :
         canvas.delete("highlight")
         canvas.config(bg="#263238")
         for child in canvas.winfo_children() :
-            child.config(fg_color="#263238", text_color="#ECEFF1")
+            child.config(bg="#263238", fg="#ECEFF1")
     selected_button = btn
     canvas = canvas_rectangles[btn]
     canvas.config(bg="#E0E0E0")
@@ -1995,22 +1991,22 @@ def set_selected(btn) :
     canvas.create_rectangle(10, 0, canvas.winfo_width()-10, 30, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
     canvas.create_rectangle(0, 10, canvas.winfo_width(), 30-10, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
     for child in canvas.winfo_children() :
-        child.config(fg_color="#E0E0E0", text_color="#000000")
+        child.config(bg="#E0E0E0", fg="#000000")
 
-content_frame = ctk.CTkFrame(root, fg_color="#FAFAFA")
+content_frame = tk.Frame(root, bg="#FAFAFA")
 content_frame.pack(side="left", expand=True, fill="both", padx=10, pady=10)
 print("Contenu frame créé")
-frame_accueil = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
-frame_murs = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
-frame_menuiseries = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
-frame_type_sol = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
-frame_garde_corps = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
-frame_poteaux = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
-frame_poutres = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
-frame_descente_ep = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
-frame_escalier = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
-frame_bord_dalle = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
-frame_type_plafond = ctk.CTkFrame(content_frame, fg_color="#FAFAFA")
+frame_accueil = tk.Frame(content_frame, bg="#FAFAFA")
+frame_murs = tk.Frame(content_frame, bg="#FAFAFA")
+frame_menuiseries = tk.Frame(content_frame, bg="#FAFAFA")
+frame_type_sol = tk.Frame(content_frame, bg="#FAFAFA")
+frame_garde_corps = tk.Frame(content_frame, bg="#FAFAFA")
+frame_poteaux = tk.Frame(content_frame, bg="#FAFAFA")
+frame_poutres = tk.Frame(content_frame, bg="#FAFAFA")
+frame_descente_ep = tk.Frame(content_frame, bg="#FAFAFA")
+frame_escalier = tk.Frame(content_frame, bg="#FAFAFA")
+frame_bord_dalle = tk.Frame(content_frame, bg="#FAFAFA")
+frame_type_plafond = tk.Frame(content_frame, bg="#FAFAFA")
 
 print("Frames principaux créés")
 current_frame = frame_accueil
@@ -2023,7 +2019,7 @@ def show_frame(frame) :
     current_frame.pack(expand=True, fill="both")
 
 btn_accueil = create_nav_button("🏠", "PAGE ACCUEIL", lambda : show_frame(frame_accueil), "Retour à la page d'accueil du logiciel.")
-ctk.CTkFrame(sidebar_frame, height=2, fg_color="#ECEFF1").pack(fill="x", padx=2, pady=5)
+tk.Frame(sidebar_frame, height=2, bg="#ECEFF1").pack(fill="x", padx=2, pady=5)
 create_nav_button("🏛️", "MURS", lambda: show_frame(frame_murs), "Afficher les données des murs extraites du fichier IFC.")
 create_nav_button("🪟", "MENUISERIES", lambda: show_frame(frame_menuiseries), "Afficher les données des menuiseries (fenêtres et portes).")
 create_nav_button("🏠", "TYPE DE SOL", lambda: show_frame(frame_type_sol), "Afficher les données des revêtements de sol.")
@@ -2043,21 +2039,21 @@ for btn in hidden_nav_buttons:
 
 print("Boutons de navigation créés")
 
-frame_accueil_content = ctk.CTkFrame(frame_accueil, fg_color="#FAFAFA")
+frame_accueil_content = tk.Frame(frame_accueil, bg="#FAFAFA")
 frame_accueil_content.pack(expand=True, fill="both", padx=10, pady=10)
-center_container = ctk.CTkFrame(frame_accueil_content, fg_color="#FAFAFA")
+center_container = tk.Frame(frame_accueil_content, bg="#FAFAFA")
 center_container.place(relx=0.5, rely=0.5, anchor="center")
-label_titre_accueil = ctk.CTkLabel(center_container, text="Logiciel à but non lucratif", font=("Helvetica", 16, "bold"), fg_color="#FAFAFA", text_color="#263238")
+label_titre_accueil = tk.Label(center_container, text="Logiciel à but non lucratif", font=("Helvetica", 16, "bold"), bg="#FAFAFA", fg="#263238")
 label_titre_accueil.pack(pady=10)
-ctk.CTkLabel(center_container, text="IFC Analyser révolutionne le métier d'économiste en automatisant l'extraction et l'analyse des données IFC.", font=("Helvetica", 12, "italic"), fg_color="#FAFAFA", text_color="#263238", wraplength=500, justify="center").pack(pady=10)
+tk.Label(center_container, text="IFC Analyser révolutionne le métier d'économiste en automatisant l'extraction et l'analyse des données IFC.", font=("Helvetica", 12, "italic"), bg="#FAFAFA", fg="#263238", wraplength=500, justify="center").pack(pady=10)
 print("Cadre d'accueil configuré")
 
-frame_murs_content = ctk.CTkFrame(frame_murs, fg_color="#FAFAFA")
+frame_murs_content = tk.Frame(frame_murs, bg="#FAFAFA")
 frame_murs_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_murs = ctk.CTkFrame(frame_murs_content, fg_color="#FFFFFF", bd=1, relief="solid")
+frame_filtre_murs = tk.Frame(frame_murs_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_murs.pack(fill="x", padx=10, pady=10)
-ctk.CTkLabel(frame_filtre_murs, text="🔎 Filtrer :", fg_color="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_murs = ctk.CTkEntry(frame_filtre_murs, width=40)
+tk.Label(frame_filtre_murs, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
+entree_filtre_murs = tk.Entry(frame_filtre_murs, width=40)
 entree_filtre_murs.pack(side="left", padx=5)
 ttk.Button(frame_filtre_murs, text="Appliquer", command=appliquer_filtre_murs).pack(side="left", padx=5)
 btn_reset_murs = ttk.Button(frame_filtre_murs, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_murs)
@@ -2087,12 +2083,12 @@ scroll_murs.pack(side="right", fill="y")
 print("Arborescence des murs créée")
 
 # --- Onglet ESCALIER (clone de MURS) ---
-frame_escalier_content = ctk.CTkFrame(frame_escalier, fg_color="#FAFAFA")
+frame_escalier_content = tk.Frame(frame_escalier, bg="#FAFAFA")
 frame_escalier_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_escalier = ctk.CTkFrame(frame_escalier_content, fg_color="#FFFFFF", bd=1, relief="solid")
+frame_filtre_escalier = tk.Frame(frame_escalier_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_escalier.pack(fill="x", padx=10, pady=10)
-ctk.CTkLabel(frame_filtre_escalier, text="🔎 Filtrer :", fg_color="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_escalier = ctk.CTkEntry(frame_filtre_escalier, width=40)
+tk.Label(frame_filtre_escalier, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
+entree_filtre_escalier = tk.Entry(frame_filtre_escalier, width=40)
 entree_filtre_escalier.pack(side="left", padx=5)
 ttk.Button(frame_filtre_escalier, text="Appliquer", command=appliquer_filtre_escalier).pack(side="left", padx=5)
 btn_reset_escalier = ttk.Button(frame_filtre_escalier, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_escalier)
@@ -2118,14 +2114,14 @@ scroll_escalier.pack(side="right", fill="y")
 print("Arborescence des escaliers créée")
 
 # --- Onglet BORD DE DALLE -----------------------------------------------------
-frame_bord_dalle_content = ctk.CTkFrame(frame_bord_dalle, fg_color="#FAFAFA")
+frame_bord_dalle_content = tk.Frame(frame_bord_dalle, bg="#FAFAFA")
 frame_bord_dalle_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 
 # Barre de filtre
-frame_filtre_bord_dalle = ctk.CTkFrame(frame_bord_dalle_content, fg_color="#FFFFFF", bd=1, relief="solid")
+frame_filtre_bord_dalle = tk.Frame(frame_bord_dalle_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_bord_dalle.pack(fill="x", padx=10, pady=10)
-ctk.CTkLabel(frame_filtre_bord_dalle, text="🔎 Filtrer :", fg_color="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_bord_dalle = ctk.CTkEntry(frame_filtre_bord_dalle, width=40)
+tk.Label(frame_filtre_bord_dalle, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
+entree_filtre_bord_dalle = tk.Entry(frame_filtre_bord_dalle, width=40)
 entree_filtre_bord_dalle.pack(side="left", padx=5)
 ttk.Button(frame_filtre_bord_dalle, text="Appliquer", command=appliquer_filtre_bord_dalle).pack(side="left", padx=5)
 btn_reset_bord_dalle = ttk.Button(frame_filtre_bord_dalle, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_bord_dalle)
@@ -2155,30 +2151,30 @@ tree_bord_dalle.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=1
 scroll_bord_dalle.pack(side="right", fill="y")
 
 # Panneau résumé à droite
-frame_resume_bord_dalle = ctk.CTkFrame(frame_bord_dalle, fg_color="white", width=650)
+frame_resume_bord_dalle = tk.Frame(frame_bord_dalle, bg="white", width=650)
 frame_resume_bord_dalle.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_bord_dalle.pack_propagate(False)
 
 # Titre résumé
-title_frame_resume_bord_dalle = ctk.CTkFrame(frame_resume_bord_dalle, fg_color="#004D40")
+title_frame_resume_bord_dalle = tk.Frame(frame_resume_bord_dalle, bg="#004D40")
 title_frame_resume_bord_dalle.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(title_frame_resume_bord_dalle, text="RÉSUMÉ", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(title_frame_resume_bord_dalle, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 # Section général
-general_frame_bord_dalle = ctk.CTkFrame(frame_resume_bord_dalle, fg_color="white", bd=1, relief="solid")
+general_frame_bord_dalle = tk.Frame(frame_resume_bord_dalle, bg="white", bd=1, relief="solid")
 general_frame_bord_dalle.pack(fill="x", padx=5, pady=5)
-grid_resume_bord_dalle = ctk.CTkFrame(general_frame_bord_dalle, fg_color="white")
+grid_resume_bord_dalle = tk.Frame(general_frame_bord_dalle, bg="white")
 grid_resume_bord_dalle.pack(pady=5)
 grid_resume_bord_dalle.grid_columnconfigure(1, weight=1)
 # Longueur totale
-ctk.CTkLabel(grid_resume_bord_dalle, text="📏 Longueur totale :", fg_color="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_longueur_totale_bord_dalle = ctk.CTkLabel(grid_resume_bord_dalle, text="0.00 ml", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_bord_dalle, text="📏 Longueur totale :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_longueur_totale_bord_dalle = tk.Label(grid_resume_bord_dalle, text="0.00 ml", bg="white", font=("Helvetica", 10, "bold"))
 label_longueur_totale_bord_dalle.grid(row=0, column=1, sticky="e", padx=10)
 
 # Titre informations complémentaires
-types_frame_bord_dalle = ctk.CTkFrame(frame_resume_bord_dalle, fg_color="white", bd=1, relief="solid")
+types_frame_bord_dalle = tk.Frame(frame_resume_bord_dalle, bg="white", bd=1, relief="solid")
 types_frame_bord_dalle.pack(fill="x", padx=5, pady=5)
-data_frame_types_bord_dalle = ctk.CTkFrame(types_frame_bord_dalle, fg_color="white")
+data_frame_types_bord_dalle = tk.Frame(types_frame_bord_dalle, bg="white")
 data_frame_types_bord_dalle.pack(fill="both", padx=5, pady=5)
 
 tree_longueurs_par_type_bord_dalle = ttk.Treeview(
@@ -2213,65 +2209,65 @@ tree_longueurs_par_type_bord_dalle.bind("<Button-3>", lambda e: (
 
 
 # Titre informations complémentaires (moved below tableau résumé)
-title_frame_types_bord_dalle = ctk.CTkFrame(frame_resume_bord_dalle, fg_color="#004D40")
+title_frame_types_bord_dalle = tk.Frame(frame_resume_bord_dalle, bg="#004D40")
 title_frame_types_bord_dalle.pack(fill="x", padx=5, pady=(15,0))
-ctk.CTkLabel(title_frame_types_bord_dalle, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(title_frame_types_bord_dalle, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 print("UI BORD DE DALLE créée")
 
 
 # Bloc Résumé escalier
-frame_resume_escalier = ctk.CTkFrame(frame_escalier, fg_color="white", width=650)
+frame_resume_escalier = tk.Frame(frame_escalier, bg="white", width=650)
 frame_resume_escalier.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_escalier.pack_propagate(False)
-title_frame_resume_escalier = ctk.CTkFrame(frame_resume_escalier, fg_color="#004D40")
+title_frame_resume_escalier = tk.Frame(frame_resume_escalier, bg="#004D40")
 title_frame_resume_escalier.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(title_frame_resume_escalier, text="RÉSUMÉ", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
-general_frame_escalier = ctk.CTkFrame(frame_resume_escalier, fg_color="white", bd=1, relief="solid")
+tk.Label(title_frame_resume_escalier, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
+general_frame_escalier = tk.Frame(frame_resume_escalier, bg="white", bd=1, relief="solid")
 general_frame_escalier.pack(fill="x", padx=5, pady=5)
-grid_resume_escalier = ctk.CTkFrame(general_frame_escalier, fg_color="white")
+grid_resume_escalier = tk.Frame(general_frame_escalier, bg="white")
 grid_resume_escalier.pack(pady=5)
 grid_resume_escalier.grid_columnconfigure(1, weight=1)
 # Hauteur totale
-ctk.CTkLabel(grid_resume_escalier, text="Hauteur totale :", fg_color="#E8F5E9").grid(row=0, column=0, sticky="w", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text="Hauteur totale :", bg="#E8F5E9").grid(row=0, column=0, sticky="w", padx=5, pady=2)
 hauteur_total = sum(e[1] for e in donnees_ifc.get(ifc_actif, {}).get("escaliers", []))
-ctk.CTkLabel(grid_resume_escalier, text=f"{hauteur_total:.2f}", fg_color="#E8F5E9").grid(row=0, column=1, sticky="e", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text=f"{hauteur_total:.2f}", bg="#E8F5E9").grid(row=0, column=1, sticky="e", padx=5, pady=2)
 # Nombre total de marches
-ctk.CTkLabel(grid_resume_escalier, text="Nombre total de marches :", fg_color="#E8F5E9").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text="Nombre total de marches :", bg="#E8F5E9").grid(row=1, column=0, sticky="w", padx=5, pady=2)
 nb_total_marches = sum(e[4] for e in donnees_ifc.get(ifc_actif, {}).get("escaliers", []))
-ctk.CTkLabel(grid_resume_escalier, text=str(nb_total_marches), fg_color="#E8F5E9").grid(row=1, column=1, sticky="e", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text=str(nb_total_marches), bg="#E8F5E9").grid(row=1, column=1, sticky="e", padx=5, pady=2)
 
-frame_resume_murs = ctk.CTkFrame(frame_murs, fg_color="white", width=650)
+frame_resume_murs = tk.Frame(frame_murs, bg="white", width=650)
 frame_resume_murs.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_murs.pack_propagate(False)
-title_frame_resume_murs = ctk.CTkFrame(frame_resume_murs, fg_color="#004D40")
+title_frame_resume_murs = tk.Frame(frame_resume_murs, bg="#004D40")
 title_frame_resume_murs.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(title_frame_resume_murs, text="RÉSUMÉ", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
-general_frame = ctk.CTkFrame(frame_resume_murs, fg_color="#E8F5E9", bd=2, relief="groove")
+tk.Label(title_frame_resume_murs, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
+general_frame = tk.Frame(frame_resume_murs, bg="#E8F5E9", bd=2, relief="groove")
 general_frame.pack(fill="x", padx=5, pady=5)
-grid_resume_murs = ctk.CTkFrame(general_frame, fg_color="#E8F5E9")
+grid_resume_murs = tk.Frame(general_frame, bg="#E8F5E9")
 grid_resume_murs.pack(pady=5)
 grid_resume_murs.grid_columnconfigure(1, weight=1)
 grid_resume_murs.grid_columnconfigure(3, weight=1)
 
 # Titre Filtrage par noms
-title_frame_filtrage_murs = ctk.CTkFrame(frame_resume_murs, fg_color="#004D40")
+title_frame_filtrage_murs = tk.Frame(frame_resume_murs, bg="#004D40")
 title_frame_filtrage_murs.pack(fill="x", padx=5, pady=(15,0))
-ctk.CTkLabel(title_frame_filtrage_murs, text="FILTRAGE PAR NOMS", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
-types_frame = ctk.CTkFrame(frame_resume_murs, fg_color="#E8F5E9", bd=2, relief="groove")
+tk.Label(title_frame_filtrage_murs, text="FILTRAGE PAR NOMS", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
+types_frame = tk.Frame(frame_resume_murs, bg="#E8F5E9", bd=2, relief="groove")
 types_frame.pack(fill="both", padx=5, pady=5, expand=True)
-title_frame_types_murs = ctk.CTkFrame(frame_resume_murs, fg_color="#004D40")
+title_frame_types_murs = tk.Frame(frame_resume_murs, bg="#004D40")
 title_frame_types_murs.pack(fill="x", padx=5, pady=(15, 0))
 
 # ----- Conteneur INFORMATIONS COMPLÉMENTAIRES pour MURS -----
-info_frame_murs = ctk.CTkFrame(frame_resume_murs, fg_color="#E8F5E9", bd=2, relief="groove")
+info_frame_murs = tk.Frame(frame_resume_murs, bg="#E8F5E9", bd=2, relief="groove")
 info_frame_murs.pack(fill="x", padx=5, pady=5)
-grid_infos_murs = ctk.CTkFrame(info_frame_murs, fg_color="#E8F5E9")
+grid_infos_murs = tk.Frame(info_frame_murs, bg="#E8F5E9")
 grid_infos_murs.pack(pady=5, fill="x")
 grid_infos_murs.grid_columnconfigure(1, weight=1)
 grid_infos_murs.grid_columnconfigure(0, weight=1)
 
-ctk.CTkLabel(title_frame_types_murs, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(title_frame_types_murs, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 
 
@@ -2284,7 +2280,7 @@ canvas_grid_types_murs.pack_forget()
 
 
 # ---- Treeview complémentaire pour MURS --------------------------------------
-data_frame_types_murs = ctk.CTkFrame(types_frame, fg_color="#E8F5E9")
+data_frame_types_murs = tk.Frame(types_frame, bg="#E8F5E9")
 data_frame_types_murs.pack(fill="both", padx=5, pady=5, expand=True)
 
 tree_surfaces_murs = ttk.Treeview(data_frame_types_murs, columns=("Type", "m²"), show="headings", height=8)
@@ -2326,7 +2322,7 @@ context_menu_surfaces_murs = tk.Menu(root, tearoff=0)
 context_menu_surfaces_murs.add_command(label="Copier", command=copy_type_summary_murs)
 tree_surfaces_murs.bind("<Button-3>", lambda e: (tree_surfaces_murs.selection_set(tree_surfaces_murs.identify_row(e.y)), context_menu_surfaces_murs.post(e.x_root, e.y_root)))
 # -----------------------------------------------------------------------------
-grid_types_murs = ctk.CTkFrame(canvas_grid_types_murs, fg_color="white")
+grid_types_murs = tk.Frame(canvas_grid_types_murs, bg="white")
 grid_types_murs.grid_columnconfigure(0, weight=1)
 canvas_grid_types_murs.create_window((0, 0), window=grid_types_murs, anchor="nw")
 
@@ -2374,14 +2370,14 @@ def _update_infos_mur(nom_sel: str, storey: str = None):
                 val = str(val) if val is not None else ""
         if key == "IsExternal" and val not in ("", "N/A"):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
-        ctk.CTkLabel(grid_infos_murs, text=f"{label} :", fg_color="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        ctk.CTkLabel(grid_infos_murs, text=str(val), fg_color="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_infos_murs, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_murs, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
     # Gestion des niveaux multiples
     label = "Niveau" if len(storeys) <= 1 else "Niveaux"
     valeur = " - ".join(storeys) if storeys else "N/A"
     row = len(mapping)
-    ctk.CTkLabel(grid_infos_murs, text=f"{label} :", fg_color="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_infos_murs, text=valeur, fg_color="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_murs, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_murs, text=valeur, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 
 def _update_resume_mur(nom_sel: str):
@@ -2405,17 +2401,17 @@ def _update_resume_mur(nom_sel: str):
     for w in grid_resume_murs.winfo_children():
         w.destroy()
     left_row = right_row = 0
-    ctk.CTkLabel(grid_resume_murs, text="📏 Longueur :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(longueur_totale, " ml"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="📦 Volume :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(volume_total, " m³"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📦 Volume :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(volume_total, " m³"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="📐 Surface brute :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_totale, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="📏 Surface nette :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_nette, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
 
     surface_murs_nette = surface_cloisons_nette = 0.0
@@ -2425,17 +2421,17 @@ def _update_resume_mur(nom_sel: str):
         surface_murs_nette = max(surface_murs - surface_menuiseries_tot * ratio_murs, 0.0)
         surface_cloisons_nette = max(surface_cloisons - surface_menuiseries_tot * ratio_cloisons, 0.0)
 
-    ctk.CTkLabel(grid_resume_murs, text="🧱 Surface murs :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_murs, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="🧱 Surface murs nette :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_murs_nette, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🧱 Surface murs nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="🏢 Surface de cloisons :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_cloisons, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    ctk.CTkLabel(grid_resume_murs, text="🏢 Surface de cloisons nette :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
 
 
 def afficher_infos_mur(event=None):
@@ -2498,12 +2494,12 @@ canvas_grid_types_murs.bind("<Button-5>", lambda event: canvas_grid_types_murs.y
 
 print("Cadre de résumé des murs créés")
 
-frame_menuiseries_content = ctk.CTkFrame(frame_menuiseries, fg_color="#FAFAFA")
+frame_menuiseries_content = tk.Frame(frame_menuiseries, bg="#FAFAFA")
 frame_menuiseries_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_menuiseries = ctk.CTkFrame(frame_menuiseries_content, fg_color="#FFFFFF", bd=1, relief="solid")
+frame_filtre_menuiseries = tk.Frame(frame_menuiseries_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_menuiseries.pack(fill="x", padx=10, pady=10)
-ctk.CTkLabel(frame_filtre_menuiseries, text="🔎 Filtrer :", fg_color="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_menuiseries = ctk.CTkEntry(frame_filtre_menuiseries, width=40)
+tk.Label(frame_filtre_menuiseries, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
+entree_filtre_menuiseries = tk.Entry(frame_filtre_menuiseries, width=40)
 entree_filtre_menuiseries.pack(side="left", padx=5)
 ttk.Button(frame_filtre_menuiseries, text="Appliquer", command=appliquer_filtre_menuiseries).pack(side="left", padx=5)
 btn_reset_menuiseries = ttk.Button(frame_filtre_menuiseries, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_menuiseries)
@@ -2531,29 +2527,29 @@ tree_menuiseries.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=
 scroll_menuiseries.pack(side="right", fill="y")
 print("Arborescence des menuiseries créées")
 
-frame_resume_menuiseries = ctk.CTkFrame(frame_menuiseries, fg_color="white", width=650) # Même largeur que "MURS"
+frame_resume_menuiseries = tk.Frame(frame_menuiseries, bg="white", width=650) # Même largeur que "MURS"
 frame_resume_menuiseries.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_menuiseries.pack_propagate(False)
-title_frame_resume_menuiseries = ctk.CTkFrame(frame_resume_menuiseries, fg_color="#004D40")
+title_frame_resume_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#004D40")
 title_frame_resume_menuiseries.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(title_frame_resume_menuiseries, text="RÉSUMÉ", font=("Helvetica", 12, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
-general_frame_menuiseries = ctk.CTkFrame(frame_resume_menuiseries, fg_color="#E8F5E9", bd=2, relief="groove")
+tk.Label(title_frame_resume_menuiseries, text="RÉSUMÉ", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+general_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_menuiseries.pack(fill="x", padx=5, pady=5)
-grid_resume_menuiseries = ctk.CTkFrame(general_frame_menuiseries, fg_color="#E8F5E9")
+grid_resume_menuiseries = tk.Frame(general_frame_menuiseries, bg="#E8F5E9")
 grid_resume_menuiseries.pack(pady=5)
 grid_resume_menuiseries.grid_columnconfigure(1, weight=1)
 grid_resume_menuiseries.grid_columnconfigure(3, weight=1)
 
 # Section Filtrage par noms (mimique de l'onglet MURS)
-title_frame_filtrage_menuiseries = ctk.CTkFrame(frame_resume_menuiseries, fg_color="#004D40")
+title_frame_filtrage_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#004D40")
 title_frame_filtrage_menuiseries.pack(fill="x", padx=5, pady=(15, 0))
-ctk.CTkLabel(title_frame_filtrage_menuiseries, text="FILTRAGE PAR NOMS", font=("Helvetica", 12, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
-types_frame_menuiseries = ctk.CTkFrame(frame_resume_menuiseries, fg_color="#E8F5E9", bd=2, relief="groove")
+tk.Label(title_frame_filtrage_menuiseries, text="FILTRAGE PAR NOMS", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+types_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
 types_frame_menuiseries.pack(fill="both", padx=5, pady=5, expand=True)
 
 
 # ---- Treeview complémentaire pour MENUISERIES -------------------------------
-data_frame_types_menuiseries = ctk.CTkFrame(types_frame_menuiseries, fg_color="#E8F5E9")
+data_frame_types_menuiseries = tk.Frame(types_frame_menuiseries, bg="#E8F5E9")
 data_frame_types_menuiseries.pack(fill="both", expand=True, padx=5, pady=5)
 
 tree_surfaces_menuiseries = ttk.Treeview(data_frame_types_menuiseries, columns=("Type", "U"), show="headings")
@@ -2590,7 +2586,7 @@ context_menu_surfaces_menuiseries = tk.Menu(root, tearoff=0)
 context_menu_surfaces_menuiseries.add_command(label="Copier", command=copy_type_summary_menuiseries)
 tree_surfaces_menuiseries.bind("<Button-3>", lambda e: (tree_surfaces_menuiseries.selection_set(tree_surfaces_menuiseries.identify_row(e.y)), context_menu_surfaces_menuiseries.post(e.x_root, e.y_root)))
 # -----------------------------------------------------------------------------
-grid_types_menuiseries_container = ctk.CTkFrame(types_frame_menuiseries, fg_color="#E8F5E9", bd=2, relief="groove")
+grid_types_menuiseries_container = tk.Frame(types_frame_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
 # grid_types_menuiseries_container.pack(fill="x", padx=5, pady=5)  # removed empty frame
 # Masquer par défaut le conteneur vide pour supprimer l\'espace inutile
 grid_types_menuiseries_container.pack_forget()
@@ -2599,12 +2595,12 @@ grid_types_menuiseries_container.pack_forget()
 canvas_grid_types_menuiseries = tk.Canvas(grid_types_menuiseries_container, bg="#E8F5E9", highlightthickness=0, height=150)
 canvas_grid_types_menuiseries.pack(side="left", fill="x", expand=True, padx=(5, 0), pady=5)
 
-scrollbar_grid_types_menuiseries = ctk.CTkScrollbar(grid_types_menuiseries_container, orient="vertical", command=canvas_grid_types_menuiseries.yview)
+scrollbar_grid_types_menuiseries = tk.Scrollbar(grid_types_menuiseries_container, orient="vertical", command=canvas_grid_types_menuiseries.yview)
 scrollbar_grid_types_menuiseries.pack(side="right", fill="y", pady=5)
 
 canvas_grid_types_menuiseries.configure(yscrollcommand=scrollbar_grid_types_menuiseries.set)
 
-grid_types_menuiseries = ctk.CTkFrame(canvas_grid_types_menuiseries, fg_color="white")
+grid_types_menuiseries = tk.Frame(canvas_grid_types_menuiseries, bg="white")
 grid_types_menuiseries.grid_columnconfigure(0, weight=1)
 canvas_grid_types_menuiseries.create_window((0, 0), window=grid_types_menuiseries, anchor="nw")
 
@@ -2617,12 +2613,12 @@ print("Frame de CV des menuiseries créées")
 
 
 # --- Nouveau titre "INFORMATIONS COMPLÉMENTAIRES" sous le tableau MENUISERIES
-title_frame_types_menuiseries_bottom = ctk.CTkFrame(frame_resume_menuiseries, fg_color="#004D40")
+title_frame_types_menuiseries_bottom = tk.Frame(frame_resume_menuiseries, bg="#004D40")
 title_frame_types_menuiseries_bottom.pack(fill="x", padx=5, pady=(15, 0))
-ctk.CTkLabel(title_frame_types_menuiseries_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
-info_frame_menuiseries = ctk.CTkFrame(frame_resume_menuiseries, fg_color="#E8F5E9", bd=2, relief="groove")
+tk.Label(title_frame_types_menuiseries_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+info_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
 info_frame_menuiseries.pack(fill="x", padx=5, pady=5)
-grid_infos_menuiseries = ctk.CTkFrame(info_frame_menuiseries, fg_color="#E8F5E9")
+grid_infos_menuiseries = tk.Frame(info_frame_menuiseries, bg="#E8F5E9")
 grid_infos_menuiseries.pack(pady=5, fill="x")
 grid_infos_menuiseries.grid_columnconfigure(1, weight=1)
 grid_infos_menuiseries.grid_columnconfigure(0, weight=1)
@@ -2667,14 +2663,14 @@ def _update_infos_menuiseries(nom_sel: str, storey: str = None):
                     pass
         if key == "Pset_WindowCommon/IsExternal" and val not in ("", "N/A"):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
-        ctk.CTkLabel(grid_infos_menuiseries, text=f"{label} :", fg_color="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        ctk.CTkLabel(grid_infos_menuiseries, text=str(val), fg_color="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_menuiseries, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     label = "Niveau" if len(storeys) <= 1 else "Niveaux"
     valeur = " - ".join(storeys) if storeys else "N/A"
     # row already incremented through mapping
-    ctk.CTkLabel(grid_infos_menuiseries, text=f"{label} :", fg_color="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_infos_menuiseries, text=valeur, fg_color="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_menuiseries, text=valeur, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 def _update_resume_menuiseries(nom_sel: str):
     """Met à jour le résumé pour la menuiserie sélectionnée."""
@@ -2695,28 +2691,28 @@ def _update_resume_menuiseries(nom_sel: str):
     for w in grid_resume_menuiseries.winfo_children():
         w.destroy()
     left_row = right_row = 0
-    ctk.CTkLabel(grid_resume_menuiseries, text="🔢 Nombre total :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_menuiseries, text=f"{count} U", fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    ctk.CTkLabel(grid_resume_menuiseries, text="📏 Longueur :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_menuiseries, text=_format_summary_value(longueur_totale, " ml"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    ctk.CTkLabel(grid_resume_menuiseries, text="📐 Surface :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_menuiseries, text=_format_summary_value(surface_totale, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    ctk.CTkLabel(grid_resume_menuiseries, text="🪟 Embrasures :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_menuiseries, text=_format_summary_value(embrasures, " ml"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=_format_summary_value(embrasures, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    ctk.CTkLabel(grid_resume_menuiseries, text="📐 Surface MINT :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_menuiseries, text=_format_summary_value(surface_mint, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=_format_summary_value(surface_mint, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    ctk.CTkLabel(grid_resume_menuiseries, text="📐 Surface MEXT :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_menuiseries, text=_format_summary_value(surface_mext, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=_format_summary_value(surface_mext, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
     facade_total = _calc_total_facade_surface()
     pourc_vitree = (surface_mext / facade_total * 100) if facade_total > 0 else 0.0
-    ctk.CTkLabel(grid_resume_menuiseries, text="% de Façades vitrées :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_menuiseries, text=f"{pourc_vitree:.2f} %", fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="% de Façades vitrées :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{pourc_vitree:.2f} %", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
 
 def _update_resume_type_sol(nom_sel: str, storey: str = None):
     """Met à jour le résumé pour le revêtement de sol sélectionné."""
@@ -2730,15 +2726,15 @@ def _update_resume_type_sol(nom_sel: str, storey: str = None):
     for w in grid_resume_type_sol.winfo_children():
         w.destroy()
     row = 0
-    ctk.CTkLabel(grid_resume_type_sol, text="📏 Longueur :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
-    ctk.CTkLabel(grid_resume_type_sol, text="📐 Surface brute :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
     surface_nette = _calc_surface_nette_sols(sols_src)
-    ctk.CTkLabel(grid_resume_type_sol, text="🏠 Surface nette :", fg_color="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), fg_color="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
 def afficher_infos_menuiseries(event=None):
     sel = tree_menuiseries.selection()
@@ -2767,12 +2763,12 @@ def afficher_infos_menuiseries_resume(event=None):
 tree_menuiseries.bind("<<TreeviewSelect>>", afficher_infos_menuiseries)
 tree_surfaces_menuiseries.bind("<<TreeviewSelect>>", afficher_infos_menuiseries_resume)
 
-frame_type_sol_content = ctk.CTkFrame(frame_type_sol, fg_color="#FAFAFA")
+frame_type_sol_content = tk.Frame(frame_type_sol, bg="#FAFAFA")
 frame_type_sol_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_type_sol = ctk.CTkFrame(frame_type_sol_content, fg_color="#FFFFFF", bd=1, relief="solid")
+frame_filtre_type_sol = tk.Frame(frame_type_sol_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_type_sol.pack(fill="x", padx=10, pady=10)
-ctk.CTkLabel(frame_filtre_type_sol, text="🔎 Filtrer :", fg_color="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_type_sol = ctk.CTkEntry(frame_filtre_type_sol, width=40)
+tk.Label(frame_filtre_type_sol, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
+entree_filtre_type_sol = tk.Entry(frame_filtre_type_sol, width=40)
 entree_filtre_type_sol.pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_sol, text="Appliquer", command=appliquer_filtre_type_sol).pack(side="left", padx=5)
 btn_reset_type_sol = ttk.Button(frame_filtre_type_sol, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_type_sol)
@@ -2799,26 +2795,26 @@ tree_type_sol.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_type_sol.pack(side="right", fill="y")
 print("Arborescence des sols créée")
 
-frame_resume_type_sol = ctk.CTkFrame(frame_type_sol, fg_color="white", width=650)
+frame_resume_type_sol = tk.Frame(frame_type_sol, bg="white", width=650)
 frame_resume_type_sol.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_type_sol.pack_propagate(False)
-title_frame_resume_type_sol = ctk.CTkFrame(frame_resume_type_sol, fg_color="#004D40")
+title_frame_resume_type_sol = tk.Frame(frame_resume_type_sol, bg="#004D40")
 title_frame_resume_type_sol.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(title_frame_resume_type_sol, text="RÉSUMÉ", font=("Helvetica", 12, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
-general_frame_type_sol = ctk.CTkFrame(frame_resume_type_sol, fg_color="#E8F5E9", bd=2, relief="groove")
+tk.Label(title_frame_resume_type_sol, text="RÉSUMÉ", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+general_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_type_sol.pack(fill="x", padx=5, pady=5)
-grid_resume_type_sol = ctk.CTkFrame(general_frame_type_sol, fg_color="#E8F5E9")
+grid_resume_type_sol = tk.Frame(general_frame_type_sol, bg="#E8F5E9")
 grid_resume_type_sol.pack(pady=5)
 grid_resume_type_sol.grid_columnconfigure(1, weight=1)
 grid_resume_type_sol.grid_columnconfigure(3, weight=1)
 
-title_frame_filtrage_type_sol = ctk.CTkFrame(frame_resume_type_sol, fg_color="#004D40")
+title_frame_filtrage_type_sol = tk.Frame(frame_resume_type_sol, bg="#004D40")
 title_frame_filtrage_type_sol.pack(fill="x", padx=5, pady=(15, 0))
-ctk.CTkLabel(title_frame_filtrage_type_sol, text="FILTRAGE PAR NOMS", font=("Helvetica", 12, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
-types_frame_type_sol = ctk.CTkFrame(frame_resume_type_sol, fg_color="#E8F5E9", bd=2, relief="groove")
+tk.Label(title_frame_filtrage_type_sol, text="FILTRAGE PAR NOMS", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+types_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove")
 types_frame_type_sol.pack(fill="both", padx=5, pady=5, expand=True)
 
-data_frame_types_type_sol = ctk.CTkFrame(types_frame_type_sol, fg_color="#E8F5E9")
+data_frame_types_type_sol = tk.Frame(types_frame_type_sol, bg="#E8F5E9")
 data_frame_types_type_sol.pack(fill="both", expand=True, padx=5, pady=5)
 
 tree_surfaces_type_sol = ttk.Treeview(data_frame_types_type_sol, columns=("Type", "m²"), show="headings")
@@ -2915,12 +2911,12 @@ tree_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol)
 tree_surfaces_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol_resume)
 
 # --- Nouveau titre "INFORMATIONS COMPLÉMENTAIRES" sous le tableau TYPE DE SOL
-title_frame_types_type_sol_bottom = ctk.CTkFrame(frame_resume_type_sol, fg_color="#004D40")
+title_frame_types_type_sol_bottom = tk.Frame(frame_resume_type_sol, bg="#004D40")
 title_frame_types_type_sol_bottom.pack(fill="x", padx=5, pady=(15, 0))
-ctk.CTkLabel(title_frame_types_type_sol_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
-info_frame_type_sol = ctk.CTkFrame(frame_resume_type_sol, fg_color="#E8F5E9", bd=2, relief="groove")
+tk.Label(title_frame_types_type_sol_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+info_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove")
 info_frame_type_sol.pack(fill="x", padx=5, pady=5)
-grid_infos_type_sol = ctk.CTkFrame(info_frame_type_sol, fg_color="#E8F5E9")
+grid_infos_type_sol = tk.Frame(info_frame_type_sol, bg="#E8F5E9")
 grid_infos_type_sol.pack(pady=5, fill="x")
 grid_infos_type_sol.grid_columnconfigure(1, weight=1)
 grid_infos_type_sol.grid_columnconfigure(0, weight=1)
@@ -2965,13 +2961,13 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
                 val = f"{float(val):.2f}"
             except (TypeError, ValueError, AttributeError):
                 val = str(val)
-        ctk.CTkLabel(grid_infos_type_sol, text=f"{label} :", fg_color="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        ctk.CTkLabel(grid_infos_type_sol, text=str(val), fg_color="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_type_sol, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
     label = "Niveau" if len(storeys) <= 1 else "Niveaux"
     niveaux = " - ".join(storeys) if storeys else "N/A"
     row = len(mapping)
-    ctk.CTkLabel(grid_infos_type_sol, text=f"{label} :", fg_color="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-    ctk.CTkLabel(grid_infos_type_sol, text=niveaux, fg_color="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_type_sol, text=niveaux, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 
 def hide_infos_garde_corps():
@@ -3001,15 +2997,15 @@ def _update_infos_garde_corps(nom_sel: str, largeur: float = None, typ: str = No
             val = "N/A"
         elif isinstance(val, (int, float)):
             val = f"{float(val):.2f}"
-        ctk.CTkLabel(grid_infos_garde_corps, text=f"{label} :", fg_color="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        ctk.CTkLabel(grid_infos_garde_corps, text=str(val), fg_color="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_infos_garde_corps, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_garde_corps, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
-frame_garde_corps_content = ctk.CTkFrame(frame_garde_corps, fg_color="#FAFAFA")
+frame_garde_corps_content = tk.Frame(frame_garde_corps, bg="#FAFAFA")
 frame_garde_corps_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_garde_corps = ctk.CTkFrame(frame_garde_corps_content, fg_color="#FFFFFF", bd=1, relief="solid")
+frame_filtre_garde_corps = tk.Frame(frame_garde_corps_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_garde_corps.pack(fill="x", padx=10, pady=10)
-ctk.CTkLabel(frame_filtre_garde_corps, text="🔎 Filtrer :", fg_color="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_garde_corps = ctk.CTkEntry(frame_filtre_garde_corps, width=40)
+tk.Label(frame_filtre_garde_corps, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
+entree_filtre_garde_corps = tk.Entry(frame_filtre_garde_corps, width=40)
 entree_filtre_garde_corps.pack(side="left", padx=5)
 ttk.Button(frame_filtre_garde_corps, text="Appliquer", command=appliquer_filtre_garde_corps).pack(side="left", padx=5)
 btn_reset_garde_corps = ttk.Button(frame_filtre_garde_corps, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_garde_corps)
@@ -3039,34 +3035,34 @@ print("Arborescence des garde-corps créée")
 # Remplacer la partie frame_resume_garde_corps par le code ci-dessous :
 
 # Cadre de résumé
-frame_resume_garde_corps = ctk.CTkFrame(frame_garde_corps, fg_color="white", width=650)
+frame_resume_garde_corps = tk.Frame(frame_garde_corps, bg="white", width=650)
 frame_resume_garde_corps.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_garde_corps.pack_propagate(False)
 
 # Titre Résumé
-title_frame_resume_garde_corps = ctk.CTkFrame(frame_resume_garde_corps, fg_color="#004D40")
+title_frame_resume_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#004D40")
 title_frame_resume_garde_corps.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(title_frame_resume_garde_corps, text="RÉSUMÉ", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(title_frame_resume_garde_corps, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 # Cadre général
-general_frame_garde_corps = ctk.CTkFrame(frame_resume_garde_corps, fg_color="#E8F5E9", bd=2, relief="groove")
+general_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_garde_corps.pack(fill="x", padx=5, pady=5)
 
-grid_resume_garde_corps = ctk.CTkFrame(general_frame_garde_corps, fg_color="#E8F5E9")
+grid_resume_garde_corps = tk.Frame(general_frame_garde_corps, bg="#E8F5E9")
 grid_resume_garde_corps.pack(pady=5, expand=True)
 grid_resume_garde_corps.grid_columnconfigure(1, weight=1)
 
 
 # Titre Filtrage par noms
-title_frame_filtrage_garde_corps = ctk.CTkFrame(frame_resume_garde_corps, fg_color="#004D40")
+title_frame_filtrage_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#004D40")
 title_frame_filtrage_garde_corps.pack(fill="x", padx=5, pady=(15,0))
-ctk.CTkLabel(title_frame_filtrage_garde_corps, text="FILTRAGE PAR NOMS", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(title_frame_filtrage_garde_corps, text="FILTRAGE PAR NOMS", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 # Tableau Résumé : noms et quantités
-types_frame_gc = ctk.CTkFrame(frame_resume_garde_corps, fg_color="white", bd=1, relief="solid")
+types_frame_gc = tk.Frame(frame_resume_garde_corps, bg="white", bd=1, relief="solid")
 types_frame_gc.pack(fill="x", padx=5, pady=5)
 
-data_frame_types_garde_corps = ctk.CTkFrame(types_frame_gc, fg_color="white")
+data_frame_types_garde_corps = tk.Frame(types_frame_gc, bg="white")
 data_frame_types_garde_corps.pack(fill="both", padx=5, pady=5)
 def appliquer_filtre_resume_gc():
     filtre = entree_filtre_resume_gc.get().strip().lower()
@@ -3131,24 +3127,24 @@ tree_surfaces_garde_corps.bind("<Button-3>", lambda e: (
 ))
 scroll_surfaces_garde_corps.pack(side="right", fill="y", pady=5)
 
-title_frame_types_garde_corps_bottom = ctk.CTkFrame(frame_resume_garde_corps, fg_color="#004D40")
+title_frame_types_garde_corps_bottom = tk.Frame(frame_resume_garde_corps, bg="#004D40")
 title_frame_types_garde_corps_bottom.pack(fill="x", padx=5, pady=(15, 0))
-ctk.CTkLabel(title_frame_types_garde_corps_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
-info_frame_garde_corps = ctk.CTkFrame(frame_resume_garde_corps, fg_color="#E8F5E9", bd=2, relief="groove")
+tk.Label(title_frame_types_garde_corps_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+info_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#E8F5E9", bd=2, relief="groove")
 info_frame_garde_corps.pack(fill="x", padx=5, pady=5)
-grid_infos_garde_corps = ctk.CTkFrame(info_frame_garde_corps, fg_color="#E8F5E9")
+grid_infos_garde_corps = tk.Frame(info_frame_garde_corps, bg="#E8F5E9")
 grid_infos_garde_corps.pack(pady=5, fill="x")
 grid_infos_garde_corps.grid_columnconfigure(1, weight=1)
 grid_infos_garde_corps.grid_columnconfigure(0, weight=1)
 
 
 # Titre Informations Complémentaires
-frame_poteaux_content = ctk.CTkFrame(frame_poteaux, fg_color="#FAFAFA")
+frame_poteaux_content = tk.Frame(frame_poteaux, bg="#FAFAFA")
 frame_poteaux_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_poteaux = ctk.CTkFrame(frame_poteaux_content, fg_color="#FFFFFF", bd=1, relief="solid")
+frame_filtre_poteaux = tk.Frame(frame_poteaux_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_poteaux.pack(fill="x", padx=10, pady=10)
-ctk.CTkLabel(frame_filtre_poteaux, text="🔎 Filtrer :", fg_color="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_poteaux = ctk.CTkEntry(frame_filtre_poteaux, width=40)
+tk.Label(frame_filtre_poteaux, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
+entree_filtre_poteaux = tk.Entry(frame_filtre_poteaux, width=40)
 entree_filtre_poteaux.pack(side="left", padx=5)
 ttk.Button(frame_filtre_poteaux, text="Appliquer",  command=appliquer_filtre_poteaux).pack(side="left", padx=5)
 btn_reset_poteaux = ttk.Button(frame_filtre_poteaux,
@@ -3175,31 +3171,31 @@ tree_poteaux.configure(yscrollcommand=scroll_poteaux.set)
 tree_poteaux.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_poteaux.pack(side="right", fill="y")
 
-frame_resume_poteaux = ctk.CTkFrame(frame_poteaux, fg_color="white", width=650)
+frame_resume_poteaux = tk.Frame(frame_poteaux, bg="white", width=650)
 frame_resume_poteaux.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_poteaux.pack_propagate(False)
-title_frame_resume_poteaux = ctk.CTkFrame(frame_resume_poteaux, fg_color="#004D40")
+title_frame_resume_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 title_frame_resume_poteaux.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(title_frame_resume_poteaux, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
-general_frame_poteaux = ctk.CTkFrame(frame_resume_poteaux, fg_color="white", bd=1, relief="solid")
+tk.Label(title_frame_resume_poteaux, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), bg="#004D40", fg="white").pack(pady=5)
+general_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="white", bd=1, relief="solid")
 general_frame_poteaux.pack(fill="x", padx=5, pady=5)
-grid_resume_poteaux = ctk.CTkFrame(general_frame_poteaux, fg_color="white")
+grid_resume_poteaux = tk.Frame(general_frame_poteaux, bg="white")
 grid_resume_poteaux.pack(pady=5)
 # — Résumé POTEAUX —
-ctk.CTkLabel(grid_resume_poteaux, text="📏 Longueur totale :", fg_color="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_largeur_totale_poteaux = ctk.CTkLabel(grid_resume_poteaux, text="0.00 m", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="📏 Longueur totale :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_largeur_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m", bg="white", font=("Helvetica", 10, "bold"))
 label_largeur_totale_poteaux.grid(row=0, column=1, sticky="e", padx=10)
-ctk.CTkLabel(grid_resume_poteaux, text="🏗️ Surface de coffrage :", fg_color="white", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
-label_surface_totale_poteaux = ctk.CTkLabel(grid_resume_poteaux, text="0.00 m²", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="🏗️ Surface de coffrage :", bg="white", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
+label_surface_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m²", bg="white", font=("Helvetica", 10, "bold"))
 label_surface_totale_poteaux.grid(row=1, column=1, sticky="e", padx=10)
-ctk.CTkLabel(grid_resume_poteaux, text="📦 Volume total :", fg_color="white", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
-label_volume_totale_poteaux = ctk.CTkLabel(grid_resume_poteaux, text="0.00 m³", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="white", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
+label_volume_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m³", bg="white", font=("Helvetica", 10, "bold"))
 label_volume_totale_poteaux.grid(row=2, column=1, sticky="e", padx=10)
-types_frame_poteaux = ctk.CTkFrame(frame_resume_poteaux, fg_color="white", bd=1, relief="solid")
+types_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="white", bd=1, relief="solid")
 types_frame_poteaux.pack(fill="x", padx=5, pady=5)
 
 # ---- Treeview résumé POTEAUX ---------------------------------
-data_frame_types_poteaux = ctk.CTkFrame(types_frame_poteaux, fg_color="white")
+data_frame_types_poteaux = tk.Frame(types_frame_poteaux, bg="white")
 data_frame_types_poteaux.pack(fill="both", padx=5, pady=5)
 
 tree_surfaces_poteaux = ttk.Treeview(
@@ -3275,25 +3271,25 @@ def maj_par_type_poteaux(poteaux=None):
 
 root.after(0, maj_par_type_poteaux)
 
-grid_types_poteaux_container = ctk.CTkFrame(types_frame_poteaux, fg_color="white", bd=1, relief="solid")
+grid_types_poteaux_container = tk.Frame(types_frame_poteaux, bg="white", bd=1, relief="solid")
 grid_types_poteaux_container.pack(fill="x", padx=5, pady=5)
 grid_types_poteaux_container.pack_forget()
 
 
-info_frame_poteaux = ctk.CTkFrame(frame_resume_poteaux, fg_color="#004D40")
+info_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 info_frame_poteaux.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(info_frame_poteaux, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(info_frame_poteaux, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
 
 
 canvas_grid_types_poteaux = tk.Canvas(grid_types_poteaux_container, bg="white", highlightthickness=0, height=150)
 canvas_grid_types_poteaux.pack(side="left", fill="x", expand=True, padx=(5, 0), pady=5)
 
-scrollbar_grid_types_poteaux = ctk.CTkScrollbar(grid_types_poteaux_container, orient="vertical", command=canvas_grid_types_poteaux.yview)
+scrollbar_grid_types_poteaux = tk.Scrollbar(grid_types_poteaux_container, orient="vertical", command=canvas_grid_types_poteaux.yview)
 scrollbar_grid_types_poteaux.pack(side="right", fill="y", pady=5)
 
 canvas_grid_types_poteaux.configure(yscrollcommand=scrollbar_grid_types_poteaux.set)
 
-grid_types_poteaux = ctk.CTkFrame(canvas_grid_types_poteaux, fg_color="white")
+grid_types_poteaux = tk.Frame(canvas_grid_types_poteaux, bg="white")
 canvas_grid_types_poteaux.create_window((0, 0), window=grid_types_poteaux, anchor="nw")
 
 def on_configure_grid_types_poteaux(event):
@@ -3304,12 +3300,12 @@ grid_types_poteaux.bind("<Configure>", on_configure_grid_types_poteaux)
 
 
 # —— UI POUTRES ———————————————————————————————————————————
-frame_poutres_content = ctk.CTkFrame(frame_poutres, fg_color="#FAFAFA")
+frame_poutres_content = tk.Frame(frame_poutres, bg="#FAFAFA")
 frame_poutres_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_poutres = ctk.CTkFrame(frame_poutres_content, fg_color="#FFFFFF", bd=1, relief="solid")
+frame_filtre_poutres = tk.Frame(frame_poutres_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_poutres.pack(fill="x", padx=10, pady=10)
-ctk.CTkLabel(frame_filtre_poutres, text="🔎 Filtrer :", fg_color="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_poutres = ctk.CTkEntry(frame_filtre_poutres, width=40)
+tk.Label(frame_filtre_poutres, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
+entree_filtre_poutres = tk.Entry(frame_filtre_poutres, width=40)
 entree_filtre_poutres.pack(side="left", padx=5)
 ttk.Button(frame_filtre_poutres, text="Appliquer",  command=appliquer_filtre_poutres).pack(side="left", padx=5)
 btn_reset_poutres = ttk.Button(frame_filtre_poutres,
@@ -3336,32 +3332,32 @@ tree_poutres.configure(yscrollcommand=scroll_poutres.set)
 tree_poutres.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_poutres.pack(side="right", fill="y")
 
-frame_resume_poutres = ctk.CTkFrame(frame_poutres, fg_color="white", width=650)
+frame_resume_poutres = tk.Frame(frame_poutres, bg="white", width=650)
 frame_resume_poutres.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_poutres.pack_propagate(False)
-title_frame_resume_poutres = ctk.CTkFrame(frame_resume_poutres, fg_color="#004D40")
+title_frame_resume_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
 title_frame_resume_poutres.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(title_frame_resume_poutres, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
-general_frame_poutres = ctk.CTkFrame(frame_resume_poutres, fg_color="white", bd=1, relief="solid")
+tk.Label(title_frame_resume_poutres, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), bg="#004D40", fg="white").pack(pady=5)
+general_frame_poutres = tk.Frame(frame_resume_poutres, bg="white", bd=1, relief="solid")
 general_frame_poutres.pack(fill="x", padx=5, pady=5)
-grid_resume_poutres = ctk.CTkFrame(general_frame_poutres, fg_color="white")
+grid_resume_poutres = tk.Frame(general_frame_poutres, bg="white")
 grid_resume_poutres.pack(pady=5)
 # Nouveau bandeau "INFORMATIONS COMPLÉMENTAIRES" juste sous le tableau Résumé
 # — Résumé POUTRES —
-ctk.CTkLabel(grid_resume_poutres, text="📏 Longueur totale :", fg_color="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_longueur_totale_poutres = ctk.CTkLabel(grid_resume_poutres, text="0.00 m", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poutres, text="📏 Longueur totale :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_longueur_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m", bg="white", font=("Helvetica", 10, "bold"))
 label_longueur_totale_poutres.grid(row=0, column=1, sticky="e", padx=10)
-ctk.CTkLabel(grid_resume_poutres, text="🏗️ Surface de coffrage :", fg_color="white", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
-label_surface_totale_poutres = ctk.CTkLabel(grid_resume_poutres, text="0.00 m²", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poutres, text="🏗️ Surface de coffrage :", bg="white", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
+label_surface_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m²", bg="white", font=("Helvetica", 10, "bold"))
 label_surface_totale_poutres.grid(row=1, column=1, sticky="e", padx=10)
-ctk.CTkLabel(grid_resume_poutres, text="📦 Volume total :", fg_color="white", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
-label_volume_totale_poutres = ctk.CTkLabel(grid_resume_poutres, text="0.00 m³", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poutres, text="📦 Volume total :", bg="white", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
+label_volume_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m³", bg="white", font=("Helvetica", 10, "bold"))
 label_volume_totale_poutres.grid(row=2, column=1, sticky="e", padx=10)
-types_frame_poutres = ctk.CTkFrame(frame_resume_poutres, fg_color="white", bd=1, relief="solid")
+types_frame_poutres = tk.Frame(frame_resume_poutres, bg="white", bd=1, relief="solid")
 types_frame_poutres.pack(fill="x", padx=5, pady=5)
 
 # ---- Treeview résumé POUTRES ---------------------------------
-data_frame_types_poutres = ctk.CTkFrame(types_frame_poutres, fg_color="white")
+data_frame_types_poutres = tk.Frame(types_frame_poutres, bg="white")
 data_frame_types_poutres.pack(fill="both", padx=5, pady=5)
 
 tree_surfaces_poutres = ttk.Treeview(
@@ -3414,9 +3410,9 @@ context_menu_surfaces_poutres = tk.Menu(root, tearoff=0)
 context_menu_surfaces_poutres.add_command(label="Copier", command=copy_type_summary_poutres)
 tree_surfaces_poutres.bind("<Button-3>", lambda e: (tree_surfaces_poutres.selection_set(tree_surfaces_poutres.identify_row(e.y)), context_menu_surfaces_poutres.post(e.x_root, e.y_root)))
 # Bandeau “INFORMATIONS COMPLÉMENTAIRES” sous le tableau Résumé
-info_frame_poutres = ctk.CTkFrame(frame_resume_poutres, fg_color="#004D40")
+info_frame_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
 info_frame_poutres.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(info_frame_poutres, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(info_frame_poutres, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 # ------------------------------------------------------------------
 
@@ -3440,24 +3436,24 @@ def maj_par_type_poutres(poutres=None):
 
 
 root.after(0, maj_par_type_poutres)
-# ctk.CTkLabel(types_frame_poutres, text="Longueurs par type", font=("Helvetica", 12, "bold"), fg_color="white", text_color="#004D40")\
+# tk.Label(types_frame_poutres, text="Longueurs par type", font=("Helvetica", 12, "bold"), bg="white", fg="#004D40")\
     # .pack(anchor="center", pady=5)
 
-grid_types_poutres_container = ctk.CTkFrame(types_frame_poutres, fg_color="white", bd=1, relief="solid")
+grid_types_poutres_container = tk.Frame(types_frame_poutres, bg="white", bd=1, relief="solid")
 # grid_types_poutres_container.pack(fill="x", padx=5, pady=5)
 grid_types_poutres_container.pack_forget()  # hidden to remove blank area
 
-ctk.CTkLabel(grid_types_poutres_container, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), fg_color="white", text_color="#004D40").pack(anchor="center", pady=5)
+tk.Label(grid_types_poutres_container, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="white", fg="#004D40").pack(anchor="center", pady=5)
 
 canvas_grid_types_poutres = tk.Canvas(grid_types_poutres_container, bg="white", highlightthickness=0, height=150)
 canvas_grid_types_poutres.pack(side="left", fill="x", expand=True, padx=(5, 0), pady=5)
 
-scrollbar_grid_types_poutres = ctk.CTkScrollbar(grid_types_poutres_container, orient="vertical", command=canvas_grid_types_poutres.yview)
+scrollbar_grid_types_poutres = tk.Scrollbar(grid_types_poutres_container, orient="vertical", command=canvas_grid_types_poutres.yview)
 scrollbar_grid_types_poutres.pack(side="right", fill="y", pady=5)
 
 canvas_grid_types_poutres.configure(yscrollcommand=scrollbar_grid_types_poutres.set)
 
-grid_types_poutres = ctk.CTkFrame(canvas_grid_types_poutres, fg_color="white")
+grid_types_poutres = tk.Frame(canvas_grid_types_poutres, bg="white")
 canvas_grid_types_poutres.create_window((0, 0), window=grid_types_poutres, anchor="nw")
 
 def on_configure_grid_types_poutres(event):
@@ -3476,16 +3472,16 @@ try:
         logo_image = Image.open(logo_path)
         logo_image = logo_image.resize((120, 120), Image.Resampling.LANCZOS)
         logo_photo = ImageTk.PhotoImage(logo_image)
-        logo_label = ctk.CTkLabel(root, image=logo_photo, fg_color="#FAFAFA", borderwidth=0, highlightthickness=0)
+        logo_label = tk.Label(root, image=logo_photo, bg="#FAFAFA", borderwidth=0, highlightthickness=0)
         logo_label.image = logo_photo # Garder une référence pour éviter la suppression par le garbage collector
         logo_label.place(relx=0.01, rely=0.99, anchor="sw")
         print("Logo chargé avec succès")
     else:
         print(f"Erreur : Le fichier logo n'existe pas à : {logo_path}")
-        ctk.CTkLabel(root, text="Logo non trouvé", font=("Helvetica", 10), fg_color="#FAFAFA", text_color="#FF0000").place(relx=0.01,rely=0.99,anchor="sw")
+        tk.Label(root, text="Logo non trouvé", font=("Helvetica", 10), bg="#FAFAFA", fg="#FF0000").place(relx=0.01,rely=0.99,anchor="sw")
 except Exception as e:
     print(f"Erreur lors du chargement du logo : {e}")
-    ctk.CTkLabel(root, text="Erreur : Logo non chargé", font=("Helvetica", 10), fg_color="#FAFAFA", text_color="#FF0000").place(relx=0.01,rely=0.99,anchor="sw")
+    tk.Label(root, text="Erreur : Logo non chargé", font=("Helvetica", 10), bg="#FAFAFA", fg="#FF0000").place(relx=0.01,rely=0.99,anchor="sw")
 
 # --- Afficher d'abord la page d'accueil
 show_frame(frame_accueil)
@@ -3496,13 +3492,13 @@ if __name__ == "__main__":
     print("Lancement de l'application…")
     
 # —— UI DESCENTE EP ———————————————————————————————————————————
-frame_descente_ep_content = ctk.CTkFrame(frame_descente_ep, fg_color="#FAFAFA")
+frame_descente_ep_content = tk.Frame(frame_descente_ep, bg="#FAFAFA")
 frame_descente_ep_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 
-frame_filtre_ep = ctk.CTkFrame(frame_descente_ep_content, fg_color="#FFFFFF", bd=1, relief="solid")
+frame_filtre_ep = tk.Frame(frame_descente_ep_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_ep.pack(fill="x", padx=10, pady=10)
-ctk.CTkLabel(frame_filtre_ep, text="🔎 Filtrer :", fg_color="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_ep = ctk.CTkEntry(frame_filtre_ep, width=40)
+tk.Label(frame_filtre_ep, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
+entree_filtre_ep = tk.Entry(frame_filtre_ep, width=40)
 entree_filtre_ep.pack(side="left", padx=5)
 ttk.Button(frame_filtre_ep, text="Appliquer",  command=lambda: appliquer_filtre_ep()).pack(side="left", padx=5)
 btn_reset_ep = ttk.Button(frame_filtre_ep, text="Réinitialiser", style="Reset.TButton", command=lambda: reinitialiser_filtre_ep())
@@ -3525,24 +3521,24 @@ tree_ep.configure(yscrollcommand=scroll_ep.set)
 tree_ep.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_ep.pack(side="right", fill="y")
 
-frame_resume_ep = ctk.CTkFrame(frame_descente_ep, fg_color="white", width=650)
+frame_resume_ep = tk.Frame(frame_descente_ep, bg="white", width=650)
 frame_resume_ep.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_ep.pack_propagate(False)
-title_frame_resume_ep = ctk.CTkFrame(frame_resume_ep, fg_color="#004D40")
+title_frame_resume_ep = tk.Frame(frame_resume_ep, bg="#004D40")
 title_frame_resume_ep.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(title_frame_resume_ep, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(title_frame_resume_ep, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), bg="#004D40", fg="white").pack(pady=5)
 
-general_frame_ep = ctk.CTkFrame(frame_resume_ep, fg_color="white", bd=1, relief="solid")
+general_frame_ep = tk.Frame(frame_resume_ep, bg="white", bd=1, relief="solid")
 general_frame_ep.pack(fill="x", padx=5, pady=5)
-grid_resume_ep = ctk.CTkFrame(general_frame_ep, fg_color="white")
+grid_resume_ep = tk.Frame(general_frame_ep, bg="white")
 grid_resume_ep.pack(pady=5)
-ctk.CTkLabel(grid_resume_ep, text="📏 Longueur totale :", fg_color="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_dimension_totale_ep = ctk.CTkLabel(grid_resume_ep, text="0.00 m", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_ep, text="📏 Longueur totale :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_dimension_totale_ep = tk.Label(grid_resume_ep, text="0.00 m", bg="white", font=("Helvetica", 10, "bold"))
 label_dimension_totale_ep.grid(row=0, column=1, sticky="e", padx=10)
 
-types_frame_ep = ctk.CTkFrame(frame_resume_ep, fg_color="white", bd=1, relief="solid")
+types_frame_ep = tk.Frame(frame_resume_ep, bg="white", bd=1, relief="solid")
 types_frame_ep.pack(fill="x", padx=5, pady=5)
-data_frame_types_ep = ctk.CTkFrame(types_frame_ep, fg_color="white")
+data_frame_types_ep = tk.Frame(types_frame_ep, bg="white")
 data_frame_types_ep.pack(fill="both", padx=5, pady=5)
 tree_surfaces_ep = ttk.Treeview(
     data_frame_types_ep,
@@ -3564,11 +3560,11 @@ tree_surfaces_ep.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5
 scroll_surfaces_ep.pack(side="right", fill="y")
 
 # ——— INFORMATIONS COMPLÉMENTAIRES ——————————————————
-title_frame_info_ep = ctk.CTkFrame(frame_resume_ep, fg_color="#004D40")
+title_frame_info_ep = tk.Frame(frame_resume_ep, bg="#004D40")
 title_frame_info_ep.pack(fill="x", padx=5, pady=(15, 0))
-ctk.CTkLabel(title_frame_info_ep, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(title_frame_info_ep, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
-info_frame_ep = ctk.CTkFrame(frame_resume_ep, fg_color="white", bd=1, relief="solid")
+info_frame_ep = tk.Frame(frame_resume_ep, bg="white", bd=1, relief="solid")
 info_frame_ep.pack(fill="both", expand=True, padx=5, pady=5)
 
 
@@ -3642,14 +3638,14 @@ root.after(0, maj_par_type_ep)
 # (copié-collé de l’interface "TYPE DE SOL", renommé)
 
 # ---- Contenu principal ----
-frame_type_plafond_content = ctk.CTkFrame(frame_type_plafond, fg_color="#FAFAFA")
+frame_type_plafond_content = tk.Frame(frame_type_plafond, bg="#FAFAFA")
 frame_type_plafond_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 
 # ---- Barre de filtre ----
-frame_filtre_type_plafond = ctk.CTkFrame(frame_type_plafond_content, fg_color="#FFFFFF", bd=1, relief="solid")
+frame_filtre_type_plafond = tk.Frame(frame_type_plafond_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_type_plafond.pack(fill="x", padx=10, pady=10)
-ctk.CTkLabel(frame_filtre_type_plafond, text="🔎 Filtrer :", fg_color="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_type_plafond = ctk.CTkEntry(frame_filtre_type_plafond, width=40)
+tk.Label(frame_filtre_type_plafond, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
+entree_filtre_type_plafond = tk.Entry(frame_filtre_type_plafond, width=40)
 entree_filtre_type_plafond.pack(side="left", padx=5)
 ttk.Button(frame_filtre_type_plafond, text="Appliquer", command=lambda: appliquer_filtre_type_plafond()).pack(side="left", padx=5)
 btn_reset_type_plafond = ttk.Button(frame_filtre_type_plafond, text="Réinitialiser", style="Reset.TButton", command=lambda: reinitialiser_filtre_type_plafond())
@@ -3697,38 +3693,38 @@ tree_type_plafond.bind("<Button-3>", show_context_menu_type_plafond)
 print("Arborescence des plafonds créée")
 
 # ---- Colonne de résumé / droite ----
-frame_resume_type_plafond = ctk.CTkFrame(frame_type_plafond, fg_color="white", width=650)
+frame_resume_type_plafond = tk.Frame(frame_type_plafond, bg="white", width=650)
 frame_resume_type_plafond.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_type_plafond.pack_propagate(False)
 
-title_frame_resume_type_plafond = ctk.CTkFrame(frame_resume_type_plafond, fg_color="#004D40")
+title_frame_resume_type_plafond = tk.Frame(frame_resume_type_plafond, bg="#004D40")
 title_frame_resume_type_plafond.pack(fill="x", padx=5, pady=(5,0))
-ctk.CTkLabel(title_frame_resume_type_plafond, text="RÉSUMÉ", font=TITLE_FONT, fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(title_frame_resume_type_plafond, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
-general_frame_type_plafond = ctk.CTkFrame(frame_resume_type_plafond, fg_color="white", bd=1, relief="solid")
+general_frame_type_plafond = tk.Frame(frame_resume_type_plafond, bg="white", bd=1, relief="solid")
 general_frame_type_plafond.pack(fill="x", padx=5, pady=5)
-grid_resume_type_plafond = ctk.CTkFrame(general_frame_type_plafond, fg_color="white")
+grid_resume_type_plafond = tk.Frame(general_frame_type_plafond, bg="white")
 grid_resume_type_plafond.pack(pady=5)
 
-ctk.CTkLabel(grid_resume_type_plafond, text="📏 Longueur :", fg_color="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_longueur_totale_type_plafond = ctk.CTkLabel(grid_resume_type_plafond, text="0.00 ml", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_type_plafond, text="📏 Longueur :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_longueur_totale_type_plafond = tk.Label(grid_resume_type_plafond, text="0.00 ml", bg="white", font=("Helvetica", 10, "bold"))
 label_longueur_totale_type_plafond.grid(row=0, column=1, sticky="e", padx=10)
 
-ctk.CTkLabel(grid_resume_type_plafond, text="📐 Surface brute :", fg_color="white", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
-label_surface_brut_type_plafond = ctk.CTkLabel(grid_resume_type_plafond, text="0.00 m²", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_type_plafond, text="📐 Surface brute :", bg="white", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
+label_surface_brut_type_plafond = tk.Label(grid_resume_type_plafond, text="0.00 m²", bg="white", font=("Helvetica", 10, "bold"))
 label_surface_brut_type_plafond.grid(row=1, column=1, sticky="e", padx=10)
 
-ctk.CTkLabel(grid_resume_type_plafond, text="🏠 Surface nette :", fg_color="white", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
-label_surface_net_type_plafond = ctk.CTkLabel(grid_resume_type_plafond, text="0.00 m²", fg_color="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_type_plafond, text="🏠 Surface nette :", bg="white", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
+label_surface_net_type_plafond = tk.Label(grid_resume_type_plafond, text="0.00 m²", bg="white", font=("Helvetica", 10, "bold"))
 label_surface_net_type_plafond.grid(row=2, column=1, sticky="e", padx=10)
 
 # ---- Tableau résumé "Surfaces par type" ----
-data_frame_surfaces_type_plafond = ctk.CTkFrame(frame_resume_type_plafond, fg_color="white", bd=1, relief="solid")
+data_frame_surfaces_type_plafond = tk.Frame(frame_resume_type_plafond, bg="white", bd=1, relief="solid")
 data_frame_surfaces_type_plafond.pack(fill="x", padx=5, pady=5)
 
-title_frame_surfaces_type_plafond = ctk.CTkFrame(frame_resume_type_plafond, fg_color="#004D40")
+title_frame_surfaces_type_plafond = tk.Frame(frame_resume_type_plafond, bg="#004D40")
 title_frame_surfaces_type_plafond.pack(fill="x", padx=5, pady=(15, 0))
-ctk.CTkLabel(title_frame_surfaces_type_plafond, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), fg_color="#004D40", text_color="white").pack(pady=5)
+tk.Label(title_frame_surfaces_type_plafond, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
 
 tree_surfaces_type_plafond = ttk.Treeview(data_frame_surfaces_type_plafond, columns=("Type", "m²"), show="headings", height=10)
 tree_surfaces_type_plafond.configure(style="Summary.Treeview")
