@@ -1947,7 +1947,7 @@ def create_nav_button(emoji, text, command, tooltip_text) :
     btn_frame.pack(fill="x", padx=2, pady=2)
     canvas = tk.Canvas(btn_frame, bg="#263238", highlightthickness=0, height=30)
     canvas.pack(fill="x")
-    btn = ctk.CTkButton(canvas, fg_color="#263238", bd=0, command=lambda: [set_selected(btn), command()])
+    btn = ctk.CTkButton(canvas, fg_color="#263238", border_width=0, command=lambda: [set_selected(btn), command()])
     btn.place(relx=0, rely=0, relwidth=1, relheight=1)
     emoji_label = ctk.CTkLabel(canvas, text=emoji, font=("Helvetica", 12), fg_color="#263238", text_color="#ECEFF1", width=1, anchor="w")
     text_label = ctk.CTkLabel(canvas, text=text, font=("Helvetica", 9), fg_color="#263238", text_color="#ECEFF1", anchor="w")
@@ -1958,12 +1958,12 @@ def create_nav_button(emoji, text, command, tooltip_text) :
     Tooltip(text_label, tooltip_text)
     def on_enter(e) :
         if btn != selected_button :
-            canvas.config(fg_color="#37474F")
+            canvas.config(bg="#37474F")
             emoji_label.config(fg_color="#37474F", text_color="#ECEFF1")
             text_label.config(fg_color="#37474F", text_color="#ECEFF1")
     def on_leave(e) :
         if btn != selected_button :
-            canvas.config(fg_color="#263238")
+            canvas.config(bg="#263238")
             emoji_label.config(fg_color="#263238", text_color="#ECEFF1")
             text_label.config(fg_color="#263238", text_color="#ECEFF1")
     btn_frame.bind("<Enter>", on_enter)
@@ -1982,12 +1982,12 @@ def set_selected(btn) :
     global selected_button
     for button, canvas in canvas_rectangles.items() :
         canvas.delete("highlight")
-        canvas.config(fg_color="#263238")
+        canvas.config(bg="#263238")
         for child in canvas.winfo_children() :
             child.config(fg_color="#263238", text_color="#ECEFF1")
     selected_button = btn
     canvas = canvas_rectangles[btn]
-    canvas.config(fg_color="#E0E0E0")
+    canvas.config(bg="#E0E0E0")
     canvas.create_oval(0, 0, 20, 20, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
     canvas.create_oval(canvas.winfo_width()-20, 0, canvas.winfo_width(), 20, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
     canvas.create_oval(0, 30-20, 20, 30, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
