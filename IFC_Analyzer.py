@@ -402,6 +402,7 @@ def importer_ifc():
                 "sols_infos": {},
                 "plafonds":    [],
                 "garde_corps": [],
+                "garde_corps_infos": {},
                 "poteaux":     [],
                 "poutres":     [],
                 "descente_ep": []
@@ -896,6 +897,7 @@ def importer_ifc():
 
             # Garde-corps
             donnees_ifc[chemin]["garde_corps"] = []
+            donnees_ifc[chemin]["garde_corps_infos"] = {}
             for i, railing in enumerate(garde_corps_ifc):
                 nom = clean_string(railing.Name) or ""
                 # 🔪 1) vire les IDs ‹ - 548204 ›, ‹-548204›, ‹ 548204›…
@@ -905,16 +907,47 @@ def importer_ifc():
 
                 largeur = 0.0
                 railing_type = railing.is_a()
+                psets = {}
                 try:
-                    q = ifcopenshell.util.element.get_psets(railing).get("BaseQuantities", {})
+                    psets = ifcopenshell.util.element.get_psets(railing)
+                    q = psets.get("BaseQuantities", {})
                     # 📏 on prend Width si dispo, sinon Length
                     largeur = q.get("Width", 0.0) or q.get("Length", 0.0) or 0.0
                 except Exception as e:
                     print(f"Erreur extraction garde-corps {nom} : {e}")
 
+                storey = ""
+                for rel in getattr(railing, "ContainedInStructure", []):
+                    container = rel.RelatingStructure
+                    if container and container.is_a("IfcBuildingStorey"):
+                        storey = container.Name or ""
+                        break
+
+                def _find_prop(names):
+                    names_norm = {_normalize_key(n) for n in names}
+                    for ps in psets.values():
+                        if isinstance(ps, dict):
+                            for key, val in ps.items():
+                                norm_key = _normalize_key(key)
+                                if any(norm in norm_key for norm in names_norm) and val not in (None, ""):
+                                    if isinstance(val, str):
+                                        val = val.replace(",", ".")
+                                        try:
+                                            return float(val)
+                                        except ValueError:
+                                            return val
+                                    return val
+                    return None
+
+                info_gc = {
+                    "Contraintes": _find_prop(["Contraintes", "Constraints"]),
+                    "Niveau de base": _find_prop(["Niveau de base", "Base Level", "Ref Level", "Reference Level"]) or storey,
+                }
+
                 donnees_ifc[chemin]["garde_corps"].append(
-                    (nom, round(largeur, 2), railing_type)
+                    (nom, round(largeur, 2), railing_type, storey)
                 )
+                donnees_ifc[chemin]["garde_corps_infos"][(nom, storey)] = info_gc
 
                 processed_elements += 1
                 if processed_elements % 10 == 0:
@@ -1406,10 +1439,8 @@ def afficher_donnees_garde_corps(garde_corps=None):
         tree_garde_corps.delete(item)
 
     longueur_totale = 0.0
-    surface_totale = 0.0
-
     # -- remplissage
-    for idx, (nom, largeur, railing_type) in enumerate(garde_corps):
+    for idx, (nom, largeur, railing_type, _storey) in enumerate(garde_corps):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_garde_corps.insert(
             "", "end",
@@ -1417,16 +1448,16 @@ def afficher_donnees_garde_corps(garde_corps=None):
             tags=(tag,)
         )
         longueur_totale += largeur
-
+    
     # -- maj du résumé
     for w in grid_resume_garde_corps.winfo_children():
         w.destroy()
     row = 0
     tk.Label(grid_resume_garde_corps, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    # ligne vide pour conserver la hauteur
     row += 1
-    tk.Label(grid_resume_garde_corps, text="📐 Surface (m²) :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_garde_corps, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_garde_corps, text="", bg="#E8F5E9").grid(row=row, column=0, pady=2)
 
     maj_largeur_par_type_garde_corps(garde_corps)
 
@@ -1531,7 +1562,7 @@ def maj_largeur_par_type_garde_corps(garde_corps=None):
 
     # Agrégation par libellé
     par_type = {}
-    for nom, largeur, _ in garde_corps:
+    for nom, largeur, *_ in garde_corps:
         cle = nom or "Garde-corps sans nom"
         par_type[cle] = par_type.get(cle, 0) + largeur
 
@@ -2948,12 +2979,19 @@ def hide_infos_garde_corps():
 def _update_infos_garde_corps(nom_sel: str, largeur: float = None, typ: str = None, storey: str = None):
     """Affiche les informations complémentaires pour le garde-corps sélectionné."""
     hide_infos_garde_corps()
+    infos = donnees_ifc.get(ifc_actif, {}).get("garde_corps_infos", {})
+    info = {}
+    if storey is not None:
+        info = infos.get((nom_sel, storey), {})
+        if not info:
+            for (n, s), data in infos.items():
+                if n == nom_sel:
+                    info = data
+                    break
     mapping = [
-        ("Largeur", largeur),
-        ("Type IFC", typ),
+        ("Contraintes", info.get("Contraintes")),
+        ("Niveau de base", info.get("Niveau de base")),
     ]
-    if storey:
-        mapping.append(("Level", storey))
     for row, (label, val) in enumerate(mapping):
         if val in (None, "", "None"):
             val = "N/A"
@@ -3011,8 +3049,14 @@ general_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#E8F5E9", bd=
 general_frame_garde_corps.pack(fill="x", padx=5, pady=5)
 
 grid_resume_garde_corps = tk.Frame(general_frame_garde_corps, bg="#E8F5E9")
-grid_resume_garde_corps.pack(pady=5)
+grid_resume_garde_corps.pack(pady=5, expand=True)
 grid_resume_garde_corps.grid_columnconfigure(1, weight=1)
+
+
+# Titre Filtrage par noms
+title_frame_filtrage_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#004D40")
+title_frame_filtrage_garde_corps.pack(fill="x", padx=5, pady=(15,0))
+tk.Label(title_frame_filtrage_garde_corps, text="FILTRAGE PAR NOMS", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 # Tableau Résumé : noms et quantités
 types_frame_gc = tk.Frame(frame_resume_garde_corps, bg="white", bd=1, relief="solid")
@@ -3020,9 +3064,6 @@ types_frame_gc.pack(fill="x", padx=5, pady=5)
 
 data_frame_types_garde_corps = tk.Frame(types_frame_gc, bg="white")
 data_frame_types_garde_corps.pack(fill="both", padx=5, pady=5)
-info_frame_gc = tk.Frame(frame_resume_garde_corps, bg="#004D40")
-info_frame_gc.pack(fill="x", padx=5, pady=(5,0))
-tk.Label(info_frame_gc, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 def appliquer_filtre_resume_gc():
     filtre = entree_filtre_resume_gc.get().strip().lower()
     for iid in tree_surfaces_garde_corps.get_children():
@@ -3046,12 +3087,11 @@ def copy_gc_summary(event=None):
 
 tree_surfaces_garde_corps = ttk.Treeview(
     data_frame_types_garde_corps,
-    style="Summary.Treeview",
+    style="Green.Treeview",
     columns=("Type", "m"),
-    show="headings",
-    height=8
+    show="headings"
 )
-tree_surfaces_garde_corps.configure(style="Summary.Treeview")
+tree_surfaces_garde_corps.configure(style="Green.Treeview")
 tree_surfaces_garde_corps.heading("Type", text="Type")
 tree_surfaces_garde_corps.heading("m",    text="m")
 tree_surfaces_garde_corps.column("Type", anchor="w", width=200)
@@ -3073,7 +3113,7 @@ def filter_main_by_type_gc(event=None):
     if sel:
         lib = tree_surfaces_garde_corps.item(sel[0])["values"][0]
         tree_garde_corps.delete(*tree_garde_corps.get_children())
-        for idx, (nom, larg, t) in enumerate(donnees_ifc[ifc_actif]["garde_corps"]):
+        for idx, (nom, larg, t, _s) in enumerate(donnees_ifc[ifc_actif]["garde_corps"]):
             if nom == lib:
                 tag = "evenrow" if idx % 2 == 0 else "oddrow"
                 tree_garde_corps.insert("", "end", values=(nom, larg, t), tags=(tag,))
