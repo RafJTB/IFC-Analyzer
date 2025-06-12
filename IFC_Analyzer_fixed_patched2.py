@@ -286,6 +286,7 @@ tab_buttons = []
 btn_niveau_murs = None
 btn_niveau_menuiseries = None
 btn_niveau_type_sol = None
+btn_niveau_garde_corps = None
 
 # Filtres actifs pour le tableau MURS
 filtre_texte_murs = ""
@@ -301,6 +302,10 @@ filtre_zero_menuiseries = False
 filtre_texte_type_sol = ""
 filtre_zero_type_sol = False
 filtre_niveaux_type_sol = []
+# Filtres actifs pour le tableau GARDE CORPS
+filtre_texte_garde_corps = ""
+filtre_zero_garde_corps = False
+filtre_niveaux_garde_corps = []
 
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
@@ -1400,7 +1405,8 @@ def afficher_donnees_garde_corps(garde_corps=None):
     for item in tree_garde_corps.get_children():
         tree_garde_corps.delete(item)
 
-    largeur_totale = 0.0
+    longueur_totale = 0.0
+    surface_totale = 0.0
 
     # -- remplissage
     for idx, (nom, largeur, railing_type) in enumerate(garde_corps):
@@ -1410,12 +1416,18 @@ def afficher_donnees_garde_corps(garde_corps=None):
             values=(nom, largeur, railing_type),
             tags=(tag,)
         )
-        largeur_totale += largeur
+        longueur_totale += largeur
 
     # -- maj du résumé
-    label_largeur_totale_garde_corps.config(text=f"{round(largeur_totale, 2)} m")
+    for w in grid_resume_garde_corps.winfo_children():
+        w.destroy()
+    row = 0
+    tk.Label(grid_resume_garde_corps, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_garde_corps, text="📐 Surface (m²) :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_garde_corps, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
-    # ⬇️ ajoutez cette ligne
     maj_largeur_par_type_garde_corps(garde_corps)
 
 def afficher_donnees_poteaux(poteaux=None):
@@ -1533,16 +1545,10 @@ def maj_largeur_par_type_garde_corps(garde_corps=None):
         )
 
 def appliquer_filtre_garde_corps():
-    texte_filtre = entree_filtre_garde_corps.get().lower()
-    garde_corps_filtres = [g for g in donnees_ifc[ifc_actif]["garde_corps"] if texte_filtre in g[0].lower()]
-    for i in tree_garde_corps.get_children():
-        tree_garde_corps.delete(i)
-    largeur_totale = 0.0
-    for idx, (nom, largeur, railing_type) in enumerate(garde_corps_filtres):
-        tag = "evenrow" if idx % 2 == 0 else "oddrow"
-        tree_garde_corps.insert("", "end", values=(nom, largeur, railing_type), tags=(tag,))
-        largeur_totale += largeur
-    label_largeur_totale_garde_corps.config(text=f"{round(largeur_totale, 2)} m")
+    """Active le filtrage texte pour les garde-corps."""
+    global filtre_texte_garde_corps
+    filtre_texte_garde_corps = entree_filtre_garde_corps.get().lower()
+    _apply_filters_garde_corps()
 
 
 # --------------------------------------
@@ -1607,6 +1613,22 @@ def _get_filtered_type_sol():
 
 def _apply_filters_type_sol():
     afficher_donnees_type_sol(_get_filtered_type_sol())
+
+# ----- Filtres pour GARDE CORPS -----
+def _get_filtered_garde_corps():
+    gc = donnees_ifc.get(ifc_actif, {}).get("garde_corps", [])
+    if filtre_zero_garde_corps:
+        gc = [g for g in gc if g[1] == 0]
+    if filtre_niveaux_garde_corps:
+        if len(gc) > 0 and len(gc[0]) > 3:
+            gc = [g for g in gc if g[3] in filtre_niveaux_garde_corps]
+    if filtre_texte_garde_corps:
+        lower = filtre_texte_garde_corps
+        gc = [g for g in gc if lower in g[0].lower()]
+    return gc
+
+def _apply_filters_garde_corps():
+    afficher_donnees_garde_corps(_get_filtered_garde_corps())
 
 def appliquer_filtre_menuiseries():
     global filtre_texte_menuiseries
@@ -1694,6 +1716,24 @@ def open_filtre_niveau_type_sol():
     menu.tk_popup(x, y)
     menu.grab_release()
 
+def appliquer_filtre_niveau_garde_corps(niveaux):
+    """Filtrer les garde-corps selon une liste de niveaux."""
+    global filtre_niveaux_garde_corps
+    filtre_niveaux_garde_corps = niveaux or []
+    _apply_filters_garde_corps()
+
+def open_filtre_niveau_garde_corps():
+    niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
+    if not niveaux or btn_niveau_garde_corps is None:
+        return
+    menu = tk.Menu(root, tearoff=0)
+    for n in niveaux:
+        menu.add_command(label=n, command=lambda level=n: (appliquer_filtre_niveau_garde_corps([level]), menu.unpost()))
+    x = btn_niveau_garde_corps.winfo_rootx()
+    y = btn_niveau_garde_corps.winfo_rooty() + btn_niveau_garde_corps.winfo_height()
+    menu.tk_popup(x, y)
+    menu.grab_release()
+
 def appliquer_filtre_zero_menuiseries():
     """Filtrer pour n’afficher que les menuiseries avec quantité égale à 0."""
     global filtre_zero_menuiseries
@@ -1701,9 +1741,10 @@ def appliquer_filtre_zero_menuiseries():
     _apply_filters_menuiseries()
 
 def appliquer_filtre_zero_garde_corps():
-    """Filtrer pour n’afficher que les garde-corps avec quantité égale à 0."""
-    gc_zero = [g for g in donnees_ifc[ifc_actif]['garde_corps'] if g[1] == 0]
-    afficher_donnees_garde_corps(gc_zero)
+    """Filtrer pour n’afficher que les garde-corps avec largeur égale à 0."""
+    global filtre_zero_garde_corps
+    filtre_zero_garde_corps = True
+    _apply_filters_garde_corps()
 
 
 def appliquer_filtre_zero_poteaux():
@@ -1721,13 +1762,17 @@ def reinitialiser_filtre_type_sol():
 
 
 def appliquer_filtre_garde_corps():
-    texte = entree_filtre_garde_corps.get().lower()
-    filtrés = [g for g in donnees_ifc[ifc_actif]["garde_corps"] if texte in g[0].lower()]
-    afficher_donnees_garde_corps(filtrés)          # <- déclenche aussi la maj par type
+    """Active le filtrage texte pour les garde-corps."""
+    global filtre_texte_garde_corps
+    filtre_texte_garde_corps = entree_filtre_garde_corps.get().lower()
+    _apply_filters_garde_corps()
 def reinitialiser_filtre_garde_corps():
+    global filtre_texte_garde_corps, filtre_zero_garde_corps, filtre_niveaux_garde_corps
     entree_filtre_garde_corps.delete(0, tk.END)
-    afficher_donnees_garde_corps()
-    maj_largeur_par_type_garde_corps()
+    filtre_texte_garde_corps = ""
+    filtre_zero_garde_corps = False
+    filtre_niveaux_garde_corps = []
+    _apply_filters_garde_corps()
 
 
 def reinitialiser_tous_filtres(event=None):
@@ -2809,6 +2854,28 @@ def afficher_infos_type_sol_resume(event=None):
     _update_infos_type_sol(nom_sel)
     _update_resume_type_sol(nom_sel)
 
+def afficher_infos_garde_corps(event=None):
+    sel = tree_garde_corps.selection()
+    if not sel:
+        hide_infos_garde_corps()
+        return
+    values = tree_garde_corps.item(sel[0])["values"]
+    nom_sel = values[0]
+    try:
+        largeur = float(values[1])
+    except (ValueError, TypeError):
+        largeur = 0.0
+    typ = values[2] if len(values) > 2 else ""
+    _update_infos_garde_corps(nom_sel, largeur, typ)
+
+def afficher_infos_garde_corps_resume(event=None):
+    sel = tree_surfaces_garde_corps.selection()
+    if not sel:
+        hide_infos_garde_corps()
+        return
+    nom_sel = tree_surfaces_garde_corps.item(sel[0])["values"][0]
+    _update_infos_garde_corps(nom_sel)
+
 tree_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol)
 tree_surfaces_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol_resume)
 
@@ -2872,6 +2939,29 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
     tk.Label(grid_infos_type_sol, text=niveaux, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 
+def hide_infos_garde_corps():
+    """Masque le bloc d'informations complémentaires des garde-corps."""
+    for w in grid_infos_garde_corps.winfo_children():
+        w.destroy()
+
+
+def _update_infos_garde_corps(nom_sel: str, largeur: float = None, typ: str = None, storey: str = None):
+    """Affiche les informations complémentaires pour le garde-corps sélectionné."""
+    hide_infos_garde_corps()
+    mapping = [
+        ("Largeur", largeur),
+        ("Type IFC", typ),
+    ]
+    if storey:
+        mapping.append(("Level", storey))
+    for row, (label, val) in enumerate(mapping):
+        if val in (None, "", "None"):
+            val = "N/A"
+        elif isinstance(val, (int, float)):
+            val = f"{float(val):.2f}"
+        tk.Label(grid_infos_garde_corps, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_garde_corps, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+
 frame_garde_corps_content = tk.Frame(frame_garde_corps, bg="#FAFAFA")
 frame_garde_corps_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 frame_filtre_garde_corps = tk.Frame(frame_garde_corps_content, bg="#FFFFFF", bd=1, relief="solid")
@@ -2884,6 +2974,8 @@ btn_reset_garde_corps = ttk.Button(frame_filtre_garde_corps, text="Réinitialise
 btn_reset_garde_corps.pack(side="left", padx=5)
 btn_reset_garde_corps.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_garde_corps, text="Qt = 0", command=appliquer_filtre_zero_garde_corps).pack(side="left", padx=5)
+btn_niveau_garde_corps = ttk.Button(frame_filtre_garde_corps, text="Niveau", command=open_filtre_niveau_garde_corps)
+btn_niveau_garde_corps.pack(side="left", padx=5)
 print("Cadre de filtrage des garde-corps créé")
 
 tree_garde_corps = ttk.Treeview(frame_garde_corps_content, columns=("Nom", "Largeur (m)", "Type"), show="headings")
@@ -2896,6 +2988,7 @@ tree_garde_corps.tag_configure("oddrow", background="#FFFFFF")
 scroll_garde_corps = ttk.Scrollbar(frame_garde_corps_content, orient="vertical", command=tree_garde_corps.yview)
 tree_garde_corps.configure(yscrollcommand=scroll_garde_corps.set)
 tree_garde_corps.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
+tree_garde_corps.bind("<<TreeviewSelect>>", afficher_infos_garde_corps)
 
 print("Arborescence des garde-corps créée")
 
@@ -2914,15 +3007,12 @@ title_frame_resume_garde_corps.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_garde_corps, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 # Cadre général
-general_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="white", bd=1, relief="solid")
+general_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_garde_corps.pack(fill="x", padx=5, pady=5)
 
-grid_resume_garde_corps = tk.Frame(general_frame_garde_corps, bg="white")
+grid_resume_garde_corps = tk.Frame(general_frame_garde_corps, bg="#E8F5E9")
 grid_resume_garde_corps.pack(pady=5)
-# 📐 Largeur totale
-tk.Label(grid_resume_garde_corps, text="📏 Longueur totale :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_largeur_totale_garde_corps = tk.Label(grid_resume_garde_corps, text="0.00 m", bg="white", font=("Helvetica", 10, "bold"))
-label_largeur_totale_garde_corps.grid(row=0, column=1, sticky="e", padx=10)
+grid_resume_garde_corps.grid_columnconfigure(1, weight=1)
 
 # Tableau Résumé : noms et quantités
 types_frame_gc = tk.Frame(frame_resume_garde_corps, bg="white", bd=1, relief="solid")
@@ -2957,17 +3047,17 @@ def copy_gc_summary(event=None):
 tree_surfaces_garde_corps = ttk.Treeview(
     data_frame_types_garde_corps,
     style="Summary.Treeview",
-    columns=("Nom", "Largeur (m)"),
+    columns=("Type", "m"),
     show="headings",
     height=8
 )
 tree_surfaces_garde_corps.configure(style="Summary.Treeview")
-tree_surfaces_garde_corps.heading("Nom", text="Nom")
-tree_surfaces_garde_corps.heading("Largeur (m)", text="Largeur (m)")
-tree_surfaces_garde_corps.column("Nom", anchor="w", width=200, stretch=True)
-tree_surfaces_garde_corps.column("Largeur (m)", anchor="e", width=100, stretch=False)
-tree_surfaces_garde_corps.tag_configure("evenrow", background="white")
-tree_surfaces_garde_corps.tag_configure("oddrow", background="white")
+tree_surfaces_garde_corps.heading("Type", text="Type")
+tree_surfaces_garde_corps.heading("m",    text="m")
+tree_surfaces_garde_corps.column("Type", anchor="w", width=200)
+tree_surfaces_garde_corps.column("m",    anchor="e", width=80, stretch=False)
+tree_surfaces_garde_corps.tag_configure("evenrow", background="#E8F5E9")
+tree_surfaces_garde_corps.tag_configure("oddrow",  background="#E8F5E9")
 
 scroll_surfaces_garde_corps = ttk.Scrollbar(
     data_frame_types_garde_corps, orient="vertical", command=tree_surfaces_garde_corps.yview
@@ -2976,6 +3066,7 @@ tree_surfaces_garde_corps.configure(yscrollcommand=scroll_surfaces_garde_corps.s
 tree_surfaces_garde_corps.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
 # Copier nom summary GC
 tree_surfaces_garde_corps.bind("<Button-1>", copy_gc_summary)
+tree_surfaces_garde_corps.bind("<<TreeviewSelect>>", afficher_infos_garde_corps_resume)
 # Filtrer tableau principal GC
 def filter_main_by_type_gc(event=None):
     sel = tree_surfaces_garde_corps.selection()
@@ -2995,6 +3086,16 @@ tree_surfaces_garde_corps.bind("<Button-3>", lambda e: (
     context_menu_gc.post(e.x_root, e.y_root)
 ))
 scroll_surfaces_garde_corps.pack(side="right", fill="y", pady=5)
+
+title_frame_types_garde_corps_bottom = tk.Frame(frame_resume_garde_corps, bg="#004D40")
+title_frame_types_garde_corps_bottom.pack(fill="x", padx=5, pady=(15, 0))
+tk.Label(title_frame_types_garde_corps_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+info_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#E8F5E9", bd=2, relief="groove")
+info_frame_garde_corps.pack(fill="x", padx=5, pady=5)
+grid_infos_garde_corps = tk.Frame(info_frame_garde_corps, bg="#E8F5E9")
+grid_infos_garde_corps.pack(pady=5, fill="x")
+grid_infos_garde_corps.grid_columnconfigure(1, weight=1)
+grid_infos_garde_corps.grid_columnconfigure(0, weight=1)
 
 
 # Titre Informations Complémentaires
