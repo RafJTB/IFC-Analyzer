@@ -1424,9 +1424,6 @@ def afficher_donnees_garde_corps(garde_corps=None):
     row = 0
     tk.Label(grid_resume_garde_corps, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
-    tk.Label(grid_resume_garde_corps, text="📐 Surface (m²) :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_garde_corps, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
     maj_largeur_par_type_garde_corps(garde_corps)
 
@@ -2883,8 +2880,9 @@ tree_surfaces_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol_resume
 title_frame_types_type_sol_bottom = tk.Frame(frame_resume_type_sol, bg="#004D40")
 title_frame_types_type_sol_bottom.pack(fill="x", padx=5, pady=(15, 0))
 tk.Label(title_frame_types_type_sol_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-info_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove")
+info_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove", height=150)
 info_frame_type_sol.pack(fill="x", padx=5, pady=5)
+info_frame_type_sol.pack_propagate(False)
 grid_infos_type_sol = tk.Frame(info_frame_type_sol, bg="#E8F5E9")
 grid_infos_type_sol.pack(pady=5, fill="x")
 grid_infos_type_sol.grid_columnconfigure(1, weight=1)
@@ -2913,12 +2911,13 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
         info = {}
     storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
     mapping = [
-        ("Cotes / Élévation haut", "Cotes / Élévation haut"),
-        ("Cotes / Élévation base", "Cotes / Élévation base"),
-        ("Cotes / Épaisseur", "Cotes / Épaisseur"),
+        ("Contraintes / Niveau", "Contraintes / Niveau")
     ]
     for row, (key, label) in enumerate(mapping):
         val = info.get(key)
+        if val in (None, "", "None"):
+            if key == "Contraintes / Niveau" and storeys:
+                val = " - ".join(storeys)
         if val in (None, "", "None"):
             val = "N/A"
         elif isinstance(val, (int, float)):
@@ -2932,11 +2931,7 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
                 val = str(val)
         tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
         tk.Label(grid_infos_type_sol, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
-    label = "Niveau" if len(storeys) <= 1 else "Niveaux"
-    niveaux = " - ".join(storeys) if storeys else "N/A"
-    row = len(mapping)
-    tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_type_sol, text=niveaux, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    # Affichage du niveau de base collecté
 
 
 def hide_infos_garde_corps():
@@ -3007,12 +3002,18 @@ title_frame_resume_garde_corps.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_garde_corps, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 # Cadre général
-general_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#E8F5E9", bd=2, relief="groove")
+general_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#E8F5E9", bd=2, relief="groove", height=150)
 general_frame_garde_corps.pack(fill="x", padx=5, pady=5)
+general_frame_garde_corps.pack_propagate(False)
 
 grid_resume_garde_corps = tk.Frame(general_frame_garde_corps, bg="#E8F5E9")
-grid_resume_garde_corps.pack(pady=5)
+grid_resume_garde_corps.pack(expand=True, pady=5)
 grid_resume_garde_corps.grid_columnconfigure(1, weight=1)
+
+# Titre Filtrage par noms pour le résumé garde-corps
+title_frame_filtrage_gc = tk.Frame(frame_resume_garde_corps, bg="#004D40")
+title_frame_filtrage_gc.pack(fill="x", padx=5, pady=(15, 0))
+tk.Label(title_frame_filtrage_gc, text="FILTRAGE PAR NOMS", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 # Tableau Résumé : noms et quantités
 types_frame_gc = tk.Frame(frame_resume_garde_corps, bg="white", bd=1, relief="solid")
@@ -3046,12 +3047,12 @@ def copy_gc_summary(event=None):
 
 tree_surfaces_garde_corps = ttk.Treeview(
     data_frame_types_garde_corps,
-    style="Summary.Treeview",
+    style="Green.Treeview",
     columns=("Type", "m"),
     show="headings",
-    height=8
+    height=10
 )
-tree_surfaces_garde_corps.configure(style="Summary.Treeview")
+tree_surfaces_garde_corps.configure(style="Green.Treeview")
 tree_surfaces_garde_corps.heading("Type", text="Type")
 tree_surfaces_garde_corps.heading("m",    text="m")
 tree_surfaces_garde_corps.column("Type", anchor="w", width=200)
@@ -3322,18 +3323,18 @@ data_frame_types_poutres.pack(fill="both", padx=5, pady=5)
 
 tree_surfaces_poutres = ttk.Treeview(
     data_frame_types_poutres,
-    style="Summary.Treeview",
+    style="Green.Treeview",
     columns=("Type", "m"),
     show="headings",
-    height=8
+    height=10
 )
-tree_surfaces_poutres.configure(style="Summary.Treeview")
+tree_surfaces_poutres.configure(style="Green.Treeview")
 tree_surfaces_poutres.heading("Type", text="Type")
 tree_surfaces_poutres.heading("m",    text="m")
 tree_surfaces_poutres.column("Type", anchor="w", width=500, stretch=True)
 tree_surfaces_poutres.column("m",    anchor="e", width=80,  stretch=False)
-tree_surfaces_poutres.tag_configure("evenrow", background="white")
-tree_surfaces_poutres.tag_configure("oddrow",  background="white")
+tree_surfaces_poutres.tag_configure("evenrow", background="#E8F5E9")
+tree_surfaces_poutres.tag_configure("oddrow",  background="#E8F5E9")
 
 scroll_surfaces_poutres = ttk.Scrollbar(
     data_frame_types_poutres, orient="vertical",
@@ -3402,8 +3403,6 @@ root.after(0, maj_par_type_poutres)
 grid_types_poutres_container = tk.Frame(types_frame_poutres, bg="white", bd=1, relief="solid")
 # grid_types_poutres_container.pack(fill="x", padx=5, pady=5)
 grid_types_poutres_container.pack_forget()  # hidden to remove blank area
-
-tk.Label(grid_types_poutres_container, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="white", fg="#004D40").pack(anchor="center", pady=5)
 
 canvas_grid_types_poutres = tk.Canvas(grid_types_poutres_container, bg="white", highlightthickness=0, height=150)
 canvas_grid_types_poutres.pack(side="left", fill="x", expand=True, padx=(5, 0), pady=5)
@@ -3686,14 +3685,14 @@ title_frame_surfaces_type_plafond = tk.Frame(frame_resume_type_plafond, bg="#004
 title_frame_surfaces_type_plafond.pack(fill="x", padx=5, pady=(15, 0))
 tk.Label(title_frame_surfaces_type_plafond, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
 
-tree_surfaces_type_plafond = ttk.Treeview(data_frame_surfaces_type_plafond, columns=("Type", "m²"), show="headings", height=10)
-tree_surfaces_type_plafond.configure(style="Summary.Treeview")
+tree_surfaces_type_plafond = ttk.Treeview(data_frame_surfaces_type_plafond, columns=("Type", "m²"), show="headings", height=10, style="Green.Treeview")
+tree_surfaces_type_plafond.configure(style="Green.Treeview")
 tree_surfaces_type_plafond.heading("Type", text="Type")
 tree_surfaces_type_plafond.heading("m²", text="m²")
 tree_surfaces_type_plafond.column("Type", anchor="w", width=200)
 tree_surfaces_type_plafond.column("m²", anchor="e", width=80)
-tree_surfaces_type_plafond.tag_configure("evenrow", background="white")
-tree_surfaces_type_plafond.tag_configure("oddrow",  background="white")
+tree_surfaces_type_plafond.tag_configure("evenrow", background="#E8F5E9")
+tree_surfaces_type_plafond.tag_configure("oddrow",  background="#E8F5E9")
 
 scroll_surfaces_type_plafond = ttk.Scrollbar(data_frame_surfaces_type_plafond, orient="vertical", command=tree_surfaces_type_plafond.yview)
 tree_surfaces_type_plafond.configure(yscrollcommand=scroll_surfaces_type_plafond.set)
