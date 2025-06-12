@@ -3060,10 +3060,10 @@ tk.Label(title_frame_filtrage_garde_corps, text="FILTRAGE PAR NOMS", font=TITLE_
 
 # Tableau Résumé : noms et quantités
 types_frame_gc = tk.Frame(frame_resume_garde_corps, bg="white", bd=1, relief="solid")
-types_frame_gc.pack(fill="x", padx=5, pady=5)
+types_frame_gc.pack(fill="both", padx=5, pady=5, expand=True)
 
 data_frame_types_garde_corps = tk.Frame(types_frame_gc, bg="white")
-data_frame_types_garde_corps.pack(fill="both", padx=5, pady=5)
+data_frame_types_garde_corps.pack(fill="both", expand=True, padx=5, pady=5)
 def appliquer_filtre_resume_gc():
     filtre = entree_filtre_resume_gc.get().strip().lower()
     for iid in tree_surfaces_garde_corps.get_children():
