@@ -2988,17 +2988,12 @@ def _update_infos_garde_corps(nom_sel: str, largeur: float = None, typ: str = No
                 if n == nom_sel:
                     info = data
                     break
-    mapping = [
-        ("Contraintes", info.get("Contraintes")),
-        ("Niveau de base", info.get("Niveau de base")),
-    ]
-    for row, (label, val) in enumerate(mapping):
-        if val in (None, "", "None"):
-            val = "N/A"
-        elif isinstance(val, (int, float)):
-            val = f"{float(val):.2f}"
-        tk.Label(grid_infos_garde_corps, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_infos_garde_corps, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
+    niveau = storey or info.get("Niveau de base")
+    if not niveau:
+        niveau = " - ".join(storeys) if storeys else "N/A"
+    tk.Label(grid_infos_garde_corps, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_garde_corps, text=str(niveau), bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
 
 frame_garde_corps_content = tk.Frame(frame_garde_corps, bg="#FAFAFA")
 frame_garde_corps_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
@@ -3106,18 +3101,14 @@ tree_surfaces_garde_corps.configure(yscrollcommand=scroll_surfaces_garde_corps.s
 tree_surfaces_garde_corps.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
 # Copier nom summary GC
 tree_surfaces_garde_corps.bind("<Button-1>", copy_gc_summary)
-tree_surfaces_garde_corps.bind("<<TreeviewSelect>>", afficher_infos_garde_corps_resume)
-# Filtrer tableau principal GC
+tree_surfaces_garde_corps.bind("<<TreeviewSelect>>", lambda e: (filter_main_by_type_gc(), afficher_infos_garde_corps_resume()))
+# Filtrer tableau principal GC et mettre à jour le résumé
 def filter_main_by_type_gc(event=None):
     sel = tree_surfaces_garde_corps.selection()
     if sel:
         lib = tree_surfaces_garde_corps.item(sel[0])["values"][0]
-        tree_garde_corps.delete(*tree_garde_corps.get_children())
-        for idx, (nom, larg, t, _s) in enumerate(donnees_ifc[ifc_actif]["garde_corps"]):
-            if nom == lib:
-                tag = "evenrow" if idx % 2 == 0 else "oddrow"
-                tree_garde_corps.insert("", "end", values=(nom, larg, t), tags=(tag,))
-tree_surfaces_garde_corps.bind("<Double-1>", filter_main_by_type_gc)
+        filt = [gc for gc in donnees_ifc[ifc_actif]["garde_corps"] if gc[0] == lib]
+        afficher_donnees_garde_corps(filt)
 # Menu contextuel pour copier
 context_menu_gc = tk.Menu(root, tearoff=0)
 context_menu_gc.add_command(label="Copier", command=copy_gc_summary)
