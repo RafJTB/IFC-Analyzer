@@ -316,19 +316,6 @@ tree_surfaces_poutres = None
 # --------------------------------------
 # Fonctions utilitaires
 # --------------------------------------
-INFO_MIN_HEIGHT = 40  # hauteur réduite du bloc "INFORMATIONS COMPLÉMENTAIRES"
-
-def collapse_info_frame(frame):
-    """Réduit la hauteur du *frame* pour n'afficher qu'un bandeau vide."""
-    if frame is not None:
-        frame.configure(height=INFO_MIN_HEIGHT)
-        frame.pack_propagate(False)
-
-def expand_info_frame(frame):
-    """Laisse le *frame* s'adapter à son contenu."""
-    if frame is not None:
-        frame.configure(height="")
-        frame.pack_propagate(True)
 def clean_string(value) :
     if not value or "inconnu" in value.lower() or "non spécifié" in value.lower() :
         return ""
@@ -2279,7 +2266,6 @@ grid_infos_murs = tk.Frame(info_frame_murs, bg="#E8F5E9")
 grid_infos_murs.pack(pady=5, fill="x")
 grid_infos_murs.grid_columnconfigure(1, weight=1)
 grid_infos_murs.grid_columnconfigure(0, weight=1)
-collapse_info_frame(info_frame_murs)
 
 tk.Label(title_frame_types_murs, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
@@ -2349,12 +2335,10 @@ def hide_infos_murs():
     """Masque le bloc d'informations complémentaires."""
     for w in grid_infos_murs.winfo_children():
         w.destroy()
-    collapse_info_frame(info_frame_murs)
 
 def _update_infos_mur(nom_sel: str, storey: str = None):
     """Affiche les informations complémentaires pour le mur donné."""
     hide_infos_murs()
-    expand_info_frame(info_frame_murs)
     infos = donnees_ifc.get(ifc_actif, {}).get("murs_infos", {})
     info = {}
     if storey is not None:
@@ -2638,18 +2622,15 @@ grid_infos_menuiseries = tk.Frame(info_frame_menuiseries, bg="#E8F5E9")
 grid_infos_menuiseries.pack(pady=5, fill="x")
 grid_infos_menuiseries.grid_columnconfigure(1, weight=1)
 grid_infos_menuiseries.grid_columnconfigure(0, weight=1)
-collapse_info_frame(info_frame_menuiseries)
 
 def hide_infos_menuiseries():
     """Masque le bloc d'informations complémentaires."""
     for w in grid_infos_menuiseries.winfo_children():
         w.destroy()
-    collapse_info_frame(info_frame_menuiseries)
 
 def _update_infos_menuiseries(nom_sel: str, storey: str = None):
     """Affiche les informations complémentaires pour la menuiserie donnée."""
     hide_infos_menuiseries()
-    expand_info_frame(info_frame_menuiseries)
     infos = donnees_ifc.get(ifc_actif, {}).get("menuiseries_infos", {})
     info = {}
     if storey is not None:
@@ -2904,20 +2885,6 @@ def afficher_infos_type_sol_resume(event=None):
     _update_infos_type_sol(nom_sel)
     _update_resume_type_sol(nom_sel)
 
-def _update_resume_garde_corps(nom_sel: str):
-    """Met à jour le résumé pour le garde-corps sélectionné."""
-    gc_src = [g for g in _get_filtered_garde_corps() if g[0] == nom_sel]
-    if not gc_src:
-        return
-    longueur_totale = sum(g[1] for g in gc_src)
-    for w in grid_resume_garde_corps.winfo_children():
-        w.destroy()
-    row = 0
-    tk.Label(grid_resume_garde_corps, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
-    tk.Label(grid_resume_garde_corps, text="", bg="#E8F5E9").grid(row=row, column=0, pady=2)
-
 def afficher_infos_garde_corps(event=None):
     sel = tree_garde_corps.selection()
     if not sel:
@@ -2931,7 +2898,6 @@ def afficher_infos_garde_corps(event=None):
         largeur = 0.0
     typ = values[2] if len(values) > 2 else ""
     _update_infos_garde_corps(nom_sel, largeur, typ)
-    _update_resume_garde_corps(nom_sel)
 
 def afficher_infos_garde_corps_resume(event=None):
     sel = tree_surfaces_garde_corps.selection()
@@ -2940,7 +2906,6 @@ def afficher_infos_garde_corps_resume(event=None):
         return
     nom_sel = tree_surfaces_garde_corps.item(sel[0])["values"][0]
     _update_infos_garde_corps(nom_sel)
-    _update_resume_garde_corps(nom_sel)
 
 tree_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol)
 tree_surfaces_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol_resume)
@@ -2955,18 +2920,15 @@ grid_infos_type_sol = tk.Frame(info_frame_type_sol, bg="#E8F5E9")
 grid_infos_type_sol.pack(pady=5, fill="x")
 grid_infos_type_sol.grid_columnconfigure(1, weight=1)
 grid_infos_type_sol.grid_columnconfigure(0, weight=1)
-collapse_info_frame(info_frame_type_sol)
 
 def hide_infos_type_sol():
     """Masque le bloc d'informations complémentaires des sols."""
     for w in grid_infos_type_sol.winfo_children():
         w.destroy()
-    collapse_info_frame(info_frame_type_sol)
 
 def _update_infos_type_sol(nom_sel: str, storey: str = None):
     """Affiche les informations complémentaires pour le revêtement de sol donné."""
     hide_infos_type_sol()
-    expand_info_frame(info_frame_type_sol)
     infos = donnees_ifc.get(ifc_actif, {}).get("sols_infos", {})
     info = {}
     if storey is not None:
@@ -3012,13 +2974,11 @@ def hide_infos_garde_corps():
     """Masque le bloc d'informations complémentaires des garde-corps."""
     for w in grid_infos_garde_corps.winfo_children():
         w.destroy()
-    collapse_info_frame(info_frame_garde_corps)
 
 
 def _update_infos_garde_corps(nom_sel: str, largeur: float = None, typ: str = None, storey: str = None):
     """Affiche les informations complémentaires pour le garde-corps sélectionné."""
     hide_infos_garde_corps()
-    expand_info_frame(info_frame_garde_corps)
     infos = donnees_ifc.get(ifc_actif, {}).get("garde_corps_infos", {})
     info = {}
     if storey is not None:
@@ -3141,8 +3101,7 @@ tree_surfaces_garde_corps.configure(yscrollcommand=scroll_surfaces_garde_corps.s
 tree_surfaces_garde_corps.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
 # Copier nom summary GC
 tree_surfaces_garde_corps.bind("<Button-1>", copy_gc_summary)
-tree_surfaces_garde_corps.bind("<<TreeviewSelect>>", afficher_infos_garde_corps_resume)
-tree_surfaces_garde_corps.bind("<Double-Button-1>", filter_main_by_type_gc)
+tree_surfaces_garde_corps.bind("<<TreeviewSelect>>", lambda e: (filter_main_by_type_gc(), afficher_infos_garde_corps_resume()))
 # Filtrer tableau principal GC et mettre à jour le résumé
 def filter_main_by_type_gc(event=None):
     sel = tree_surfaces_garde_corps.selection()
@@ -3168,7 +3127,6 @@ grid_infos_garde_corps = tk.Frame(info_frame_garde_corps, bg="#E8F5E9")
 grid_infos_garde_corps.pack(pady=5, fill="x")
 grid_infos_garde_corps.grid_columnconfigure(1, weight=1)
 grid_infos_garde_corps.grid_columnconfigure(0, weight=1)
-collapse_info_frame(info_frame_garde_corps)
 
 
 # Titre Informations Complémentaires
