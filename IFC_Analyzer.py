@@ -287,7 +287,6 @@ btn_niveau_murs = None
 btn_niveau_menuiseries = None
 btn_niveau_type_sol = None
 btn_niveau_garde_corps = None
-btn_niveau_poteaux = None
 
 # Filtres actifs pour le tableau MURS
 filtre_texte_murs = ""
@@ -307,10 +306,6 @@ filtre_niveaux_type_sol = []
 filtre_texte_garde_corps = ""
 filtre_zero_garde_corps = False
 filtre_niveaux_garde_corps = []
-# Filtres actifs pour le tableau POTEAUX
-filtre_texte_poteaux = ""
-filtre_zero_poteaux = False
-filtre_niveaux_poteaux = []
 
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
@@ -1143,7 +1138,7 @@ def update_active_tab(frame_dict) :
         afficher_donnees_poutres()
     # Mettre à jour immédiatement les résumés Treeview
     maj_largeur_par_type_garde_corps()
-    maj_quantite_par_type_poteaux()
+    maj_par_type_poteaux()
     maj_par_type_poutres()
 
     # -- maj du résumé           ❌ À virer
@@ -1471,29 +1466,31 @@ def afficher_donnees_poteaux(poteaux=None):
         poteaux = donnees_ifc[ifc_actif]["poteaux"]
     for i in tree_poteaux.get_children():
         tree_poteaux.delete(i)
-    nombre_total = 0
-    volume_total = 0.0
+    total_larg = total_surf = total_vol = 0.0
     for idx, (nom, larg, surf, vol, tp) in enumerate(poteaux):
         tree_poteaux.insert("", "end", values=(nom, larg, surf, vol, tp),
                             tags=("evenrow" if idx%2==0 else "oddrow",))
-        nombre_total += 1
-    label_largeur_totale_poteaux.config(text=str(nombre_total))
-    label_surface_totale_poteaux.config(text=_format_summary_value(volume_total, " m³"))
-    label_volume_totale_poteaux.config(text="0")
-    maj_quantite_par_type_poteaux(poteaux)
+        total_larg += larg
+        total_surf += surf
+        total_vol += vol
+    label_largeur_totale_poteaux.config(text=f"{round(total_larg,2)} m")
+    label_surface_totale_poteaux.config(text=f"{round(total_surf,2)} m²")
+    label_volume_totale_poteaux.config(text=f"{round(total_vol,2)} m³")
+    maj_par_type_poteaux(poteaux)
 
 def appliquer_filtre_poteaux():
-    global filtre_texte_poteaux
-    filtre_texte_poteaux = entree_filtre_poteaux.get().lower()
-    _apply_filters_poteaux()
+    # on récupère le texte du champ
+    txt = entree_filtre_poteaux.get().lower()
+    # on filtre la liste de tuples (nom, largeur, type)
+    filtres = [p for p in donnees_ifc[ifc_actif]["poteaux"] if txt in p[0].lower()]
+    # on ré-affiche l’arborescence et le résumé
+    afficher_donnees_poteaux(filtres)
+    maj_par_type_poteaux(filtres)
 
 def reinitialiser_filtre_poteaux():
-    global filtre_texte_poteaux, filtre_zero_poteaux, filtre_niveaux_poteaux
     entree_filtre_poteaux.delete(0, tk.END)
-    filtre_texte_poteaux = ""
-    filtre_zero_poteaux = False
-    filtre_niveaux_poteaux = []
-    _apply_filters_poteaux()
+    afficher_donnees_poteaux()
+    maj_par_type_poteaux()
 
 
 def afficher_donnees_poutres(poutres=None):
@@ -1648,21 +1645,6 @@ def _get_filtered_type_sol():
 def _apply_filters_type_sol():
     afficher_donnees_type_sol(_get_filtered_type_sol())
 
-# ----- Filtres pour POTEAUX -----
-def _get_filtered_poteaux():
-    poteaux = donnees_ifc.get(ifc_actif, {}).get("poteaux", [])
-    if filtre_zero_poteaux:
-        poteaux = [p for p in poteaux if p[1] == 0]
-    if filtre_niveaux_poteaux and len(poteaux) > 0 and len(poteaux[0]) > 5:
-        poteaux = [p for p in poteaux if p[5] in filtre_niveaux_poteaux]
-    if filtre_texte_poteaux:
-        lower = filtre_texte_poteaux
-        poteaux = [p for p in poteaux if lower in p[0].lower()]
-    return poteaux
-
-def _apply_filters_poteaux():
-    afficher_donnees_poteaux(_get_filtered_poteaux())
-
 # ----- Filtres pour GARDE CORPS -----
 def _get_filtered_garde_corps():
     gc = donnees_ifc.get(ifc_actif, {}).get("garde_corps", [])
@@ -1765,24 +1747,6 @@ def open_filtre_niveau_type_sol():
     menu.tk_popup(x, y)
     menu.grab_release()
 
-def appliquer_filtre_niveau_poteaux(niveaux):
-    """Filtrer les poteaux selon une liste de niveaux."""
-    global filtre_niveaux_poteaux
-    filtre_niveaux_poteaux = niveaux or []
-    _apply_filters_poteaux()
-
-def open_filtre_niveau_poteaux():
-    niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
-    if not niveaux or btn_niveau_poteaux is None:
-        return
-    menu = tk.Menu(root, tearoff=0)
-    for n in niveaux:
-        menu.add_command(label=n, command=lambda level=n: (appliquer_filtre_niveau_poteaux([level]), menu.unpost()))
-    x = btn_niveau_poteaux.winfo_rootx()
-    y = btn_niveau_poteaux.winfo_rooty() + btn_niveau_poteaux.winfo_height()
-    menu.tk_popup(x, y)
-    menu.grab_release()
-
 def appliquer_filtre_niveau_garde_corps(niveaux):
     """Filtrer les garde-corps selon une liste de niveaux."""
     global filtre_niveaux_garde_corps
@@ -1816,9 +1780,8 @@ def appliquer_filtre_zero_garde_corps():
 
 def appliquer_filtre_zero_poteaux():
     """Filtrer pour n’afficher que les poteaux dont la largeur est 0."""
-    global filtre_zero_poteaux
-    filtre_zero_poteaux = True
-    _apply_filters_poteaux()
+    poteaux_zero = [p for p in donnees_ifc[ifc_actif]["poteaux"] if p[1] == 0]
+    afficher_donnees_poteaux(poteaux_zero)
 
 def reinitialiser_filtre_type_sol():
     global filtre_texte_type_sol, filtre_zero_type_sol, filtre_niveaux_type_sol
@@ -3139,7 +3102,7 @@ def copy_gc_summary(event=None):
 tree_surfaces_garde_corps = ttk.Treeview(
     data_frame_types_garde_corps,
     style="Green.Treeview",
-    columns=("Type", "Nb"),
+    columns=("Type", "m"),
     show="headings"
 )
 tree_surfaces_garde_corps.configure(style="Green.Treeview")
@@ -3202,8 +3165,6 @@ btn_reset_poteaux = ttk.Button(frame_filtre_poteaux,
 btn_reset_poteaux.pack(side="left", padx=5)
 btn_reset_poteaux.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_poteaux, text="Qt = 0", command=appliquer_filtre_zero_poteaux).pack(side="left", padx=5)
-btn_niveau_poteaux = ttk.Button(frame_filtre_poteaux, text="Niveau", command=open_filtre_niveau_poteaux)
-btn_niveau_poteaux.pack(side="left", padx=5)
 
 
 tree_poteaux = ttk.Treeview(
@@ -3214,7 +3175,7 @@ tree_poteaux = ttk.Treeview(
 for col in ("Nom", "Largeur (m)", "Surface (m²)", "Volume (m³)", "Type") :
     tree_poteaux.heading(col, text=col)
     tree_poteaux.column(col, anchor="center", width=120)
-tree_poteaux.tag_configure("evenrow", background="#E8F5E9")
+tree_poteaux.tag_configure("evenrow", background="#F5F5F5")
 tree_poteaux.tag_configure("oddrow",  background="#FFFFFF")
 scroll_poteaux = ttk.Scrollbar(frame_poteaux_content, orient="vertical", command=tree_poteaux.yview)
 tree_poteaux.configure(yscrollcommand=scroll_poteaux.set)
@@ -3227,20 +3188,20 @@ frame_resume_poteaux.pack_propagate(False)
 title_frame_resume_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 title_frame_resume_poteaux.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_poteaux, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), bg="#004D40", fg="white").pack(pady=5)
-general_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
+general_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="white", bd=1, relief="solid")
 general_frame_poteaux.pack(fill="x", padx=5, pady=5)
-grid_resume_poteaux = tk.Frame(general_frame_poteaux, bg="#E8F5E9")
+grid_resume_poteaux = tk.Frame(general_frame_poteaux, bg="white")
 grid_resume_poteaux.pack(pady=5)
-grid_resume_poteaux.grid_columnconfigure(1, weight=1)
 # — Résumé POTEAUX —
-tk.Label(grid_resume_poteaux, text="🔢 Nombre :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_largeur_totale_poteaux = tk.Label(grid_resume_poteaux, text="0", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="📏 Longueur totale :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_largeur_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m", bg="white", font=("Helvetica", 10, "bold"))
 label_largeur_totale_poteaux.grid(row=0, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poteaux, text="📐 Volume (m³) :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
-label_surface_totale_poteaux = tk.Label(grid_resume_poteaux, text="N/A", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="🏗️ Surface de coffrage :", bg="white", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
+label_surface_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m²", bg="white", font=("Helvetica", 10, "bold"))
 label_surface_totale_poteaux.grid(row=1, column=1, sticky="e", padx=10)
-label_volume_totale_poteaux = tk.Label(grid_resume_poteaux, text="", bg="#E8F5E9")
-label_volume_totale_poteaux.grid(row=2, column=0)
+tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="white", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
+label_volume_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m³", bg="white", font=("Helvetica", 10, "bold"))
+label_volume_totale_poteaux.grid(row=2, column=1, sticky="e", padx=10)
 types_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="white", bd=1, relief="solid")
 types_frame_poteaux.pack(fill="x", padx=5, pady=5)
 
@@ -3257,11 +3218,11 @@ tree_surfaces_poteaux = ttk.Treeview(
 )
 tree_surfaces_poteaux.configure(style="Summary.Treeview")
 tree_surfaces_poteaux.heading("Type", text="Type")
-tree_surfaces_poteaux.heading("Nb",    text="Nb")
+tree_surfaces_poteaux.heading("m",    text="m")
 tree_surfaces_poteaux.column("Type", anchor="w", width=500, stretch=True)
-tree_surfaces_poteaux.column("Nb",    anchor="e", width=80,  stretch=False)
-tree_surfaces_poteaux.tag_configure("evenrow", background="#E8F5E9")
-tree_surfaces_poteaux.tag_configure("oddrow",  background="#E8F5E9")
+tree_surfaces_poteaux.column("m",    anchor="e", width=80,  stretch=False)
+tree_surfaces_poteaux.tag_configure("evenrow", background="white")
+tree_surfaces_poteaux.tag_configure("oddrow",  background="white")
 
 scroll_surfaces_poteaux = ttk.Scrollbar(
     data_frame_types_poteaux, orient="vertical",
@@ -3298,14 +3259,12 @@ context_menu_surfaces_poteaux.add_command(label='Copier', command=copy_type_summ
 tree_surfaces_poteaux.bind('<Double-1>', filter_main_by_type_poteaux)
 tree_surfaces_poteaux.bind('<Button-1>', copy_type_summary_poteaux)
 tree_surfaces_poteaux.bind('<Button-3>', lambda e: (tree_surfaces_poteaux.selection_set(tree_surfaces_poteaux.identify_row(e.y)), context_menu_surfaces_poteaux.post(e.x_root, e.y_root)))
-tree_poteaux.bind("<<TreeviewSelect>>", afficher_infos_poteaux)
-tree_surfaces_poteaux.bind("<<TreeviewSelect>>", afficher_infos_poteaux_resume)
 
 
 # Masque l’ancien canvas+grid pour éviter le doublon visuel
 # Cache l'ancien container une fois créé
 
-def maj_quantite_par_type_poteaux(poteaux=None):
+def maj_par_type_poteaux(poteaux=None):
     if not ifc_actif or ifc_actif not in donnees_ifc:
         return
     global tree_surfaces_poteaux
@@ -3314,14 +3273,14 @@ def maj_quantite_par_type_poteaux(poteaux=None):
         return
     tree_surfaces_poteaux.delete(*tree_surfaces_poteaux.get_children())
     agg = {}
-    for nom, *_ in poteaux:
-        agg[nom] = agg.get(nom, 0) + 1
-    for idx, (nom, nb) in enumerate(sorted(agg.items())):
+    for nom, larg, *_ in poteaux:
+        agg[nom] = agg.get(nom, 0) + larg
+    for idx, (nom, larg) in enumerate(sorted(agg.items())):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
-        tree_surfaces_poteaux.insert("", "end", values=(nom, nb), tags=(tag,))
+        tree_surfaces_poteaux.insert("", "end", values=(nom, round(larg, 2)), tags=(tag,))
 
 
-root.after(0, maj_quantite_par_type_poteaux)
+root.after(0, maj_par_type_poteaux)
 
 grid_types_poteaux_container = tk.Frame(types_frame_poteaux, bg="white", bd=1, relief="solid")
 grid_types_poteaux_container.pack(fill="x", padx=5, pady=5)
@@ -3331,13 +3290,6 @@ grid_types_poteaux_container.pack_forget()
 info_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 info_frame_poteaux.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(info_frame_poteaux, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-
-detail_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
-detail_frame_poteaux.pack(fill="x", padx=5, pady=5)
-grid_infos_poteaux = tk.Frame(detail_frame_poteaux, bg="#E8F5E9")
-grid_infos_poteaux.pack(pady=5, fill="x")
-grid_infos_poteaux.grid_columnconfigure(1, weight=1)
-grid_infos_poteaux.grid_columnconfigure(0, weight=1)
 
 
 canvas_grid_types_poteaux = tk.Canvas(grid_types_poteaux_container, bg="white", highlightthickness=0, height=150)
@@ -3355,58 +3307,6 @@ def on_configure_grid_types_poteaux(event):
     canvas_grid_types_poteaux.configure(scrollregion=canvas_grid_types_poteaux.bbox("all"))
 
 grid_types_poteaux.bind("<Configure>", on_configure_grid_types_poteaux)
-
-def hide_infos_poteaux():
-    for w in grid_infos_poteaux.winfo_children():
-        w.destroy()
-
-def _update_infos_poteaux(nom_sel: str):
-    hide_infos_poteaux()
-    poteaux = [p for p in donnees_ifc.get(ifc_actif, {}).get("poteaux", []) if p[0] == nom_sel]
-    if not poteaux:
-        return
-    section = poteaux[0][1]
-    typ = poteaux[0][4]
-    niveau = poteaux[0][5] if len(poteaux[0]) > 5 else "N/A"
-    mapping = [
-        ("Section", section),
-        ("Type IFC", typ),
-        ("Niveau", niveau),
-    ]
-    for row, (label, val) in enumerate(mapping):
-        if val in (None, "", "None"):
-            val = "N/A"
-        tk.Label(grid_infos_poteaux, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_infos_poteaux, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
-
-def _update_resume_poteaux(nom_sel: str):
-    poteaux_src = [p for p in _get_filtered_poteaux() if p[0] == nom_sel]
-    nombre_total = len(poteaux_src)
-    volume_total = 0.0
-    for w in grid_resume_poteaux.winfo_children():
-        w.destroy()
-    tk.Label(grid_resume_poteaux, text="🔢 Nombre :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_poteaux, text=str(nombre_total), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=0, column=1, sticky="e", padx=10)
-    tk.Label(grid_resume_poteaux, text="📐 Volume (m³) :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_poteaux, text=_format_summary_value(volume_total, " m³"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=1, column=1, sticky="e", padx=10)
-
-def afficher_infos_poteaux(event=None):
-    sel = tree_poteaux.selection()
-    if not sel:
-        hide_infos_poteaux()
-        return
-    nom_sel = tree_poteaux.item(sel[0])["values"][0]
-    _update_infos_poteaux(nom_sel)
-    _update_resume_poteaux(nom_sel)
-
-def afficher_infos_poteaux_resume(event=None):
-    sel = tree_surfaces_poteaux.selection()
-    if not sel:
-        hide_infos_poteaux()
-        return
-    nom_sel = tree_surfaces_poteaux.item(sel[0])["values"][0]
-    _update_infos_poteaux(nom_sel)
-    _update_resume_poteaux(nom_sel)
 
 
 
