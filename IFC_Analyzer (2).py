@@ -2905,7 +2905,12 @@ def afficher_infos_garde_corps_resume(event=None):
         hide_infos_garde_corps()
         return
     nom_sel = tree_surfaces_garde_corps.item(sel[0])["values"][0]
+    _update_resume_garde_corps(nom_sel)
     _update_infos_garde_corps(nom_sel)
+
+def on_select_gc_type(event=None):
+    """Gestion du clic simple sur un type de garde-corps."""
+    afficher_infos_garde_corps_resume(event)
 
 tree_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol)
 tree_surfaces_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol_resume)
@@ -2994,6 +2999,20 @@ def _update_infos_garde_corps(nom_sel: str, largeur: float = None, typ: str = No
         niveau = " - ".join(storeys) if storeys else "N/A"
     tk.Label(grid_infos_garde_corps, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
     tk.Label(grid_infos_garde_corps, text=str(niveau), bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+
+def _update_resume_garde_corps(nom_sel: str):
+    """Met à jour le résumé pour le garde-corps sélectionné."""
+    gc_src = [g for g in _get_filtered_garde_corps() if g[0] == nom_sel]
+    if not gc_src:
+        return
+    longueur_totale = sum(g[1] for g in gc_src)
+    for w in grid_resume_garde_corps.winfo_children():
+        w.destroy()
+    row = 0
+    tk.Label(grid_resume_garde_corps, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_garde_corps, text="", bg="#E8F5E9").grid(row=row, column=0, pady=2)
 
 frame_garde_corps_content = tk.Frame(frame_garde_corps, bg="#FAFAFA")
 frame_garde_corps_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
@@ -3101,7 +3120,8 @@ tree_surfaces_garde_corps.configure(yscrollcommand=scroll_surfaces_garde_corps.s
 tree_surfaces_garde_corps.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
 # Copier nom summary GC
 tree_surfaces_garde_corps.bind("<Button-1>", copy_gc_summary)
-tree_surfaces_garde_corps.bind("<<TreeviewSelect>>", lambda e: (filter_main_by_type_gc(), afficher_infos_garde_corps_resume()))
+tree_surfaces_garde_corps.bind("<<TreeviewSelect>>", on_select_gc_type)
+tree_surfaces_garde_corps.bind("<Double-Button-1>", filter_main_by_type_gc)
 # Filtrer tableau principal GC et mettre à jour le résumé
 def filter_main_by_type_gc(event=None):
     sel = tree_surfaces_garde_corps.selection()
