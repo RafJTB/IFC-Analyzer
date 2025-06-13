@@ -119,7 +119,7 @@ def _calc_surface_nette_sols(sols_list):
     surface_obstacles = 0.0
 
     # Empreinte approximative des poteaux : largeur²
-    for _nom, largeur, _surf, _vol, _tp in data.get("poteaux", []):
+    for _nom, largeur, _surf, _vol, _tp, _storey in data.get("poteaux", []):
         try:
             larg = float(largeur)
         except (TypeError, ValueError):
@@ -970,7 +970,13 @@ def importer_ifc():
                 largeur = round(q.get("Width", q.get("Length", 0.0)), 2)
                 surface = round(q.get('GrossSideArea', 0.0), 2)
                 volume  = round(q.get('GrossVolume', 0.0), 2)
-                donnees_ifc[chemin]["poteaux"].append((nom, largeur, surface, volume, col.is_a()))
+                storey  = ""
+                for rel in getattr(col, "ContainedInStructure", []):
+                    container = rel.RelatingStructure
+                    if container and container.is_a("IfcBuildingStorey"):
+                        storey = container.Name or ""
+                        break
+                donnees_ifc[chemin]["poteaux"].append((nom, largeur, surface, volume, col.is_a(), storey))
                 processed_elements += 1
                 update_progress(processed_elements, total_elements)
             print(f"[DEBUG] Poteaux trouvés : {len(donnees_ifc[chemin]['poteaux'])}")
@@ -1140,6 +1146,7 @@ def update_active_tab(frame_dict) :
     maj_largeur_par_type_garde_corps()
     maj_par_type_poteaux()
     maj_par_type_poutres()
+    maj_surface_coffrage_totale()
 
     # -- maj du résumé           ❌ À virer
     # label_largeur_totale_garde_corps.config(text=f"{round(largeur_totale, 2)} m")
@@ -1476,7 +1483,7 @@ def afficher_donnees_poteaux(poteaux=None):
     longueurs_par_nom = {}
 
     # -- remplissage
-    for idx, (nom, larg, surf, vol, tp) in enumerate(poteaux):
+    for idx, (nom, larg, surf, vol, tp, _storey) in enumerate(poteaux):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_poteaux.insert(
             "",
@@ -1543,7 +1550,8 @@ def afficher_donnees_poteaux(poteaux=None):
             values=(nom, round(larg, 2)),
             tags=(tag,),
         )
-
+    maj_par_type_poteaux(poteaux)
+    maj_surface_coffrage_totale()
 def hide_infos_poteaux():
     """Masque le bloc d'informations complémentaires des poteaux."""
     for w in grid_infos_poteaux.winfo_children():
@@ -1551,10 +1559,13 @@ def hide_infos_poteaux():
 
 
 def _update_infos_poteaux(nom_sel: str):
-    """Affiche des informations complémentaires basiques pour le poteau sélectionné."""
+    """Affiche uniquement le ou les niveaux du poteau sélectionné."""
     hide_infos_poteaux()
-    tk.Label(grid_infos_poteaux, text="Type :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_poteaux, text=nom_sel, bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+    poteaux = donnees_ifc.get(ifc_actif, {}).get("poteaux", [])
+    niveaux = sorted({p[5] for p in poteaux if p[0] == nom_sel and p[5]})
+    niveau_txt = " - ".join(niveaux) if niveaux else "N/A"
+    tk.Label(grid_infos_poteaux, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_poteaux, text=niveau_txt, bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
 
 
 def _update_resume_poteaux(nom_sel: str):
@@ -1562,7 +1573,7 @@ def _update_resume_poteaux(nom_sel: str):
     if not poteaux_src:
         return
     total_larg = total_surf = total_vol = 0.0
-    for _n, larg, surf, vol, _ in poteaux_src:
+    for _n, larg, surf, vol, _tp, _storey in poteaux_src:
         total_larg += larg
         total_surf += surf
         total_vol += vol
@@ -1613,6 +1624,7 @@ def afficher_donnees_poutres(poutres=None):
     label_surface_totale_poutres.config(text=f"{round(total_surf,2)} m²")
     label_volume_totale_poutres.config(text=f"{round(total_vol,2)} m³")
     maj_par_type_poutres(poutres)
+    maj_surface_coffrage_totale()
 
 def maj_par_type_poutres(poutres=None):
     if not ifc_actif or ifc_actif not in donnees_ifc:
@@ -2147,6 +2159,8 @@ center_container.place(relx=0.5, rely=0.5, anchor="center")
 label_titre_accueil = tk.Label(center_container, text="Logiciel à but non lucratif", font=("Helvetica", 16, "bold"), bg="#FAFAFA", fg="#263238")
 label_titre_accueil.pack(pady=10)
 tk.Label(center_container, text="IFC Analyser révolutionne le métier d'économiste en automatisant l'extraction et l'analyse des données IFC.", font=("Helvetica", 12, "italic"), bg="#FAFAFA", fg="#263238", wraplength=500, justify="center").pack(pady=10)
+label_surface_coffrage_totale = tk.Label(center_container, text="Surface de coffrage totale : 0.00 m²", font=("Helvetica", 12), bg="#FAFAFA", fg="#263238")
+label_surface_coffrage_totale.pack(pady=10)
 print("Cadre d'accueil configuré")
 
 frame_murs_content = tk.Frame(frame_murs, bg="#FAFAFA")
@@ -3323,18 +3337,17 @@ tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="#E8F5E9", font=("H
 label_volume_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m³", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_volume_totale_poteaux.grid(row=2, column=1, sticky="e", padx=10)
 types_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
-types_frame_poteaux.pack(fill="x", padx=5, pady=5)
+types_frame_poteaux.pack(fill="both", padx=5, pady=5, expand=True)
 
 # ---- Treeview résumé POTEAUX ---------------------------------
 data_frame_types_poteaux = tk.Frame(types_frame_poteaux, bg="#E8F5E9")
-data_frame_types_poteaux.pack(fill="both", padx=5, pady=5)
+data_frame_types_poteaux.pack(fill="both", expand=True, padx=5, pady=5)
 
 tree_surfaces_poteaux = ttk.Treeview(
     data_frame_types_poteaux,
     style="Green.Treeview",
     columns=("Type", "m"),
-    show="headings",
-    height=8
+    show="headings"
 )
 tree_surfaces_poteaux.configure(style="Green.Treeview")
 tree_surfaces_poteaux.heading("Type", text="Type")
@@ -3400,6 +3413,14 @@ def maj_par_type_poteaux(poteaux=None):
     for idx, (nom, larg) in enumerate(sorted(agg.items())):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_surfaces_poteaux.insert("", "end", values=(nom, round(larg, 2)), tags=(tag,))
+
+def maj_surface_coffrage_totale():
+    """Calcule la surface de coffrage totale Poteaux + Poutres."""
+    data = donnees_ifc.get(ifc_actif, {})
+    surf_poteaux = sum(p[2] for p in data.get("poteaux", []))
+    surf_poutres = sum(p[2] for p in data.get("poutres", []))
+    total = surf_poteaux + surf_poutres
+    label_surface_coffrage_totale.config(text=f"Surface de coffrage totale : {round(total,2)} m²")
 
 
 root.after(0, maj_par_type_poteaux)
