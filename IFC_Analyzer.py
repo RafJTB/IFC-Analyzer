@@ -1462,21 +1462,122 @@ def afficher_donnees_garde_corps(garde_corps=None):
     maj_largeur_par_type_garde_corps(garde_corps)
 
 def afficher_donnees_poteaux(poteaux=None):
+    """Affiche les données des poteaux dans le tableau principal et met à jour
+    le résumé et le tableau des longueurs par type."""
+
     if poteaux is None:
         poteaux = donnees_ifc[ifc_actif]["poteaux"]
+
+    # -- reset tableau principal
     for i in tree_poteaux.get_children():
         tree_poteaux.delete(i)
+
     total_larg = total_surf = total_vol = 0.0
+    longueurs_par_nom = {}
+
+    # -- remplissage
     for idx, (nom, larg, surf, vol, tp) in enumerate(poteaux):
-        tree_poteaux.insert("", "end", values=(nom, larg, surf, vol, tp),
-                            tags=("evenrow" if idx%2==0 else "oddrow",))
+        tag = "evenrow" if idx % 2 == 0 else "oddrow"
+        tree_poteaux.insert(
+            "",
+            "end",
+            values=(nom, larg, surf, vol, tp),
+            tags=(tag,),
+        )
         total_larg += larg
         total_surf += surf
         total_vol += vol
-    label_largeur_totale_poteaux.config(text=f"{round(total_larg,2)} m")
-    label_surface_totale_poteaux.config(text=f"{round(total_surf,2)} m²")
-    label_volume_totale_poteaux.config(text=f"{round(total_vol,2)} m³")
-    maj_par_type_poteaux(poteaux)
+        longueurs_par_nom[nom] = longueurs_par_nom.get(nom, 0) + larg
+
+    # --- mise à jour du résumé -------------------------------------------------
+    for w in grid_resume_poteaux.winfo_children():
+        w.destroy()
+
+    row = 0
+    tk.Label(
+        grid_resume_poteaux,
+        text="📏 Largeur totale :",
+        bg="#E8F5E9",
+        font=("Helvetica", 10),
+    ).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(
+        grid_resume_poteaux,
+        text=_format_summary_value(total_larg, " m"),
+        bg="#E8F5E9",
+        font=("Helvetica", 10, "bold"),
+    ).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(
+        grid_resume_poteaux,
+        text="🏗️ Surface de coffrage :",
+        bg="#E8F5E9",
+        font=("Helvetica", 10),
+    ).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(
+        grid_resume_poteaux,
+        text=_format_summary_value(total_surf, " m²"),
+        bg="#E8F5E9",
+        font=("Helvetica", 10, "bold"),
+    ).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(
+        grid_resume_poteaux,
+        text="📦 Volume total :",
+        bg="#E8F5E9",
+        font=("Helvetica", 10),
+    ).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(
+        grid_resume_poteaux,
+        text=_format_summary_value(total_vol, " m³"),
+        bg="#E8F5E9",
+        font=("Helvetica", 10, "bold"),
+    ).grid(row=row, column=1, sticky="e", padx=10)
+
+    # --- mise à jour du tableau résumé par type -------------------------------
+    tree_surfaces_poteaux.delete(*tree_surfaces_poteaux.get_children())
+    for idx, (nom, larg) in enumerate(sorted(longueurs_par_nom.items())):
+        tag = "evenrow" if idx % 2 == 0 else "oddrow"
+        tree_surfaces_poteaux.insert(
+            "",
+            "end",
+            values=(nom, round(larg, 2)),
+            tags=(tag,),
+        )
+
+def hide_infos_poteaux():
+    """Masque le bloc d'informations complémentaires des poteaux."""
+    for w in grid_infos_poteaux.winfo_children():
+        w.destroy()
+
+
+def _update_infos_poteaux(nom_sel: str):
+    """Affiche des informations complémentaires basiques pour le poteau sélectionné."""
+    hide_infos_poteaux()
+    tk.Label(grid_infos_poteaux, text="Type :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_poteaux, text=nom_sel, bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+
+
+def _update_resume_poteaux(nom_sel: str):
+    poteaux_src = [p for p in donnees_ifc.get(ifc_actif, {}).get("poteaux", []) if p[0] == nom_sel]
+    if not poteaux_src:
+        return
+    total_larg = total_surf = total_vol = 0.0
+    for _n, larg, surf, vol, _ in poteaux_src:
+        total_larg += larg
+        total_surf += surf
+        total_vol += vol
+    for w in grid_resume_poteaux.winfo_children():
+        w.destroy()
+    row = 0
+    tk.Label(grid_resume_poteaux, text="📏 Largeur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_poteaux, text=_format_summary_value(total_larg, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_poteaux, text="🏗️ Surface de coffrage :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_poteaux, text=_format_summary_value(total_surf, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_poteaux, text=_format_summary_value(total_vol, " m³"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+
 
 def appliquer_filtre_poteaux():
     # on récupère le texte du champ
@@ -2915,6 +3016,25 @@ def on_select_gc_type(event=None):
 tree_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol)
 tree_surfaces_type_sol.bind("<<TreeviewSelect>>", afficher_infos_type_sol_resume)
 
+def afficher_infos_poteaux(event=None):
+    sel = tree_poteaux.selection()
+    if not sel:
+        hide_infos_poteaux()
+        return
+    nom_sel = tree_poteaux.item(sel[0])["values"][0]
+    _update_infos_poteaux(nom_sel)
+    _update_resume_poteaux(nom_sel)
+
+
+def afficher_infos_poteaux_resume(event=None):
+    sel = tree_surfaces_poteaux.selection()
+    if not sel:
+        hide_infos_poteaux()
+        return
+    nom_sel = tree_surfaces_poteaux.item(sel[0])["values"][0]
+    _update_infos_poteaux(nom_sel)
+    _update_resume_poteaux(nom_sel)
+
 # --- Nouveau titre "INFORMATIONS COMPLÉMENTAIRES" sous le tableau TYPE DE SOL
 title_frame_types_type_sol_bottom = tk.Frame(frame_resume_type_sol, bg="#004D40")
 title_frame_types_type_sol_bottom.pack(fill="x", padx=5, pady=(15, 0))
@@ -3188,41 +3308,41 @@ frame_resume_poteaux.pack_propagate(False)
 title_frame_resume_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 title_frame_resume_poteaux.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_poteaux, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), bg="#004D40", fg="white").pack(pady=5)
-general_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="white", bd=1, relief="solid")
+general_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_poteaux.pack(fill="x", padx=5, pady=5)
-grid_resume_poteaux = tk.Frame(general_frame_poteaux, bg="white")
+grid_resume_poteaux = tk.Frame(general_frame_poteaux, bg="#E8F5E9")
 grid_resume_poteaux.pack(pady=5)
 # — Résumé POTEAUX —
-tk.Label(grid_resume_poteaux, text="📏 Longueur totale :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_largeur_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m", bg="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="📏 Largeur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_largeur_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_largeur_totale_poteaux.grid(row=0, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poteaux, text="🏗️ Surface de coffrage :", bg="white", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
-label_surface_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m²", bg="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="🏗️ Surface de coffrage :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
+label_surface_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m²", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_surface_totale_poteaux.grid(row=1, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="white", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
-label_volume_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m³", bg="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
+label_volume_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m³", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_volume_totale_poteaux.grid(row=2, column=1, sticky="e", padx=10)
-types_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="white", bd=1, relief="solid")
+types_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
 types_frame_poteaux.pack(fill="x", padx=5, pady=5)
 
 # ---- Treeview résumé POTEAUX ---------------------------------
-data_frame_types_poteaux = tk.Frame(types_frame_poteaux, bg="white")
+data_frame_types_poteaux = tk.Frame(types_frame_poteaux, bg="#E8F5E9")
 data_frame_types_poteaux.pack(fill="both", padx=5, pady=5)
 
 tree_surfaces_poteaux = ttk.Treeview(
     data_frame_types_poteaux,
-    style="Summary.Treeview",
+    style="Green.Treeview",
     columns=("Type", "m"),
     show="headings",
     height=8
 )
-tree_surfaces_poteaux.configure(style="Summary.Treeview")
+tree_surfaces_poteaux.configure(style="Green.Treeview")
 tree_surfaces_poteaux.heading("Type", text="Type")
 tree_surfaces_poteaux.heading("m",    text="m")
 tree_surfaces_poteaux.column("Type", anchor="w", width=500, stretch=True)
 tree_surfaces_poteaux.column("m",    anchor="e", width=80,  stretch=False)
-tree_surfaces_poteaux.tag_configure("evenrow", background="white")
-tree_surfaces_poteaux.tag_configure("oddrow",  background="white")
+tree_surfaces_poteaux.tag_configure("evenrow", background="#E8F5E9")
+tree_surfaces_poteaux.tag_configure("oddrow",  background="#E8F5E9")
 
 scroll_surfaces_poteaux = ttk.Scrollbar(
     data_frame_types_poteaux, orient="vertical",
@@ -3259,6 +3379,8 @@ context_menu_surfaces_poteaux.add_command(label='Copier', command=copy_type_summ
 tree_surfaces_poteaux.bind('<Double-1>', filter_main_by_type_poteaux)
 tree_surfaces_poteaux.bind('<Button-1>', copy_type_summary_poteaux)
 tree_surfaces_poteaux.bind('<Button-3>', lambda e: (tree_surfaces_poteaux.selection_set(tree_surfaces_poteaux.identify_row(e.y)), context_menu_surfaces_poteaux.post(e.x_root, e.y_root)))
+tree_poteaux.bind("<<TreeviewSelect>>", afficher_infos_poteaux)
+tree_surfaces_poteaux.bind("<<TreeviewSelect>>", afficher_infos_poteaux_resume)
 
 
 # Masque l’ancien canvas+grid pour éviter le doublon visuel
@@ -3282,7 +3404,7 @@ def maj_par_type_poteaux(poteaux=None):
 
 root.after(0, maj_par_type_poteaux)
 
-grid_types_poteaux_container = tk.Frame(types_frame_poteaux, bg="white", bd=1, relief="solid")
+grid_types_poteaux_container = tk.Frame(types_frame_poteaux, bg="#E8F5E9", bd=1, relief="solid")
 grid_types_poteaux_container.pack(fill="x", padx=5, pady=5)
 grid_types_poteaux_container.pack_forget()
 
@@ -3290,9 +3412,15 @@ grid_types_poteaux_container.pack_forget()
 info_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 info_frame_poteaux.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(info_frame_poteaux, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+info_container_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
+info_container_poteaux.pack(fill="x", padx=5, pady=5)
+grid_infos_poteaux = tk.Frame(info_container_poteaux, bg="#E8F5E9")
+grid_infos_poteaux.pack(pady=5, fill="x")
+grid_infos_poteaux.grid_columnconfigure(1, weight=1)
+grid_infos_poteaux.grid_columnconfigure(0, weight=1)
 
 
-canvas_grid_types_poteaux = tk.Canvas(grid_types_poteaux_container, bg="white", highlightthickness=0, height=150)
+canvas_grid_types_poteaux = tk.Canvas(grid_types_poteaux_container, bg="#E8F5E9", highlightthickness=0, height=150)
 canvas_grid_types_poteaux.pack(side="left", fill="x", expand=True, padx=(5, 0), pady=5)
 
 scrollbar_grid_types_poteaux = tk.Scrollbar(grid_types_poteaux_container, orient="vertical", command=canvas_grid_types_poteaux.yview)
@@ -3300,7 +3428,7 @@ scrollbar_grid_types_poteaux.pack(side="right", fill="y", pady=5)
 
 canvas_grid_types_poteaux.configure(yscrollcommand=scrollbar_grid_types_poteaux.set)
 
-grid_types_poteaux = tk.Frame(canvas_grid_types_poteaux, bg="white")
+grid_types_poteaux = tk.Frame(canvas_grid_types_poteaux, bg="#E8F5E9")
 canvas_grid_types_poteaux.create_window((0, 0), window=grid_types_poteaux, anchor="nw")
 
 def on_configure_grid_types_poteaux(event):
