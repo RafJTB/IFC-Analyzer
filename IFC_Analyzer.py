@@ -1500,48 +1500,9 @@ def afficher_donnees_poteaux(poteaux=None):
         longueurs_par_nom[nom] = longueurs_par_nom.get(nom, 0) + larg
 
     # --- mise à jour du résumé -------------------------------------------------
-    for w in grid_resume_poteaux.winfo_children():
-        w.destroy()
-
-    row = 0
-    tk.Label(
-        grid_resume_poteaux,
-        text="📏 Largeur totale :",
-        bg="#E8F5E9",
-        font=("Helvetica", 10),
-    ).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(
-        grid_resume_poteaux,
-        text=_format_summary_value(total_larg, " m"),
-        bg="#E8F5E9",
-        font=("Helvetica", 10, "bold"),
-    ).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
-    tk.Label(
-        grid_resume_poteaux,
-        text="🏗️ Surface de coffrage :",
-        bg="#E8F5E9",
-        font=("Helvetica", 10),
-    ).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(
-        grid_resume_poteaux,
-        text=_format_summary_value(total_surf, " m²"),
-        bg="#E8F5E9",
-        font=("Helvetica", 10, "bold"),
-    ).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
-    tk.Label(
-        grid_resume_poteaux,
-        text="📦 Volume total :",
-        bg="#E8F5E9",
-        font=("Helvetica", 10),
-    ).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(
-        grid_resume_poteaux,
-        text=_format_summary_value(total_vol, " m³"),
-        bg="#E8F5E9",
-        font=("Helvetica", 10, "bold"),
-    ).grid(row=row, column=1, sticky="e", padx=10)
+    label_largeur_totale_poteaux.config(text=f"{round(total_larg,2)} m")
+    label_surface_totale_poteaux.config(text=f"{round(total_surf,2)} m²")
+    label_volume_totale_poteaux.config(text=f"{round(total_vol,2)} m³")
 
     # --- mise à jour du tableau résumé par type -------------------------------
     tree_surfaces_poteaux.delete(*tree_surfaces_poteaux.get_children())
@@ -1580,17 +1541,9 @@ def _update_resume_poteaux(nom_sel: str):
         total_larg += larg
         total_surf += surf
         total_vol += vol
-    for w in grid_resume_poteaux.winfo_children():
-        w.destroy()
-    row = 0
-    tk.Label(grid_resume_poteaux, text="📏 Largeur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_poteaux, text=_format_summary_value(total_larg, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
-    tk.Label(grid_resume_poteaux, text="🏗️ Surface de coffrage :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_poteaux, text=_format_summary_value(total_surf, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
-    tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_poteaux, text=_format_summary_value(total_vol, " m³"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    label_largeur_totale_poteaux.config(text=_format_summary_value(total_larg, " m"))
+    label_surface_totale_poteaux.config(text=_format_summary_value(total_surf, " m²"))
+    label_volume_totale_poteaux.config(text=_format_summary_value(total_vol, " m³"))
 
 
 def appliquer_filtre_poteaux():
@@ -2165,7 +2118,8 @@ label_titre_accueil = tk.Label(center_container, text="Logiciel à but non lucra
 label_titre_accueil.pack(pady=10)
 tk.Label(center_container, text="IFC Analyser révolutionne le métier d'économiste en automatisant l'extraction et l'analyse des données IFC.", font=("Helvetica", 12, "italic"), bg="#FAFAFA", fg="#263238", wraplength=500, justify="center").pack(pady=10)
 label_surface_coffrage_totale = tk.Label(center_container, text="Surface de coffrage totale : 0.00 m²", font=("Helvetica", 12), bg="#FAFAFA", fg="#263238")
-label_surface_coffrage_totale.pack(pady=10)
+# La ligne est volontairement non affichée sur la page d'accueil
+# label_surface_coffrage_totale.pack(pady=10)
 print("Cadre d'accueil configuré")
 
 frame_murs_content = tk.Frame(frame_murs, bg="#FAFAFA")
@@ -3338,6 +3292,10 @@ label_surface_totale_poteaux.grid(row=1, column=1, sticky="e", padx=10)
 tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
 label_volume_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m³", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_volume_totale_poteaux.grid(row=2, column=1, sticky="e", padx=10)
+# Cadre Filtrage par noms pour les poteaux
+title_frame_filtrage_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
+title_frame_filtrage_poteaux.pack(fill="x", padx=5, pady=(15,0))
+tk.Label(title_frame_filtrage_poteaux, text="FILTRAGE PAR NOMS", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 types_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
 types_frame_poteaux.pack(fill="both", padx=5, pady=5, expand=True)
 
