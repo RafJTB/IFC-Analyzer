@@ -287,6 +287,7 @@ btn_niveau_murs = None
 btn_niveau_menuiseries = None
 btn_niveau_type_sol = None
 btn_niveau_garde_corps = None
+btn_niveau_poteaux = None
 
 # Filtres actifs pour le tableau MURS
 filtre_texte_murs = ""
@@ -306,6 +307,8 @@ filtre_niveaux_type_sol = []
 filtre_texte_garde_corps = ""
 filtre_zero_garde_corps = False
 filtre_niveaux_garde_corps = []
+filtre_texte_poteaux = ""
+filtre_niveaux_poteaux = []
 
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
@@ -1591,18 +1594,16 @@ def _update_resume_poteaux(nom_sel: str):
 
 
 def appliquer_filtre_poteaux():
-    # on récupère le texte du champ
-    txt = entree_filtre_poteaux.get().lower()
-    # on filtre la liste de tuples (nom, largeur, type)
-    filtres = [p for p in donnees_ifc[ifc_actif]["poteaux"] if txt in p[0].lower()]
-    # on ré-affiche l’arborescence et le résumé
-    afficher_donnees_poteaux(filtres)
-    maj_par_type_poteaux(filtres)
+    global filtre_texte_poteaux
+    filtre_texte_poteaux = entree_filtre_poteaux.get().lower()
+    _apply_filters_poteaux()
 
 def reinitialiser_filtre_poteaux():
+    global filtre_texte_poteaux, filtre_niveaux_poteaux
     entree_filtre_poteaux.delete(0, tk.END)
-    afficher_donnees_poteaux()
-    maj_par_type_poteaux()
+    filtre_texte_poteaux = ""
+    filtre_niveaux_poteaux = []
+    _apply_filters_poteaux()
 
 
 def afficher_donnees_poutres(poutres=None):
@@ -1774,6 +1775,21 @@ def _get_filtered_garde_corps():
 def _apply_filters_garde_corps():
     afficher_donnees_garde_corps(_get_filtered_garde_corps())
 
+# ----- Filtres pour POTEAUX -----
+def _get_filtered_poteaux():
+    poteaux = donnees_ifc.get(ifc_actif, {}).get("poteaux", [])
+    if filtre_niveaux_poteaux:
+        poteaux = [p for p in poteaux if p[5] in filtre_niveaux_poteaux]
+    if filtre_texte_poteaux:
+        lower = filtre_texte_poteaux
+        poteaux = [p for p in poteaux if lower in p[0].lower()]
+    return poteaux
+
+def _apply_filters_poteaux():
+    filtres = _get_filtered_poteaux()
+    afficher_donnees_poteaux(filtres)
+    maj_par_type_poteaux(filtres)
+
 def appliquer_filtre_menuiseries():
     global filtre_texte_menuiseries
     filtre_texte_menuiseries = entree_filtre_menuiseries.get().lower()
@@ -1806,77 +1822,66 @@ def appliquer_filtre_zero_murs():
     filtre_zero_murs = True
     _apply_filters_murs()
 
-def appliquer_filtre_niveau_murs(niveaux):
-    """Filtrer les murs selon une liste de niveaux."""
-    global filtre_niveaux_murs
-    filtre_niveaux_murs = niveaux or []
-    _apply_filters_murs()
+# --- Outils communs pour le filtrage par niveau ---
+def appliquer_filtre_niveau(var_name: str, apply_func, niveaux):
+    """Met à jour la variable globale *var_name* avec les *niveaux* puis applique le filtre."""
+    globals()[var_name] = niveaux or []
+    apply_func()
 
-def open_filtre_niveau_murs():
+
+def open_filtre_niveau(btn, callback):
+    """Ouvre un menu contextuel de niveaux lié au *btn* et à son *callback*."""
     niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
-    if not niveaux or btn_niveau_murs is None:
+    if not niveaux or btn is None:
         return
     menu = tk.Menu(root, tearoff=0)
     for n in niveaux:
-        menu.add_command(label=n, command=lambda level=n: (appliquer_filtre_niveau_murs([level]), menu.unpost()))
-    x = btn_niveau_murs.winfo_rootx()
-    y = btn_niveau_murs.winfo_rooty() + btn_niveau_murs.winfo_height()
+        menu.add_command(label=n, command=lambda level=n: (callback([level]), menu.unpost()))
+    x = btn.winfo_rootx()
+    y = btn.winfo_rooty() + btn.winfo_height()
     menu.tk_popup(x, y)
     menu.grab_release()
+
+def create_niveau_button(parent, command):
+    """Crée un bouton 'Niveau' standard dans *parent* et retourne sa référence."""
+    btn = ttk.Button(parent, text="Niveau", command=command)
+    btn.pack(side="left", padx=5)
+    return btn
+
+def appliquer_filtre_niveau_murs(niveaux):
+    """Filtrer les murs selon une liste de niveaux."""
+    appliquer_filtre_niveau("filtre_niveaux_murs", _apply_filters_murs, niveaux)
+
+def open_filtre_niveau_murs():
+    open_filtre_niveau(btn_niveau_murs, appliquer_filtre_niveau_murs)
 
 def appliquer_filtre_niveau_menuiseries(niveaux):
     """Filtrer les menuiseries selon une liste de niveaux."""
-    global filtre_niveaux_menuiseries
-    filtre_niveaux_menuiseries = niveaux or []
-    _apply_filters_menuiseries()
+    appliquer_filtre_niveau("filtre_niveaux_menuiseries", _apply_filters_menuiseries, niveaux)
 
 def open_filtre_niveau_menuiseries():
-    niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
-    if not niveaux or btn_niveau_menuiseries is None:
-        return
-    menu = tk.Menu(root, tearoff=0)
-    for n in niveaux:
-        menu.add_command(label=n, command=lambda level=n: (appliquer_filtre_niveau_menuiseries([level]), menu.unpost()))
-    x = btn_niveau_menuiseries.winfo_rootx()
-    y = btn_niveau_menuiseries.winfo_rooty() + btn_niveau_menuiseries.winfo_height()
-    menu.tk_popup(x, y)
-    menu.grab_release()
+    open_filtre_niveau(btn_niveau_menuiseries, appliquer_filtre_niveau_menuiseries)
 
 def appliquer_filtre_niveau_type_sol(niveaux):
     """Filtrer les revêtements de sol selon une liste de niveaux."""
-    global filtre_niveaux_type_sol
-    filtre_niveaux_type_sol = niveaux or []
-    _apply_filters_type_sol()
+    appliquer_filtre_niveau("filtre_niveaux_type_sol", _apply_filters_type_sol, niveaux)
 
 def open_filtre_niveau_type_sol():
-    niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
-    if not niveaux or btn_niveau_type_sol is None:
-        return
-    menu = tk.Menu(root, tearoff=0)
-    for n in niveaux:
-        menu.add_command(label=n, command=lambda level=n: (appliquer_filtre_niveau_type_sol([level]), menu.unpost()))
-    x = btn_niveau_type_sol.winfo_rootx()
-    y = btn_niveau_type_sol.winfo_rooty() + btn_niveau_type_sol.winfo_height()
-    menu.tk_popup(x, y)
-    menu.grab_release()
+    open_filtre_niveau(btn_niveau_type_sol, appliquer_filtre_niveau_type_sol)
 
 def appliquer_filtre_niveau_garde_corps(niveaux):
     """Filtrer les garde-corps selon une liste de niveaux."""
-    global filtre_niveaux_garde_corps
-    filtre_niveaux_garde_corps = niveaux or []
-    _apply_filters_garde_corps()
+    appliquer_filtre_niveau("filtre_niveaux_garde_corps", _apply_filters_garde_corps, niveaux)
 
 def open_filtre_niveau_garde_corps():
-    niveaux = donnees_ifc.get(ifc_actif, {}).get('storeys', [])
-    if not niveaux or btn_niveau_garde_corps is None:
-        return
-    menu = tk.Menu(root, tearoff=0)
-    for n in niveaux:
-        menu.add_command(label=n, command=lambda level=n: (appliquer_filtre_niveau_garde_corps([level]), menu.unpost()))
-    x = btn_niveau_garde_corps.winfo_rootx()
-    y = btn_niveau_garde_corps.winfo_rooty() + btn_niveau_garde_corps.winfo_height()
-    menu.tk_popup(x, y)
-    menu.grab_release()
+    open_filtre_niveau(btn_niveau_garde_corps, appliquer_filtre_niveau_garde_corps)
+
+def appliquer_filtre_niveau_poteaux(niveaux):
+    """Filtrer les poteaux selon une liste de niveaux."""
+    appliquer_filtre_niveau("filtre_niveaux_poteaux", _apply_filters_poteaux, niveaux)
+
+def open_filtre_niveau_poteaux():
+    open_filtre_niveau(btn_niveau_poteaux, appliquer_filtre_niveau_poteaux)
 
 def appliquer_filtre_zero_menuiseries():
     """Filtrer pour n’afficher que les menuiseries avec quantité égale à 0."""
@@ -2175,8 +2180,7 @@ btn_reset_murs = ttk.Button(frame_filtre_murs, text="Réinitialiser", style="Res
 btn_reset_murs.pack(side="left", padx=5)
 btn_reset_murs.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_murs, text="Qt = 0", command=appliquer_filtre_zero_murs).pack(side="left", padx=5)
-btn_niveau_murs = ttk.Button(frame_filtre_murs, text="Niveau", command=open_filtre_niveau_murs)
-btn_niveau_murs.pack(side="left", padx=5)
+btn_niveau_murs = create_niveau_button(frame_filtre_murs, open_filtre_niveau_murs)
 print("Cadre de filtrage des murs créé")
 
 tree_murs = ttk.Treeview(frame_murs_content, columns=("Nom", "Surface (m²)", "Longueur ", "Volume (m³)", "Type"), show="headings")
@@ -2621,8 +2625,7 @@ btn_reset_menuiseries = ttk.Button(frame_filtre_menuiseries, text="Réinitialise
 btn_reset_menuiseries.pack(side="left", padx=5)
 btn_reset_menuiseries.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_menuiseries, text="Qt = 0", command=appliquer_filtre_zero_menuiseries).pack(side="left", padx=5)
-btn_niveau_menuiseries = ttk.Button(frame_filtre_menuiseries, text="Niveau", command=open_filtre_niveau_menuiseries)
-btn_niveau_menuiseries.pack(side="left", padx=5)
+btn_niveau_menuiseries = create_niveau_button(frame_filtre_menuiseries, open_filtre_niveau_menuiseries)
 print("Cadre de filtrage des menuiseries créées")
 
 tree_menuiseries = ttk.Treeview(frame_menuiseries_content, columns=("Nom", "Surface (m²)", "Longueur ", "Hauteur (m)", "Type"), show="headings")
@@ -2890,8 +2893,7 @@ btn_reset_type_sol = ttk.Button(frame_filtre_type_sol, text="Réinitialiser", st
 btn_reset_type_sol.pack(side="left", padx=5)
 btn_reset_type_sol.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_type_sol, text="Qt = 0", command=appliquer_filtre_zero_type_sol).pack(side="left", padx=5)
-btn_niveau_type_sol = ttk.Button(frame_filtre_type_sol, text="Niveau", command=open_filtre_niveau_type_sol)
-btn_niveau_type_sol.pack(side="left", padx=5)
+btn_niveau_type_sol = create_niveau_button(frame_filtre_type_sol, open_filtre_niveau_type_sol)
 print("Cadre de filtrage des sols créé")
 
 tree_type_sol = ttk.Treeview(frame_type_sol_content, columns=("Nom", "Surface (m²)", "Longueur ", "Type"), show="headings")
@@ -3160,8 +3162,7 @@ btn_reset_garde_corps = ttk.Button(frame_filtre_garde_corps, text="Réinitialise
 btn_reset_garde_corps.pack(side="left", padx=5)
 btn_reset_garde_corps.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_garde_corps, text="Qt = 0", command=appliquer_filtre_zero_garde_corps).pack(side="left", padx=5)
-btn_niveau_garde_corps = ttk.Button(frame_filtre_garde_corps, text="Niveau", command=open_filtre_niveau_garde_corps)
-btn_niveau_garde_corps.pack(side="left", padx=5)
+btn_niveau_garde_corps = create_niveau_button(frame_filtre_garde_corps, open_filtre_niveau_garde_corps)
 print("Cadre de filtrage des garde-corps créé")
 
 tree_garde_corps = ttk.Treeview(frame_garde_corps_content, columns=("Nom", "Largeur (m)", "Type"), show="headings")
@@ -3299,6 +3300,7 @@ btn_reset_poteaux = ttk.Button(frame_filtre_poteaux,
 btn_reset_poteaux.pack(side="left", padx=5)
 btn_reset_poteaux.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_poteaux, text="Qt = 0", command=appliquer_filtre_zero_poteaux).pack(side="left", padx=5)
+btn_niveau_poteaux = create_niveau_button(frame_filtre_poteaux, open_filtre_niveau_poteaux)
 
 
 tree_poteaux = ttk.Treeview(
