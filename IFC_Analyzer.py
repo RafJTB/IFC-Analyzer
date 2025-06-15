@@ -3373,9 +3373,10 @@ def filter_main_by_type_poteaux(event=None):
     if row_id:
         type_sel = tree_surfaces_poteaux.item(row_id[0])['values'][0]
         # Filtre le tableau principal POTEaux
-        for item in tree_poteaux.get_children(): tree_poteaux.delete(item)
+        for item in tree_poteaux.get_children():
+            tree_poteaux.delete(item)
         filt = [p for p in donnees_ifc[ifc_actif]['poteaux'] if p[0] == type_sel]
-        for idx, (nom, larg, surface, volume, typ) in enumerate(filt):
+        for idx, (nom, larg, surface, volume, typ, _storey) in enumerate(filt):
             tag = 'evenrow' if idx % 2 == 0 else 'oddrow'
             tree_poteaux.insert('', 'end', values=(nom, larg, surface, volume, typ), tags=(tag,))
 
