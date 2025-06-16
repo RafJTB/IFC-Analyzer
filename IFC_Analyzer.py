@@ -3900,7 +3900,8 @@ def afficher_donnees_descente_ep(flows=None):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_ep.insert("", "end", values=(nom, dim, tp), tags=(tag,))
         total_dim += dim
-    label_dimension_totale_ep.config(text=f"{round(total_dim,2)} m")
+    if label_dimension_totale_ep.winfo_exists():
+        label_dimension_totale_ep.config(text=f"{round(total_dim,2)} m")
     maj_par_type_ep(flows)
 
 def maj_par_type_ep(flows=None):
