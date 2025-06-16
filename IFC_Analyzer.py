@@ -1549,11 +1549,14 @@ def hide_infos_poteaux():
         w.destroy()
 
 
-def _update_infos_poteaux(nom_sel: str):
-    """Affiche uniquement le ou les niveaux du poteau sélectionné."""
+def _update_infos_poteaux(nom_sel: str, storey: str = None):
+    """Affiche les niveaux du ou des poteaux sélectionnés."""
     hide_infos_poteaux()
     poteaux = donnees_ifc.get(ifc_actif, {}).get("poteaux", [])
-    niveaux = sorted({p[5] for p in poteaux if p[0] == nom_sel and p[5]})
+    if storey is None:
+        niveaux = sorted({p[5] for p in poteaux if p[0] == nom_sel and p[5]})
+    else:
+        niveaux = [storey] if storey else []
     niveau_txt = " - ".join(niveaux) if niveaux else "N/A"
     tk.Label(grid_infos_poteaux, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
     tk.Label(grid_infos_poteaux, text=niveau_txt, bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
@@ -1592,11 +1595,14 @@ def hide_infos_poutres():
         w.destroy()
 
 
-def _update_infos_poutres(nom_sel: str):
+def _update_infos_poutres(nom_sel: str, storey: str = None):
     """Affiche les informations de niveau pour la poutre sélectionnée."""
     hide_infos_poutres()
     poutres = donnees_ifc.get(ifc_actif, {}).get("poutres", [])
-    niveaux = sorted({p[5] for p in poutres if p[0] == nom_sel and len(p) > 5 and p[5]})
+    if storey is None:
+        niveaux = sorted({p[5] for p in poutres if p[0] == nom_sel and len(p) > 5 and p[5]})
+    else:
+        niveaux = [storey] if storey else []
     niveau_txt = " - ".join(niveaux) if niveaux else "N/A"
     tk.Label(grid_infos_poutres, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
     tk.Label(grid_infos_poutres, text=niveau_txt, bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
@@ -1621,8 +1627,27 @@ def afficher_infos_poutres(event=None):
     if not sel:
         hide_infos_poutres()
         return
-    nom_sel = tree_poutres.item(sel[0])["values"][0]
-    _update_infos_poutres(nom_sel)
+    values = tree_poutres.item(sel[0])["values"]
+    nom_sel = values[0]
+    try:
+        longu = float(values[1])
+        surf = float(values[2])
+        vol = float(values[3])
+    except (ValueError, TypeError):
+        longu = surf = vol = 0.0
+    p_type = values[4]
+    storey = None
+    for p in donnees_ifc.get(ifc_actif, {}).get("poutres", []):
+        if (
+            p[0] == nom_sel
+            and abs(p[1] - longu) < 0.01
+            and abs(p[2] - surf) < 0.01
+            and abs(p[3] - vol) < 0.01
+            and p[4] == p_type
+        ):
+            storey = p[5]
+            break
+    _update_infos_poutres(nom_sel, storey)
     _update_resume_poutres(nom_sel)
 
 
@@ -3099,8 +3124,27 @@ def afficher_infos_poteaux(event=None):
     if not sel:
         hide_infos_poteaux()
         return
-    nom_sel = tree_poteaux.item(sel[0])["values"][0]
-    _update_infos_poteaux(nom_sel)
+    values = tree_poteaux.item(sel[0])["values"]
+    nom_sel = values[0]
+    try:
+        larg = float(values[1])
+        surf = float(values[2])
+        vol = float(values[3])
+    except (ValueError, TypeError):
+        larg = surf = vol = 0.0
+    p_type = values[4]
+    storey = None
+    for p in donnees_ifc.get(ifc_actif, {}).get("poteaux", []):
+        if (
+            p[0] == nom_sel
+            and abs(p[1] - larg) < 0.01
+            and abs(p[2] - surf) < 0.01
+            and abs(p[3] - vol) < 0.01
+            and p[4] == p_type
+        ):
+            storey = p[5]
+            break
+    _update_infos_poteaux(nom_sel, storey)
     _update_resume_poteaux(nom_sel)
 
 
@@ -3385,7 +3429,7 @@ frame_resume_poteaux.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_poteaux.pack_propagate(False)
 title_frame_resume_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 title_frame_resume_poteaux.pack(fill="x", padx=5, pady=(5,0))
-tk.Label(title_frame_resume_poteaux, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), bg="#004D40", fg="white").pack(pady=5)
+tk.Label(title_frame_resume_poteaux, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 general_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_poteaux.pack(fill="x", padx=5, pady=5)
 grid_resume_poteaux = tk.Frame(general_frame_poteaux, bg="#E8F5E9")
@@ -3568,7 +3612,7 @@ frame_resume_poutres.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_poutres.pack_propagate(False)
 title_frame_resume_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
 title_frame_resume_poutres.pack(fill="x", padx=5, pady=(5,0))
-tk.Label(title_frame_resume_poutres, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), bg="#004D40", fg="white").pack(pady=5)
+tk.Label(title_frame_resume_poutres, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 general_frame_poutres = tk.Frame(frame_resume_poutres, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_poutres.pack(fill="x", padx=5, pady=5)
 grid_resume_poutres = tk.Frame(general_frame_poutres, bg="#E8F5E9")
@@ -3791,7 +3835,7 @@ frame_resume_ep.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_ep.pack_propagate(False)
 title_frame_resume_ep = tk.Frame(frame_resume_ep, bg="#004D40")
 title_frame_resume_ep.pack(fill="x", padx=5, pady=(5,0))
-tk.Label(title_frame_resume_ep, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), bg="#004D40", fg="white").pack(pady=5)
+tk.Label(title_frame_resume_ep, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 general_frame_ep = tk.Frame(frame_resume_ep, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_ep.pack(fill="x", padx=5, pady=5)
@@ -3908,10 +3952,13 @@ def hide_infos_ep():
     for w in grid_infos_ep.winfo_children():
         w.destroy()
 
-def _update_infos_ep(nom_sel: str, longueur: float = None):
+def _update_infos_ep(nom_sel: str, longueur: float = None, storey: str = None):
     hide_infos_ep()
     eps = donnees_ifc.get(ifc_actif, {}).get("descente_ep", [])
-    storeys = sorted({e[3] for e in eps if e[0] == nom_sel and len(e) > 3 and e[3]})
+    if storey is None:
+        storeys = sorted({e[3] for e in eps if e[0] == nom_sel and len(e) > 3 and e[3]})
+    else:
+        storeys = [storey] if storey else []
     niveau_txt = " - ".join(storeys) if storeys else "N/A"
 
     row = 0
@@ -3946,7 +3993,17 @@ def afficher_infos_descente_ep(event=None):
         longueur = float(values[1])
     except (ValueError, TypeError):
         longueur = 0.0
-    _update_infos_ep(nom_sel, longueur)
+    ep_type = values[2]
+    storey = None
+    for e in donnees_ifc.get(ifc_actif, {}).get("descente_ep", []):
+        if (
+            e[0] == nom_sel
+            and abs(e[1] - longueur) < 0.01
+            and e[2] == ep_type
+        ):
+            storey = e[3]
+            break
+    _update_infos_ep(nom_sel, longueur, storey)
 
 def afficher_infos_descente_ep_resume(event=None):
     sel = tree_surfaces_ep.selection()
