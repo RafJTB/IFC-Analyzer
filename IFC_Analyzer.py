@@ -416,7 +416,8 @@ def importer_ifc():
                 "garde_corps_infos": {},
                 "poteaux":     [],
                 "poutres":     [],
-                "descente_ep": []
+                "descente_ep": [],
+                "descente_ep_infos": {}
             }
 
             donnees_ifc[chemin]["storeys"] = [s.Name for s in ifc_file.by_type("IfcBuildingStorey") if getattr(s, "Name", None)]
@@ -1031,6 +1032,7 @@ def importer_ifc():
             flow_controllers = by_type_safe(ifc_file, "IfcFlowController")
             total_elements += len(flow_controllers)
             donnees_ifc[chemin]["descente_ep"] = []
+            donnees_ifc[chemin]["descente_ep_infos"] = {}
             for fc in flow_controllers:
                 nom = clean_string(fc.Name) or fc.is_a()
                 # Supprimer références ou suffixes à la fin
@@ -1067,6 +1069,12 @@ def importer_ifc():
                         storey = container.Name or ""
                         break
                 donnees_ifc[chemin]["descente_ep"].append((nom, dim, fc.is_a(), storey, diam))
+                donnees_ifc[chemin]["descente_ep_infos"][(nom, storey)] = {
+                    "Longueur": dim,
+                    "Type": fc.is_a(),
+                    "Diametre": diam,
+                    "Storey": storey,
+                }
                 processed_elements += 1
                 if processed_elements % 10 == 0:
                     update_progress(processed_elements, total_elements)
@@ -3959,12 +3967,13 @@ def hide_infos_ep():
         w.destroy()
 
 def _update_infos_ep(nom_sel: str, longueur: float = None, storey: str = None):
+    """Update complementary information for EP based on the selected name."""
     hide_infos_ep()
-    eps = donnees_ifc.get(ifc_actif, {}).get("descente_ep", [])
+    infos = donnees_ifc.get(ifc_actif, {}).get("descente_ep_infos", {})
     if storey is None:
-        storeys = sorted({e[3] for e in eps if e[0] == nom_sel and len(e) > 3 and e[3]})
+        storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
     else:
-        storeys = [storey] if storey else []
+        storeys = [storey] if infos.get((nom_sel, storey)) else ([storey] if storey else [])
     niveau_txt = " - ".join(storeys) if storeys else "N/A"
 
     row = 0
@@ -4009,7 +4018,7 @@ def afficher_infos_descente_ep(event=None):
         ):
             storey = e[3]
             break
-    _update_infos_ep(nom_sel, storey=storey)
+    _update_infos_ep(nom_sel, longueur=longueur, storey=storey)
     _update_resume_ep(nom_sel)
 
 def afficher_infos_descente_ep_resume(event=None):
