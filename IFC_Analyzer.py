@@ -3738,6 +3738,29 @@ tree_ep.tag_configure("oddrow",  background="#FFFFFF")
 scroll_ep = ttk.Scrollbar(frame_descente_ep_content, orient="vertical", command=tree_ep.yview)
 tree_ep.configure(yscrollcommand=scroll_ep.set)
 tree_ep.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
+
+def afficher_infos_descente_ep(event=None):
+    """Affiche les infos complémentaires et met à jour le résumé pour la sélection dans 'Descente EP'. """
+    sel = tree_ep.selection()
+    if not sel:
+        return
+    nom_sel = tree_ep.item(sel[0])["values"][0]
+    _update_infos_descente_ep(nom_sel)
+    _update_resume_descente_ep(nom_sel)
+
+
+def _update_infos_descente_ep(nom):
+    """Stub: mettre ici la logique de mise à jour des infos complémentaires pour Descente EP."""
+    # Exemple: récupérer les infos depuis un dict ou DataFrame et actualiser les widgets
+    # element = data_descente_ep.get(nom, {})
+    # info_widget.configure(text=str(element.get("details", "")))
+
+def _update_resume_descente_ep(nom):
+    """Stub: mettre ici la logique de mise à jour du résumé pour Descente EP."""
+    # Exemple: calculer et afficher le résumé similaire aux autres onglets
+    # resume_value = calcul_resume_descente_ep(nom)
+    # resume_widget.configure(text=str(resume_value))
+
 tree_ep.bind("<<TreeviewSelect>>", afficher_infos_descente_ep)
 scroll_ep.pack(side="right", fill="y")
 
