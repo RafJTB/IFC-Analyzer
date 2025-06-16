@@ -343,6 +343,24 @@ def _normalize_key(text: str) -> str:
     text = ''.join(ch for ch in text if unicodedata.category(ch) != 'Mn')
     return text.lower().strip()
 
+def _find_storey(element) -> str:
+    """Return the name of the ``IfcBuildingStorey`` containing *element*.
+
+    This helper walks up the spatial containment hierarchy using
+    ``ifcopenshell.util.element.get_container`` to robustly retrieve the
+    storey even when ``ContainedInStructure`` is not directly populated on
+    the object.  Returns an empty string when no storey can be found.
+    """
+    try:
+        container = ifcopenshell.util.element.get_container(element)
+        while container and not container.is_a("IfcBuildingStorey"):
+            container = ifcopenshell.util.element.get_container(container)
+        if container and container.is_a("IfcBuildingStorey"):
+            return container.Name or ""
+    except Exception:
+        pass
+    return ""
+
 # ---------- utils -------------------------------------------------
 def by_type_safe(ifc_file, entity):
     """Renvoie la liste des entités demandées ou [] si le schéma ne la connaît pas."""
@@ -1062,12 +1080,10 @@ def importer_ifc():
                     diam = round(float(diam), 2)
                 except (TypeError, ValueError):
                     diam = ""
-                storey = ""
-                for rel in getattr(fc, "ContainedInStructure", []):
-                    container = rel.RelatingStructure
-                    if container and container.is_a("IfcBuildingStorey"):
-                        storey = container.Name or ""
-                        break
+                # Try to determine the level of the element. ``ContainedInStructure``
+                # is not always populated, so fall back to the more robust
+                # ``_find_storey`` helper which walks the containment hierarchy.
+                storey = _find_storey(fc)
                 donnees_ifc[chemin]["descente_ep"].append((nom, dim, fc.is_a(), storey, diam))
                 donnees_ifc[chemin]["descente_ep_infos"][(nom, storey)] = {
                     "Longueur": dim,
