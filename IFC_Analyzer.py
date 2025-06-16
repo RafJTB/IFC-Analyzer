@@ -272,8 +272,6 @@ import time
 import re              # NEW ➜ même niveau d’indent que les autres
 print("Imports de base (os, threading, time, re) réussis")
 TITLE_FONT = ("Helvetica", 12, "bold")
-SUMMARY_FRAME_WIDTH = 650
-SUMMARY_FRAME_HEIGHT = 730
 
 # --------------------------------------
 # Variables Globales
@@ -3382,12 +3380,7 @@ tree_poteaux.configure(yscrollcommand=scroll_poteaux.set)
 tree_poteaux.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_poteaux.pack(side="right", fill="y")
 
-frame_resume_poteaux = tk.Frame(
-    frame_poteaux,
-    bg="white",
-    width=SUMMARY_FRAME_WIDTH,
-    height=SUMMARY_FRAME_HEIGHT,
-)
+frame_resume_poteaux = tk.Frame(frame_poteaux, bg="white", width=650)
 frame_resume_poteaux.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_poteaux.pack_propagate(False)
 title_frame_resume_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
@@ -3570,12 +3563,7 @@ tree_poutres.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_poutres.pack(side="right", fill="y")
 tree_poutres.bind("<<TreeviewSelect>>", afficher_infos_poutres)
 
-frame_resume_poutres = tk.Frame(
-    frame_poutres,
-    bg="white",
-    width=SUMMARY_FRAME_WIDTH,
-    height=SUMMARY_FRAME_HEIGHT,
-)
+frame_resume_poutres = tk.Frame(frame_poutres, bg="white", width=650)
 frame_resume_poutres.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_poutres.pack_propagate(False)
 title_frame_resume_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
@@ -3774,38 +3762,31 @@ tree_ep.configure(yscrollcommand=scroll_ep.set)
 tree_ep.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 
 def afficher_infos_descente_ep(event=None):
-    """Affiche les informations complémentaires et le résumé pour la descente EP sélectionnée."""
+    """Affiche les infos complémentaires et met à jour le résumé pour la sélection dans 'Descente EP'. """
     sel = tree_ep.selection()
     if not sel:
-        hide_infos_ep()
         return
     nom_sel = tree_ep.item(sel[0])["values"][0]
-    values = tree_ep.item(sel[0])["values"]
-    try:
-        longueur = float(values[1])
-    except (ValueError, TypeError, IndexError):
-        longueur = None
-    _update_infos_ep(nom_sel, longueur)
-    _update_resume_ep(nom_sel)
+    _update_infos_descente_ep(nom_sel)
+    _update_resume_descente_ep(nom_sel)
 
 
 def _update_infos_descente_ep(nom):
-    """Compatibilité : redirige vers _update_infos_ep."""
-    _update_infos_ep(nom)
+    """Stub: mettre ici la logique de mise à jour des infos complémentaires pour Descente EP."""
+    # Exemple: récupérer les infos depuis un dict ou DataFrame et actualiser les widgets
+    # element = data_descente_ep.get(nom, {})
+    # info_widget.configure(text=str(element.get("details", "")))
 
 def _update_resume_descente_ep(nom):
-    """Compatibilité : redirige vers _update_resume_ep."""
-    _update_resume_ep(nom)
+    """Stub: mettre ici la logique de mise à jour du résumé pour Descente EP."""
+    # Exemple: calculer et afficher le résumé similaire aux autres onglets
+    # resume_value = calcul_resume_descente_ep(nom)
+    # resume_widget.configure(text=str(resume_value))
 
 tree_ep.bind("<<TreeviewSelect>>", afficher_infos_descente_ep)
 scroll_ep.pack(side="right", fill="y")
 
-frame_resume_ep = tk.Frame(
-    frame_descente_ep,
-    bg="white",
-    width=SUMMARY_FRAME_WIDTH,
-    height=SUMMARY_FRAME_HEIGHT,
-)
+frame_resume_ep = tk.Frame(frame_descente_ep, bg="white", width=650)
 frame_resume_ep.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_ep.pack_propagate(False)
 title_frame_resume_ep = tk.Frame(frame_resume_ep, bg="#004D40")
@@ -3924,15 +3905,27 @@ def hide_infos_ep():
         w.destroy()
 
 def _update_infos_ep(nom_sel: str, longueur: float = None, typ: str = None):
-    """Affiche uniquement le ou les niveaux de la descente EP sélectionnée."""
     hide_infos_ep()
     eps = donnees_ifc.get(ifc_actif, {}).get("descente_ep", [])
     storeys = sorted({e[3] for e in eps if e[0] == nom_sel and len(e) > 3 and e[3]})
+    diametres = {e[4] for e in eps if e[0] == nom_sel and len(e) > 4 and e[4] not in (None, "")}
+    if typ is None:
+        for e in eps:
+            if e[0] == nom_sel:
+                typ = e[2]
+                break
     niveau_txt = " - ".join(storeys) if storeys else "N/A"
+    diam_txt = " - ".join(str(d) for d in sorted(diametres)) if diametres else "N/A"
 
     row = 0
     tk.Label(grid_infos_ep, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_infos_ep, text=niveau_txt, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_infos_ep, text="Type :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_ep, text=str(typ or "N/A"), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_infos_ep, text="Diamètre :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_ep, text=str(diam_txt), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
     row += 1
     if longueur is not None:
         tk.Label(grid_infos_ep, text="Longueur :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
