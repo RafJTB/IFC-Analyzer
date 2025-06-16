@@ -2477,7 +2477,12 @@ tk.Label(title_frame_types_murs, text="INFORMATIONS COMPLÉMENTAIRES", font=TITL
 
 
 
-canvas_grid_types_murs = tk.Canvas(types_frame, bg="#E8F5E9", highlightthickness=0)
+canvas_grid_types_murs = tk.Canvas(
+    types_frame,
+    bg="#E8F5E9",
+    highlightthickness=0,
+    height=150
+)
 canvas_grid_types_murs.pack(side="top", fill="x", expand=False, padx=(5, 0), pady=5)
 # 👉 cacher le canvas tant qu’il est vide pour éviter le trou
 canvas_grid_types_murs.pack_forget()
@@ -4038,6 +4043,7 @@ for btn in nav_buttons:
         break
 
 root.after(0, maj_par_type_ep)
+tree_ep.bind("<<TreeviewSelect>>", afficher_infos_descente_ep)
 
 # —— UI TYPE DE PLAFOND ———————————————————————————————————————————
 # (copié-collé de l’interface "TYPE DE SOL", renommé)
