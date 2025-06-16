@@ -289,6 +289,7 @@ btn_niveau_type_sol = None
 btn_niveau_garde_corps = None
 btn_niveau_poteaux = None
 btn_niveau_poutres = None
+btn_niveau_ep = None
 
 # Filtres actifs pour le tableau MURS
 filtre_texte_murs = ""
@@ -1036,7 +1037,7 @@ def importer_ifc():
                 nom = re.sub(r"(?:\s*[-–]?\s*\d+)+\s*$", "", nom)
                 nom = re.sub(r"\s*:+\s*$", "", nom).strip()
                 psets = ifcopenshell.util.element.get_psets(fc)
-                # Combine all property sets to find DIM_Hauteur
+                # Combine all property sets to find DIM_Hauteur et diamètre
                 quantity = {}
                 for props in psets.values():
                     if isinstance(props, dict):
@@ -1052,7 +1053,20 @@ def importer_ifc():
                 else:
                     hauteur = 0.0
                 dim = round(hauteur, 2)
-                donnees_ifc[chemin]["descente_ep"].append((nom, dim, fc.is_a()))
+                # Diamètre éventuel
+                diam = quantity.get("DIM_Diametre") or quantity.get("DIM_Diam\xe8tre") \
+                    or quantity.get("NominalDiameter") or quantity.get("Diameter")
+                try:
+                    diam = round(float(diam), 2)
+                except (TypeError, ValueError):
+                    diam = ""
+                storey = ""
+                for rel in getattr(fc, "ContainedInStructure", []):
+                    container = rel.RelatingStructure
+                    if container and container.is_a("IfcBuildingStorey"):
+                        storey = container.Name or ""
+                        break
+                donnees_ifc[chemin]["descente_ep"].append((nom, dim, fc.is_a(), storey, diam))
                 processed_elements += 1
                 if processed_elements % 10 == 0:
                     update_progress(processed_elements, total_elements)
@@ -1922,6 +1936,13 @@ def appliquer_filtre_niveau_poutres(niveaux):
 
 def open_filtre_niveau_poutres():
     open_filtre_niveau(btn_niveau_poutres, appliquer_filtre_niveau_poutres)
+
+def appliquer_filtre_niveau_ep(niveaux):
+    """Filtrer les descentes EP selon une liste de niveaux."""
+    appliquer_filtre_niveau("filtre_niveaux_ep", _apply_filters_ep, niveaux)
+
+def open_filtre_niveau_ep():
+    open_filtre_niveau(btn_niveau_ep, appliquer_filtre_niveau_ep)
 
 def appliquer_filtre_zero_menuiseries():
     """Filtrer pour n’afficher que les menuiseries avec quantité égale à 0."""
@@ -3724,6 +3745,7 @@ btn_reset_ep = ttk.Button(frame_filtre_ep, text="Réinitialiser", style="Reset.T
 btn_reset_ep.pack(side="left", padx=5)
 btn_reset_ep.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_ep, text="Qt = 0", command=lambda: appliquer_filtre_zero_ep()).pack(side="left", padx=5)
+btn_niveau_ep = create_niveau_button(frame_filtre_ep, open_filtre_niveau_ep)
 
 tree_ep = ttk.Treeview(
     frame_descente_ep_content,
@@ -3821,7 +3843,7 @@ def afficher_donnees_descente_ep(flows=None):
         flows = donnees_ifc[ifc_actif].get("descente_ep", [])
     tree_ep.delete(*tree_ep.get_children())
     total_dim = 0.0
-    for idx, (nom, dim, tp) in enumerate(flows):
+    for idx, (nom, dim, tp, *_) in enumerate(flows):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_ep.insert("", "end", values=(nom, dim, tp), tags=(tag,))
         total_dim += dim
@@ -3836,7 +3858,7 @@ def maj_par_type_ep(flows=None):
     for w in tree_surfaces_ep.get_children():
         tree_surfaces_ep.delete(w)
     agg = {}
-    for nom, dim, _ in flows:
+    for nom, dim, *_ in flows:
         agg[nom] = agg.get(nom, 0) + dim
     for idx, (nom, dim) in enumerate(sorted(agg.items())):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
@@ -3884,11 +3906,30 @@ def hide_infos_ep():
 
 def _update_infos_ep(nom_sel: str, longueur: float = None, typ: str = None):
     hide_infos_ep()
-    tk.Label(grid_infos_ep, text="Type IFC :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_ep, text=str(typ or "N/A"), bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+    eps = donnees_ifc.get(ifc_actif, {}).get("descente_ep", [])
+    storeys = sorted({e[3] for e in eps if e[0] == nom_sel and len(e) > 3 and e[3]})
+    diametres = {e[4] for e in eps if e[0] == nom_sel and len(e) > 4 and e[4] not in (None, "")}
+    if typ is None:
+        for e in eps:
+            if e[0] == nom_sel:
+                typ = e[2]
+                break
+    niveau_txt = " - ".join(storeys) if storeys else "N/A"
+    diam_txt = " - ".join(str(d) for d in sorted(diametres)) if diametres else "N/A"
+
+    row = 0
+    tk.Label(grid_infos_ep, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_ep, text=niveau_txt, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_infos_ep, text="Type :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_ep, text=str(typ or "N/A"), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_infos_ep, text="Diamètre :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_ep, text=str(diam_txt), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
     if longueur is not None:
-        tk.Label(grid_infos_ep, text="Longueur :", bg="#E8F5E9", anchor="w").grid(row=1, column=0, sticky="w", padx=10)
-        tk.Label(grid_infos_ep, text=_format_summary_value(longueur, " m"), bg="#E8F5E9", anchor="e").grid(row=1, column=1, sticky="e", padx=10)
+        tk.Label(grid_infos_ep, text="Longueur :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_ep, text=_format_summary_value(longueur, " m"), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 def _update_resume_ep(nom_sel: str):
     ep_src = [e for e in _get_filtered_ep() if e[0] == nom_sel]
