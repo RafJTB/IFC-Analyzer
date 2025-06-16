@@ -3796,11 +3796,12 @@ tk.Label(title_frame_resume_ep, text="RÉSUMÉ", font=("Helvetica", 14, "bold"),
 general_frame_ep = tk.Frame(frame_resume_ep, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_ep.pack(fill="x", padx=5, pady=5)
 grid_resume_ep = tk.Frame(general_frame_ep, bg="#E8F5E9")
-grid_resume_ep.pack(pady=5, expand=True)
+grid_resume_ep.pack(pady=5)
 grid_resume_ep.grid_columnconfigure(1, weight=1)
 tk.Label(grid_resume_ep, text="📏 Longueur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
 label_dimension_totale_ep = tk.Label(grid_resume_ep, text="0.00 m", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_dimension_totale_ep.grid(row=0, column=1, sticky="e", padx=10)
+general_frame_ep.pack_propagate(False)
 
 types_frame_ep = tk.Frame(frame_resume_ep, bg="white", bd=1, relief="solid")
 types_frame_ep.pack(fill="both", padx=5, pady=5, expand=True)
@@ -3905,27 +3906,15 @@ def hide_infos_ep():
         w.destroy()
 
 def _update_infos_ep(nom_sel: str, longueur: float = None, typ: str = None):
+    """Met à jour le bloc d'informations complémentaires pour la descente EP."""
     hide_infos_ep()
     eps = donnees_ifc.get(ifc_actif, {}).get("descente_ep", [])
     storeys = sorted({e[3] for e in eps if e[0] == nom_sel and len(e) > 3 and e[3]})
-    diametres = {e[4] for e in eps if e[0] == nom_sel and len(e) > 4 and e[4] not in (None, "")}
-    if typ is None:
-        for e in eps:
-            if e[0] == nom_sel:
-                typ = e[2]
-                break
     niveau_txt = " - ".join(storeys) if storeys else "N/A"
-    diam_txt = " - ".join(str(d) for d in sorted(diametres)) if diametres else "N/A"
 
     row = 0
     tk.Label(grid_infos_ep, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_infos_ep, text=niveau_txt, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
-    tk.Label(grid_infos_ep, text="Type :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_ep, text=str(typ or "N/A"), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
-    row += 1
-    tk.Label(grid_infos_ep, text="Diamètre :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_ep, text=str(diam_txt), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
     row += 1
     if longueur is not None:
         tk.Label(grid_infos_ep, text="Longueur :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
