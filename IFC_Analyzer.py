@@ -3567,14 +3567,13 @@ types_frame_poutres.pack(fill="both", padx=5, pady=5, expand=True)
 
 # ---- Treeview résumé POUTRES ---------------------------------
 data_frame_types_poutres = tk.Frame(types_frame_poutres, bg="#E8F5E9")
-data_frame_types_poutres.pack(fill="both", padx=5, pady=5)
+data_frame_types_poutres.pack(fill="both", padx=5, pady=5, expand=True)
 
 tree_surfaces_poutres = ttk.Treeview(
     data_frame_types_poutres,
     style="Green.Treeview",
     columns=("Type", "m"),
-    show="headings",
-    height=8
+    show="headings"
 )
 tree_surfaces_poutres.configure(style="Green.Treeview")
 tree_surfaces_poutres.heading("Type", text="Type")
