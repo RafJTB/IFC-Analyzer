@@ -128,7 +128,7 @@ def _calc_surface_nette_sols(sols_list):
             surface_obstacles += larg * larg
 
     # Empreinte approximative des poutres : volume / longueur
-    for _nom, longueur, _surf, volume, _tp in data.get("poutres", []):
+    for _nom, longueur, _surf, volume, _tp, _storey in data.get("poutres", []):
         try:
             longu = float(longueur)
             vol = float(volume)
@@ -288,6 +288,7 @@ btn_niveau_menuiseries = None
 btn_niveau_type_sol = None
 btn_niveau_garde_corps = None
 btn_niveau_poteaux = None
+btn_niveau_poutres = None
 
 # Filtres actifs pour le tableau MURS
 filtre_texte_murs = ""
@@ -309,6 +310,8 @@ filtre_zero_garde_corps = False
 filtre_niveaux_garde_corps = []
 filtre_texte_poteaux = ""
 filtre_niveaux_poteaux = []
+filtre_texte_poutres = ""
+filtre_niveaux_poutres = []
 
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
@@ -1008,7 +1011,13 @@ def importer_ifc():
                 longueur  = round(q.get("Length", 0.0), 2)
                 surface = round(q.get('OuterSurfaceArea', q.get('GrossSurfaceArea', 0.0)), 2)
                 volume  = round(q.get('GrossVolume', 0.0), 2)
-                donnees_ifc[chemin]["poutres"].append((nom, longueur, surface, volume, beam.is_a()))
+                storey  = ""
+                for rel in getattr(beam, "ContainedInStructure", []):
+                    container = rel.RelatingStructure
+                    if container and container.is_a("IfcBuildingStorey"):
+                        storey = container.Name or ""
+                        break
+                donnees_ifc[chemin]["poutres"].append((nom, longueur, surface, volume, beam.is_a(), storey))
                 processed_elements += 1
                 update_progress(processed_elements, total_elements)
             print(f"[DEBUG] Poutres trouvées : {len(donnees_ifc[chemin]['poutres'])}")
@@ -1568,8 +1577,11 @@ def hide_infos_poutres():
 def _update_infos_poutres(nom_sel: str):
     """Affiche les informations de niveau pour la poutre sélectionnée."""
     hide_infos_poutres()
+    poutres = donnees_ifc.get(ifc_actif, {}).get("poutres", [])
+    niveaux = sorted({p[5] for p in poutres if p[0] == nom_sel and len(p) > 5 and p[5]})
+    niveau_txt = " - ".join(niveaux) if niveaux else "N/A"
     tk.Label(grid_infos_poutres, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_poutres, text="N/A", bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_poutres, text=niveau_txt, bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
 
 
 def _update_resume_poutres(nom_sel: str):
@@ -1577,7 +1589,7 @@ def _update_resume_poutres(nom_sel: str):
     if not poutres_src:
         return
     total_len = total_surf = total_vol = 0.0
-    for _n, longu, surf, vol, _tp in poutres_src:
+    for _n, longu, surf, vol, _tp, _storey in poutres_src:
         total_len += longu
         total_surf += surf
         total_vol += vol
@@ -1612,7 +1624,7 @@ def afficher_donnees_poutres(poutres=None):
     for i in tree_poutres.get_children():
         tree_poutres.delete(i)
     total_len = total_surf = total_vol = 0.0
-    for idx, (nom, longu, surf, vol, tp) in enumerate(poutres):
+    for idx, (nom, longu, surf, vol, tp, _storey) in enumerate(poutres):
         tree_poutres.insert(
             "", "end",
             values=(nom, longu, surf, vol, tp),
@@ -1637,7 +1649,7 @@ def maj_par_type_poutres(poutres=None):
         w.destroy()
     # agrégation
     agg = {}
-    for nom, longu, _, _, _ in poutres:
+    for nom, longu, *_ in poutres:
         agg[nom] = agg.get(nom, 0) + longu
     # injection
     for i, (nom, longu) in enumerate(sorted(agg.items())):
@@ -1649,15 +1661,16 @@ def maj_par_type_poutres(poutres=None):
             .grid(row=i, column=2, padx=(0, 20), sticky="e")
 
 def appliquer_filtre_poutres():
-    txt = entree_filtre_poutres.get().lower()
-    filtres = [b for b in donnees_ifc[ifc_actif]["poutres"] if txt in b[0].lower()]
-    afficher_donnees_poutres(filtres)
-    maj_par_type_poutres(filtres)
+    global filtre_texte_poutres
+    filtre_texte_poutres = entree_filtre_poutres.get().lower()
+    _apply_filters_poutres()
 
 def reinitialiser_filtre_poutres():
+    global filtre_texte_poutres, filtre_niveaux_poutres
     entree_filtre_poutres.delete(0, tk.END)
-    afficher_donnees_poutres()
-    maj_par_type_poutres()
+    filtre_texte_poutres = ""
+    filtre_niveaux_poutres = []
+    _apply_filters_poutres()
 
 
 
@@ -1790,6 +1803,22 @@ def _apply_filters_poteaux():
     afficher_donnees_poteaux(filtres)
     maj_par_type_poteaux(filtres)
 
+# ----- Filtres pour POUTRES -----
+def _get_filtered_poutres():
+    poutres = donnees_ifc.get(ifc_actif, {}).get("poutres", [])
+    if filtre_niveaux_poutres:
+        if len(poutres) > 0 and len(poutres[0]) > 5:
+            poutres = [p for p in poutres if p[5] in filtre_niveaux_poutres]
+    if filtre_texte_poutres:
+        lower = filtre_texte_poutres
+        poutres = [p for p in poutres if lower in p[0].lower()]
+    return poutres
+
+def _apply_filters_poutres():
+    filtres = _get_filtered_poutres()
+    afficher_donnees_poutres(filtres)
+    maj_par_type_poutres(filtres)
+
 def appliquer_filtre_menuiseries():
     global filtre_texte_menuiseries
     filtre_texte_menuiseries = entree_filtre_menuiseries.get().lower()
@@ -1882,6 +1911,13 @@ def appliquer_filtre_niveau_poteaux(niveaux):
 
 def open_filtre_niveau_poteaux():
     open_filtre_niveau(btn_niveau_poteaux, appliquer_filtre_niveau_poteaux)
+
+def appliquer_filtre_niveau_poutres(niveaux):
+    """Filtrer les poutres selon une liste de niveaux."""
+    appliquer_filtre_niveau("filtre_niveaux_poutres", _apply_filters_poutres, niveaux)
+
+def open_filtre_niveau_poutres():
+    open_filtre_niveau(btn_niveau_poutres, appliquer_filtre_niveau_poutres)
 
 def appliquer_filtre_zero_menuiseries():
     """Filtrer pour n’afficher que les menuiseries avec quantité égale à 0."""
@@ -3333,7 +3369,7 @@ grid_resume_poteaux.pack(pady=5)
 tk.Label(grid_resume_poteaux, text="📏 Largeur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
 label_largeur_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_largeur_totale_poteaux.grid(row=0, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poteaux, text="🏗️ Surface de coffrage :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
+tk.Label(grid_resume_poteaux, text="🏗️Surface de coffrage :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
 label_surface_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m²", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_surface_totale_poteaux.grid(row=1, column=1, sticky="e", padx=10)
 tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
@@ -3483,6 +3519,7 @@ btn_reset_poutres = ttk.Button(frame_filtre_poutres,
 btn_reset_poutres.pack(side="left", padx=5)
 btn_reset_poutres.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 ttk.Button(frame_filtre_poutres, text="Qt = 0", command=appliquer_filtre_zero_poutres).pack(side="left", padx=5)
+btn_niveau_poutres = create_niveau_button(frame_filtre_poutres, open_filtre_niveau_poutres)
 
 
 tree_poutres = ttk.Treeview(
@@ -3516,7 +3553,7 @@ grid_resume_poutres.pack(pady=5)
 tk.Label(grid_resume_poutres, text="📏 Longueur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
 label_longueur_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_longueur_totale_poutres.grid(row=0, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poutres, text="🏗️ Surface de coffrage :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
+tk.Label(grid_resume_poutres, text="🏗️Surface de coffrage :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
 label_surface_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m²", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_surface_totale_poutres.grid(row=1, column=1, sticky="e", padx=10)
 tk.Label(grid_resume_poutres, text="📦 Volume total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
@@ -3572,7 +3609,7 @@ def filter_main_by_type_poutres(event=None):
         for item in tree_poutres.get_children():
             tree_poutres.delete(item)
         poutres_filtres = [p for p in donnees_ifc[ifc_actif]["poutres"] if p[0] == type_sel]
-        for idx, (nom, largeur, surface, volume, poutre_type) in enumerate(poutres_filtres):
+        for idx, (nom, largeur, surface, volume, poutre_type, _storey) in enumerate(poutres_filtres):
             tag = "evenrow" if idx % 2 == 0 else "oddrow"
             tree_poutres.insert("", "end", values=(nom, largeur, surface, volume, poutre_type), tags=(tag,))
 
@@ -3607,8 +3644,8 @@ def maj_par_type_poutres(poutres=None):
         return
     tree_surfaces_poutres.delete(*tree_surfaces_poutres.get_children())
     agg = {}
-    for nom, larg, *_ in poutres:
-        agg[nom] = agg.get(nom, 0) + larg
+    for nom, longu, *_ in poutres:
+        agg[nom] = agg.get(nom, 0) + longu
     for idx, (nom, larg) in enumerate(sorted(agg.items())):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_surfaces_poutres.insert("", "end", values=(nom, round(larg, 2)), tags=(tag,))
