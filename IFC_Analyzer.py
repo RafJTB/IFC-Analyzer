@@ -312,11 +312,15 @@ filtre_texte_poteaux = ""
 filtre_niveaux_poteaux = []
 filtre_texte_poutres = ""
 filtre_niveaux_poutres = []
+filtre_texte_ep = ""
+filtre_zero_ep = False
+filtre_niveaux_ep = []
 
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
 tree_surfaces_poteaux = None
 tree_surfaces_poutres = None
+tree_surfaces_ep = None
 
 
 # --------------------------------------
@@ -3734,6 +3738,7 @@ tree_ep.tag_configure("oddrow",  background="#FFFFFF")
 scroll_ep = ttk.Scrollbar(frame_descente_ep_content, orient="vertical", command=tree_ep.yview)
 tree_ep.configure(yscrollcommand=scroll_ep.set)
 tree_ep.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
+tree_ep.bind("<<TreeviewSelect>>", afficher_infos_descente_ep)
 scroll_ep.pack(side="right", fill="y")
 
 frame_resume_ep = tk.Frame(frame_descente_ep, bg="white", width=650)
@@ -3743,32 +3748,33 @@ title_frame_resume_ep = tk.Frame(frame_resume_ep, bg="#004D40")
 title_frame_resume_ep.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_ep, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), bg="#004D40", fg="white").pack(pady=5)
 
-general_frame_ep = tk.Frame(frame_resume_ep, bg="white", bd=1, relief="solid")
+general_frame_ep = tk.Frame(frame_resume_ep, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_ep.pack(fill="x", padx=5, pady=5)
-grid_resume_ep = tk.Frame(general_frame_ep, bg="white")
-grid_resume_ep.pack(pady=5)
-tk.Label(grid_resume_ep, text="📏 Longueur totale :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_dimension_totale_ep = tk.Label(grid_resume_ep, text="0.00 m", bg="white", font=("Helvetica", 10, "bold"))
+grid_resume_ep = tk.Frame(general_frame_ep, bg="#E8F5E9")
+grid_resume_ep.pack(pady=5, expand=True)
+grid_resume_ep.grid_columnconfigure(1, weight=1)
+tk.Label(grid_resume_ep, text="📏 Longueur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_dimension_totale_ep = tk.Label(grid_resume_ep, text="0.00 m", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_dimension_totale_ep.grid(row=0, column=1, sticky="e", padx=10)
 
 types_frame_ep = tk.Frame(frame_resume_ep, bg="white", bd=1, relief="solid")
-types_frame_ep.pack(fill="x", padx=5, pady=5)
+types_frame_ep.pack(fill="both", padx=5, pady=5, expand=True)
 data_frame_types_ep = tk.Frame(types_frame_ep, bg="white")
-data_frame_types_ep.pack(fill="both", padx=5, pady=5)
+data_frame_types_ep.pack(fill="both", expand=True, padx=5, pady=5)
 tree_surfaces_ep = ttk.Treeview(
     data_frame_types_ep,
-    style="Summary.Treeview",
+    style="Green.Treeview",
     columns=("Type", "m"),
     show="headings",
     height=8
 )
-tree_surfaces_ep.configure(style="Summary.Treeview")
+tree_surfaces_ep.configure(style="Green.Treeview")
 tree_surfaces_ep.heading("Type", text="Type")
 tree_surfaces_ep.heading("m", text="m")
 tree_surfaces_ep.column("Type", anchor="w", width=500, stretch=True)
 tree_surfaces_ep.column("m", anchor="e", width=80, stretch=False)
-tree_surfaces_ep.tag_configure("evenrow", background="white")
-tree_surfaces_ep.tag_configure("oddrow",  background="white")
+tree_surfaces_ep.tag_configure("evenrow", background="#E8F5E9")
+tree_surfaces_ep.tag_configure("oddrow",  background="#E8F5E9")
 scroll_surfaces_ep = ttk.Scrollbar(data_frame_types_ep, orient="vertical", command=tree_surfaces_ep.yview)
 tree_surfaces_ep.configure(yscrollcommand=scroll_surfaces_ep.set)
 tree_surfaces_ep.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
@@ -3779,8 +3785,12 @@ title_frame_info_ep = tk.Frame(frame_resume_ep, bg="#004D40")
 title_frame_info_ep.pack(fill="x", padx=5, pady=(15, 0))
 tk.Label(title_frame_info_ep, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
-info_frame_ep = tk.Frame(frame_resume_ep, bg="white", bd=1, relief="solid")
-info_frame_ep.pack(fill="both", expand=True, padx=5, pady=5)
+info_frame_ep = tk.Frame(frame_resume_ep, bg="#E8F5E9", bd=2, relief="groove")
+info_frame_ep.pack(fill="x", padx=5, pady=5)
+grid_infos_ep = tk.Frame(info_frame_ep, bg="#E8F5E9")
+grid_infos_ep.pack(pady=5, fill="x")
+grid_infos_ep.grid_columnconfigure(1, weight=1)
+grid_infos_ep.grid_columnconfigure(0, weight=1)
 
 
 def afficher_donnees_descente_ep(flows=None):
@@ -3809,21 +3819,89 @@ def maj_par_type_ep(flows=None):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_surfaces_ep.insert("", "end", values=(nom, round(dim,2)), tags=(tag,))
 
-def appliquer_filtre_ep():
-    txt = entree_filtre_ep.get().lower()
-    filtres = [ep for ep in donnees_ifc[ifc_actif].get("descente_ep", []) if txt in ep[0].lower()]
+def _get_filtered_ep():
+    eps = donnees_ifc.get(ifc_actif, {}).get("descente_ep", [])
+    if filtre_zero_ep:
+        eps = [e for e in eps if e[1] == 0]
+    if filtre_niveaux_ep:
+        if len(eps) > 0 and len(eps[0]) > 3:
+            eps = [e for e in eps if e[3] in filtre_niveaux_ep]
+    if filtre_texte_ep:
+        lower = filtre_texte_ep
+        eps = [e for e in eps if lower in e[0].lower()]
+    return eps
+
+def _apply_filters_ep():
+    filtres = _get_filtered_ep()
     afficher_donnees_descente_ep(filtres)
     maj_par_type_ep(filtres)
 
+def appliquer_filtre_ep():
+    global filtre_texte_ep
+    filtre_texte_ep = entree_filtre_ep.get().lower()
+    _apply_filters_ep()
+
 def reinitialiser_filtre_ep():
+    global filtre_texte_ep, filtre_zero_ep, filtre_niveaux_ep
     entree_filtre_ep.delete(0, tk.END)
-    afficher_donnees_descente_ep()
-    maj_par_type_ep()
+    filtre_texte_ep = ""
+    filtre_zero_ep = False
+    filtre_niveaux_ep = []
+    _apply_filters_ep()
 
 def appliquer_filtre_zero_ep():
-    zeroes = [ep for ep in donnees_ifc[ifc_actif].get("descente_ep", []) if ep[1] == 0]
-    afficher_donnees_descente_ep(zeroes)
-    maj_par_type_ep(zeroes)
+    global filtre_zero_ep
+    filtre_zero_ep = True
+    _apply_filters_ep()
+
+# ---- Sélection et informations complémentaires ----
+def hide_infos_ep():
+    for w in grid_infos_ep.winfo_children():
+        w.destroy()
+
+def _update_infos_ep(nom_sel: str, longueur: float = None, typ: str = None):
+    hide_infos_ep()
+    tk.Label(grid_infos_ep, text="Type IFC :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_ep, text=str(typ or "N/A"), bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+    if longueur is not None:
+        tk.Label(grid_infos_ep, text="Longueur :", bg="#E8F5E9", anchor="w").grid(row=1, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_ep, text=_format_summary_value(longueur, " m"), bg="#E8F5E9", anchor="e").grid(row=1, column=1, sticky="e", padx=10)
+
+def _update_resume_ep(nom_sel: str):
+    ep_src = [e for e in _get_filtered_ep() if e[0] == nom_sel]
+    if not ep_src:
+        return
+    total_dim = sum(e[1] for e in ep_src)
+    for w in grid_resume_ep.winfo_children():
+        w.destroy()
+    row = 0
+    tk.Label(grid_resume_ep, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_ep, text=_format_summary_value(total_dim, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_ep, text="", bg="#E8F5E9").grid(row=row, column=0, pady=2)
+
+def afficher_infos_descente_ep(event=None):
+    sel = tree_ep.selection()
+    if not sel:
+        hide_infos_ep()
+        return
+    values = tree_ep.item(sel[0])["values"]
+    nom_sel = values[0]
+    try:
+        longueur = float(values[1])
+    except (ValueError, TypeError):
+        longueur = 0.0
+    typ = values[2] if len(values) > 2 else ""
+    _update_infos_ep(nom_sel, longueur, typ)
+
+def afficher_infos_descente_ep_resume(event=None):
+    sel = tree_surfaces_ep.selection()
+    if not sel:
+        hide_infos_ep()
+        return
+    nom_sel = tree_surfaces_ep.item(sel[0])["values"][0]
+    _update_resume_ep(nom_sel)
+    _update_infos_ep(nom_sel)
 
 # Interaction summary tree
 def copy_type_summary_ep(event=None):
@@ -3839,12 +3917,13 @@ def filter_main_by_type_ep(event=None):
         afficher_donnees_descente_ep([ep for ep in donnees_ifc[ifc_actif]['descente_ep'] if ep[0]==type_sel])
 
 tree_surfaces_ep.bind("<Button-1>", copy_type_summary_ep)
+tree_surfaces_ep.bind("<<TreeviewSelect>>", afficher_infos_descente_ep_resume)
 tree_surfaces_ep.bind("<Double-1>", filter_main_by_type_ep)
 
 # Nav button update to trigger data refresh
 for btn in nav_buttons:
     if btn.cget("text") == "DESCENTE EP":
-        btn.configure(command=lambda b=btn: (set_selected(b), afficher_donnees_descente_ep(), show_frame(frame_descente_ep)))
+        btn.configure(command=lambda b=btn: (set_selected(b), _apply_filters_ep(), show_frame(frame_descente_ep)))
         break
 
 root.after(0, maj_par_type_ep)
