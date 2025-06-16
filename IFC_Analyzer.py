@@ -1559,6 +1559,53 @@ def reinitialiser_filtre_poteaux():
     _apply_filters_poteaux()
 
 
+def hide_infos_poutres():
+    """Masque le bloc d'informations complémentaires des poutres."""
+    for w in grid_infos_poutres.winfo_children():
+        w.destroy()
+
+
+def _update_infos_poutres(nom_sel: str):
+    """Affiche les informations de niveau pour la poutre sélectionnée."""
+    hide_infos_poutres()
+    tk.Label(grid_infos_poutres, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_poutres, text="N/A", bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+
+
+def _update_resume_poutres(nom_sel: str):
+    poutres_src = [p for p in donnees_ifc.get(ifc_actif, {}).get("poutres", []) if p[0] == nom_sel]
+    if not poutres_src:
+        return
+    total_len = total_surf = total_vol = 0.0
+    for _n, longu, surf, vol, _tp in poutres_src:
+        total_len += longu
+        total_surf += surf
+        total_vol += vol
+    label_longueur_totale_poutres.config(text=_format_summary_value(total_len, " m"))
+    label_surface_totale_poutres.config(text=_format_summary_value(total_surf, " m²"))
+    label_volume_totale_poutres.config(text=_format_summary_value(total_vol, " m³"))
+
+
+def afficher_infos_poutres(event=None):
+    sel = tree_poutres.selection()
+    if not sel:
+        hide_infos_poutres()
+        return
+    nom_sel = tree_poutres.item(sel[0])["values"][0]
+    _update_infos_poutres(nom_sel)
+    _update_resume_poutres(nom_sel)
+
+
+def afficher_infos_poutres_resume(event=None):
+    sel = tree_surfaces_poutres.selection()
+    if not sel:
+        hide_infos_poutres()
+        return
+    nom_sel = tree_surfaces_poutres.item(sel[0])["values"][0]
+    _update_infos_poutres(nom_sel)
+    _update_resume_poutres(nom_sel)
+
+
 def afficher_donnees_poutres(poutres=None):
     if poutres is None:
         poutres = donnees_ifc[ifc_actif]["poutres"]
@@ -1594,11 +1641,11 @@ def maj_par_type_poutres(poutres=None):
         agg[nom] = agg.get(nom, 0) + longu
     # injection
     for i, (nom, longu) in enumerate(sorted(agg.items())):
-        tk.Label(grid_types_poutres, text="🧱", bg="white")\
+        tk.Label(grid_types_poutres, text="🧱", bg="#E8F5E9")\
             .grid(row=i, column=0, padx=10, sticky="w")
-        tk.Label(grid_types_poutres, text=f"{nom} :", bg="white", width=60, anchor="w")\
+        tk.Label(grid_types_poutres, text=f"{nom} :", bg="#E8F5E9", width=60, anchor="w")\
             .grid(row=i, column=1)
-        tk.Label(grid_types_poutres, text=f"{round(longu,2)} m", bg="white")\
+        tk.Label(grid_types_poutres, text=f"{round(longu,2)} m", bg="#E8F5E9")\
             .grid(row=i, column=2, padx=(0, 20), sticky="e")
 
 def appliquer_filtre_poutres():
@@ -3452,6 +3499,7 @@ scroll_poutres = ttk.Scrollbar(frame_poutres_content, orient="vertical", command
 tree_poutres.configure(yscrollcommand=scroll_poutres.set)
 tree_poutres.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_poutres.pack(side="right", fill="y")
+tree_poutres.bind("<<TreeviewSelect>>", afficher_infos_poutres)
 
 frame_resume_poutres = tk.Frame(frame_poutres, bg="white", width=650)
 frame_resume_poutres.pack(side="right", fill="y", padx=10, pady=10)
@@ -3459,42 +3507,45 @@ frame_resume_poutres.pack_propagate(False)
 title_frame_resume_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
 title_frame_resume_poutres.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_poutres, text="RÉSUMÉ", font=("Helvetica", 14, "bold"), bg="#004D40", fg="white").pack(pady=5)
-general_frame_poutres = tk.Frame(frame_resume_poutres, bg="white", bd=1, relief="solid")
+general_frame_poutres = tk.Frame(frame_resume_poutres, bg="#E8F5E9", bd=2, relief="groove")
 general_frame_poutres.pack(fill="x", padx=5, pady=5)
-grid_resume_poutres = tk.Frame(general_frame_poutres, bg="white")
+grid_resume_poutres = tk.Frame(general_frame_poutres, bg="#E8F5E9")
 grid_resume_poutres.pack(pady=5)
 # Nouveau bandeau "INFORMATIONS COMPLÉMENTAIRES" juste sous le tableau Résumé
 # — Résumé POUTRES —
-tk.Label(grid_resume_poutres, text="📏 Longueur totale :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_longueur_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m", bg="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poutres, text="📏 Longueur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_longueur_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_longueur_totale_poutres.grid(row=0, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poutres, text="🏗️ Surface de coffrage :", bg="white", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
-label_surface_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m²", bg="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poutres, text="🏗️ Surface de coffrage :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
+label_surface_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m²", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_surface_totale_poutres.grid(row=1, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poutres, text="📦 Volume total :", bg="white", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
-label_volume_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m³", bg="white", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poutres, text="📦 Volume total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
+label_volume_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m³", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
 label_volume_totale_poutres.grid(row=2, column=1, sticky="e", padx=10)
-types_frame_poutres = tk.Frame(frame_resume_poutres, bg="white", bd=1, relief="solid")
-types_frame_poutres.pack(fill="x", padx=5, pady=5)
+title_frame_filtrage_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
+title_frame_filtrage_poutres.pack(fill="x", padx=5, pady=(15,0))
+tk.Label(title_frame_filtrage_poutres, text="FILTRAGE PAR NOMS", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
+types_frame_poutres = tk.Frame(frame_resume_poutres, bg="#E8F5E9", bd=2, relief="groove")
+types_frame_poutres.pack(fill="both", padx=5, pady=5, expand=True)
 
 # ---- Treeview résumé POUTRES ---------------------------------
-data_frame_types_poutres = tk.Frame(types_frame_poutres, bg="white")
+data_frame_types_poutres = tk.Frame(types_frame_poutres, bg="#E8F5E9")
 data_frame_types_poutres.pack(fill="both", padx=5, pady=5)
 
 tree_surfaces_poutres = ttk.Treeview(
     data_frame_types_poutres,
-    style="Summary.Treeview",
+    style="Green.Treeview",
     columns=("Type", "m"),
     show="headings",
     height=8
 )
-tree_surfaces_poutres.configure(style="Summary.Treeview")
+tree_surfaces_poutres.configure(style="Green.Treeview")
 tree_surfaces_poutres.heading("Type", text="Type")
 tree_surfaces_poutres.heading("m",    text="m")
 tree_surfaces_poutres.column("Type", anchor="w", width=500, stretch=True)
 tree_surfaces_poutres.column("m",    anchor="e", width=80,  stretch=False)
-tree_surfaces_poutres.tag_configure("evenrow", background="white")
-tree_surfaces_poutres.tag_configure("oddrow",  background="white")
+tree_surfaces_poutres.tag_configure("evenrow", background="#E8F5E9")
+tree_surfaces_poutres.tag_configure("oddrow",  background="#E8F5E9")
 
 scroll_surfaces_poutres = ttk.Scrollbar(
     data_frame_types_poutres, orient="vertical",
@@ -3530,10 +3581,17 @@ tree_surfaces_poutres.bind("<Button-1>", copy_type_summary_poutres)
 context_menu_surfaces_poutres = tk.Menu(root, tearoff=0)
 context_menu_surfaces_poutres.add_command(label="Copier", command=copy_type_summary_poutres)
 tree_surfaces_poutres.bind("<Button-3>", lambda e: (tree_surfaces_poutres.selection_set(tree_surfaces_poutres.identify_row(e.y)), context_menu_surfaces_poutres.post(e.x_root, e.y_root)))
+tree_surfaces_poutres.bind("<<TreeviewSelect>>", afficher_infos_poutres_resume)
 # Bandeau “INFORMATIONS COMPLÉMENTAIRES” sous le tableau Résumé
 info_frame_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
 info_frame_poutres.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(info_frame_poutres, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
+info_container_poutres = tk.Frame(frame_resume_poutres, bg="#E8F5E9", bd=2, relief="groove")
+info_container_poutres.pack(fill="x", padx=5, pady=5)
+grid_infos_poutres = tk.Frame(info_container_poutres, bg="#E8F5E9")
+grid_infos_poutres.pack(pady=5, fill="x")
+grid_infos_poutres.grid_columnconfigure(1, weight=1)
+grid_infos_poutres.grid_columnconfigure(0, weight=1)
 
 # ------------------------------------------------------------------
 
@@ -3560,13 +3618,13 @@ root.after(0, maj_par_type_poutres)
 # tk.Label(types_frame_poutres, text="Longueurs par type", font=("Helvetica", 12, "bold"), bg="white", fg="#004D40")\
     # .pack(anchor="center", pady=5)
 
-grid_types_poutres_container = tk.Frame(types_frame_poutres, bg="white", bd=1, relief="solid")
+grid_types_poutres_container = tk.Frame(types_frame_poutres, bg="#E8F5E9", bd=1, relief="solid")
 # grid_types_poutres_container.pack(fill="x", padx=5, pady=5)
 grid_types_poutres_container.pack_forget()  # hidden to remove blank area
 
-tk.Label(grid_types_poutres_container, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="white", fg="#004D40").pack(anchor="center", pady=5)
+tk.Label(grid_types_poutres_container, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#E8F5E9", fg="#004D40").pack(anchor="center", pady=5)
 
-canvas_grid_types_poutres = tk.Canvas(grid_types_poutres_container, bg="white", highlightthickness=0, height=150)
+canvas_grid_types_poutres = tk.Canvas(grid_types_poutres_container, bg="#E8F5E9", highlightthickness=0, height=150)
 canvas_grid_types_poutres.pack(side="left", fill="x", expand=True, padx=(5, 0), pady=5)
 
 scrollbar_grid_types_poutres = tk.Scrollbar(grid_types_poutres_container, orient="vertical", command=canvas_grid_types_poutres.yview)
@@ -3574,7 +3632,7 @@ scrollbar_grid_types_poutres.pack(side="right", fill="y", pady=5)
 
 canvas_grid_types_poutres.configure(yscrollcommand=scrollbar_grid_types_poutres.set)
 
-grid_types_poutres = tk.Frame(canvas_grid_types_poutres, bg="white")
+grid_types_poutres = tk.Frame(canvas_grid_types_poutres, bg="#E8F5E9")
 canvas_grid_types_poutres.create_window((0, 0), window=grid_types_poutres, anchor="nw")
 
 def on_configure_grid_types_poutres(event):
