@@ -4008,7 +4008,8 @@ def afficher_infos_descente_ep(event=None):
         ):
             storey = e[3]
             break
-    _update_infos_ep(nom_sel, longueur, storey)
+    _update_infos_ep(nom_sel, storey=storey)
+    _update_resume_ep(nom_sel)
 
 def afficher_infos_descente_ep_resume(event=None):
     sel = tree_surfaces_ep.selection()
