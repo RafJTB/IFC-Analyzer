@@ -386,7 +386,7 @@ def importer_ifc():
         progress_canvas = tk.Canvas(center_container, width=200, height=200, bg="#F2F2F2", highlightthickness=0)
         progress_canvas.pack(before=label_titre_accueil, pady=20)
         # Cercle de fond (gris clair)
-        progress_canvas.create_oval(20, 20, 180, 180, outline="#E0E0E0", width=8, tags="bg")
+        progress_canvas.create_oval(20, 20, 180, 180, outline="#B0B0B0", width=8, tags="bg")
 
         def update_progress(current, total) :
             if total == 0 :
@@ -1939,8 +1939,8 @@ def open_filtre_niveau(btn, callback):
     menu.grab_release()
 
 def create_niveau_button(parent, command):
-    """Crée un bouton 'Niveau' standard dans *parent* et retourne sa référence."""
-    btn = ttk.Button(parent, text="Niveau", command=command)
+    """Crée un bouton 'NIVEAU' standard dans *parent* et retourne sa référence."""
+    btn = ttk.Button(parent, text="NIVEAU", style="Simple.TButton", command=command)
     btn.pack(side="left", padx=5)
     return btn
 
@@ -2119,8 +2119,17 @@ style.configure("TButton", font=("Helvetica", 10), background="#26A69A", foregro
 style.configure("Tab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#B0BEC5", foreground="#263238")
 style.map("Tab.TButton", background=[("active", "#4DB6AC"), ("!active", "#B0BEC5")])
 style.configure("ActiveTab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#4CAF50", foreground="#FFFFFF")
-style.configure("Reset.TButton", font=("Helvetica", 10), background="#EF5350", foreground="#FFFFFF", padding=5)
-style.map("Reset.TButton", background=[("active", "#E53935")])
+style.configure(
+    "Simple.TButton",
+    font=("Helvetica", 9, "bold"),
+    background="white",
+    foreground="black",
+    padding=5,
+    relief="flat",
+)
+style.map("Simple.TButton", background=[("active", "#E0E0E0")])
+style.configure("Reset.TButton", font=("Helvetica", 9, "bold"), background="white", foreground="black", padding=5, relief="flat")
+style.map("Reset.TButton", background=[("active", "#E0E0E0")])
 style.configure("redrow.Treeview", background="#EF9A9A")
 print("Styles configurés")
 
@@ -2129,10 +2138,20 @@ header_frame.pack(side="top", fill="x")
 print("Cadre d'en-tête créé")
 tk.Label(header_frame, text="🏢 IFC Analyzer", font=("Helvetica", 16, "bold"), bg="#004D40", fg="#FFFFFF").pack(side="left", padx=20, pady=10)
 tk.Label(header_frame, text="par Rafael Jeantin", font=("Helvetica", 8, "italic"), bg="#004D40", fg="#B0BEC5").pack(side="left", padx=5, pady=10)
-btn_reset_global = ttk.Button(header_frame, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_tous_filtres)
+btn_reset_global = ttk.Button(
+    header_frame,
+    text="RÉINITIALISER",
+    style="Simple.TButton",
+    command=reinitialiser_tous_filtres,
+)
 btn_reset_global.pack(side="right", padx=10, pady=10)
 btn_reset_global.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-btn_niveau_global = ttk.Button(header_frame, text="Niveau", command=lambda: open_filtre_niveau_global())
+btn_niveau_global = ttk.Button(
+    header_frame,
+    text="NIVEAU",
+    style="Simple.TButton",
+    command=lambda: open_filtre_niveau_global(),
+)
 btn_niveau_global.pack(side="right", padx=10, pady=10)
 print("Éléments du header ajoutés")
 
@@ -2214,15 +2233,15 @@ def set_selected(btn) :
             child.config(bg="#004D40", fg="#ECEFF1")
     selected_button = btn
     canvas = canvas_rectangles[btn]
-    canvas.config(bg="#E0E0E0")
-    canvas.create_oval(0, 0, 20, 20, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
-    canvas.create_oval(canvas.winfo_width()-20, 0, canvas.winfo_width(), 20, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
-    canvas.create_oval(0, 30-20, 20, 30, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
-    canvas.create_oval(canvas.winfo_width()-20, 30-20, canvas.winfo_width(), 30, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
-    canvas.create_rectangle(10, 0, canvas.winfo_width()-10, 30, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
-    canvas.create_rectangle(0, 10, canvas.winfo_width(), 30-10, fill="#E0E0E0", outline="#E0E0E0", tags="highlight")
+    canvas.config(bg="#B0B0B0")
+    canvas.create_oval(0, 0, 20, 20, fill="#B0B0B0", outline="#B0B0B0", tags="highlight")
+    canvas.create_oval(canvas.winfo_width()-20, 0, canvas.winfo_width(), 20, fill="#B0B0B0", outline="#B0B0B0", tags="highlight")
+    canvas.create_oval(0, 30-20, 20, 30, fill="#B0B0B0", outline="#B0B0B0", tags="highlight")
+    canvas.create_oval(canvas.winfo_width()-20, 30-20, canvas.winfo_width(), 30, fill="#B0B0B0", outline="#B0B0B0", tags="highlight")
+    canvas.create_rectangle(10, 0, canvas.winfo_width()-10, 30, fill="#B0B0B0", outline="#B0B0B0", tags="highlight")
+    canvas.create_rectangle(0, 10, canvas.winfo_width(), 30-10, fill="#B0B0B0", outline="#B0B0B0", tags="highlight")
     for child in canvas.winfo_children() :
-        child.config(bg="#E0E0E0", fg="#000000")
+        child.config(bg="#B0B0B0", fg="#000000")
 
 content_frame = tk.Frame(root, bg="#F2F2F2")
 content_frame.pack(side="left", expand=True, fill="both", padx=10, pady=10)
