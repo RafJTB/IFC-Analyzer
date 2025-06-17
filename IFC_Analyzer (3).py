@@ -282,14 +282,9 @@ progress_canvas = None
 tabs_frame = None
 tab_buttons = []
 
-# Bouton filtrage par niveau (référence conservée pour le menu déroulant)
-btn_niveau_murs = None
-btn_niveau_menuiseries = None
-btn_niveau_type_sol = None
-btn_niveau_garde_corps = None
-btn_niveau_poteaux = None
-btn_niveau_poutres = None
-btn_niveau_ep = None
+# Boutons globaux de réinitialisation et de filtrage par niveau
+btn_reset_global = None
+btn_niveau_global = None
 
 # Filtres actifs pour le tableau MURS
 filtre_texte_murs = ""
@@ -1949,49 +1944,49 @@ def appliquer_filtre_niveau_murs(niveaux):
     appliquer_filtre_niveau("filtre_niveaux_murs", _apply_filters_murs, niveaux)
 
 def open_filtre_niveau_murs():
-    open_filtre_niveau(btn_niveau_murs, appliquer_filtre_niveau_murs)
+    open_filtre_niveau(btn_niveau_global, appliquer_filtre_niveau_murs)
 
 def appliquer_filtre_niveau_menuiseries(niveaux):
     """Filtrer les menuiseries selon une liste de niveaux."""
     appliquer_filtre_niveau("filtre_niveaux_menuiseries", _apply_filters_menuiseries, niveaux)
 
 def open_filtre_niveau_menuiseries():
-    open_filtre_niveau(btn_niveau_menuiseries, appliquer_filtre_niveau_menuiseries)
+    open_filtre_niveau(btn_niveau_global, appliquer_filtre_niveau_menuiseries)
 
 def appliquer_filtre_niveau_type_sol(niveaux):
     """Filtrer les revêtements de sol selon une liste de niveaux."""
     appliquer_filtre_niveau("filtre_niveaux_type_sol", _apply_filters_type_sol, niveaux)
 
 def open_filtre_niveau_type_sol():
-    open_filtre_niveau(btn_niveau_type_sol, appliquer_filtre_niveau_type_sol)
+    open_filtre_niveau(btn_niveau_global, appliquer_filtre_niveau_type_sol)
 
 def appliquer_filtre_niveau_garde_corps(niveaux):
     """Filtrer les garde-corps selon une liste de niveaux."""
     appliquer_filtre_niveau("filtre_niveaux_garde_corps", _apply_filters_garde_corps, niveaux)
 
 def open_filtre_niveau_garde_corps():
-    open_filtre_niveau(btn_niveau_garde_corps, appliquer_filtre_niveau_garde_corps)
+    open_filtre_niveau(btn_niveau_global, appliquer_filtre_niveau_garde_corps)
 
 def appliquer_filtre_niveau_poteaux(niveaux):
     """Filtrer les poteaux selon une liste de niveaux."""
     appliquer_filtre_niveau("filtre_niveaux_poteaux", _apply_filters_poteaux, niveaux)
 
 def open_filtre_niveau_poteaux():
-    open_filtre_niveau(btn_niveau_poteaux, appliquer_filtre_niveau_poteaux)
+    open_filtre_niveau(btn_niveau_global, appliquer_filtre_niveau_poteaux)
 
 def appliquer_filtre_niveau_poutres(niveaux):
     """Filtrer les poutres selon une liste de niveaux."""
     appliquer_filtre_niveau("filtre_niveaux_poutres", _apply_filters_poutres, niveaux)
 
 def open_filtre_niveau_poutres():
-    open_filtre_niveau(btn_niveau_poutres, appliquer_filtre_niveau_poutres)
+    open_filtre_niveau(btn_niveau_global, appliquer_filtre_niveau_poutres)
 
 def appliquer_filtre_niveau_ep(niveaux):
     """Filtrer les descentes EP selon une liste de niveaux."""
     appliquer_filtre_niveau("filtre_niveaux_ep", _apply_filters_ep, niveaux)
 
 def open_filtre_niveau_ep():
-    open_filtre_niveau(btn_niveau_ep, appliquer_filtre_niveau_ep)
+    open_filtre_niveau(btn_niveau_global, appliquer_filtre_niveau_ep)
 
 def appliquer_filtre_zero_menuiseries():
     """Filtrer pour n’afficher que les menuiseries avec quantité égale à 0."""
@@ -2129,8 +2124,9 @@ header_frame.pack(side="top", fill="x")
 print("Cadre d'en-tête créé")
 tk.Label(header_frame, text="🏢 IFC Analyzer", font=("Helvetica", 16, "bold"), bg="#004D40", fg="#FFFFFF").pack(side="left", padx=20, pady=10)
 tk.Label(header_frame, text="par Rafael Jeantin", font=("Helvetica", 8, "italic"), bg="#004D40", fg="#B0BEC5").pack(side="left", padx=5, pady=10)
-ttk.Button(header_frame, text="📥 Importer IFC", command=importer_ifc).pack(side="right", padx=10, pady=10)
-ttk.Button(header_frame, text="📤 Exporter Excel", command=exporter_excel).pack(side="right", padx=10, pady=10)
+btn_niveau_global = ttk.Button(header_frame, text="Niveau")
+btn_reset_global = ttk.Button(header_frame, text="Réinitialiser", style="Reset.TButton")
+btn_reset_global.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 print("Éléments du header ajoutés")
 
 sidebar_frame = tk.Frame(root, bg="#004D40", width=172)
@@ -2264,6 +2260,57 @@ def show_frame(frame) :
         current_frame.pack_forget()
     current_frame = frame
     current_frame.pack(expand=True, fill="both")
+    # Configure header buttons en fonction de l'onglet actif
+    if frame is frame_accueil:
+        btn_reset_global.pack_forget()
+        btn_niveau_global.pack_forget()
+    elif frame is frame_murs:
+        btn_reset_global.config(command=reinitialiser_filtre_murs)
+        btn_niveau_global.config(command=open_filtre_niveau_murs)
+        btn_niveau_global.pack(side="right", padx=10, pady=10)
+        btn_reset_global.pack(side="right", padx=10, pady=10)
+    elif frame is frame_menuiseries:
+        btn_reset_global.config(command=reinitialiser_filtre_menuiseries)
+        btn_niveau_global.config(command=open_filtre_niveau_menuiseries)
+        btn_niveau_global.pack(side="right", padx=10, pady=10)
+        btn_reset_global.pack(side="right", padx=10, pady=10)
+    elif frame is frame_type_sol:
+        btn_reset_global.config(command=reinitialiser_filtre_type_sol)
+        btn_niveau_global.config(command=open_filtre_niveau_type_sol)
+        btn_niveau_global.pack(side="right", padx=10, pady=10)
+        btn_reset_global.pack(side="right", padx=10, pady=10)
+    elif frame is frame_garde_corps:
+        btn_reset_global.config(command=reinitialiser_filtre_garde_corps)
+        btn_niveau_global.config(command=open_filtre_niveau_garde_corps)
+        btn_niveau_global.pack(side="right", padx=10, pady=10)
+        btn_reset_global.pack(side="right", padx=10, pady=10)
+    elif frame is frame_poteaux:
+        btn_reset_global.config(command=reinitialiser_filtre_poteaux)
+        btn_niveau_global.config(command=open_filtre_niveau_poteaux)
+        btn_niveau_global.pack(side="right", padx=10, pady=10)
+        btn_reset_global.pack(side="right", padx=10, pady=10)
+    elif frame is frame_poutres:
+        btn_reset_global.config(command=reinitialiser_filtre_poutres)
+        btn_niveau_global.config(command=open_filtre_niveau_poutres)
+        btn_niveau_global.pack(side="right", padx=10, pady=10)
+        btn_reset_global.pack(side="right", padx=10, pady=10)
+    elif frame is frame_descente_ep:
+        btn_reset_global.config(command=reinitialiser_filtre_ep)
+        btn_niveau_global.config(command=open_filtre_niveau_ep)
+        btn_niveau_global.pack(side="right", padx=10, pady=10)
+        btn_reset_global.pack(side="right", padx=10, pady=10)
+    elif frame is frame_escalier:
+        btn_reset_global.config(command=reinitialiser_filtre_escalier)
+        btn_niveau_global.pack_forget()
+        btn_reset_global.pack(side="right", padx=10, pady=10)
+    elif frame is frame_bord_dalle:
+        btn_reset_global.config(command=reinitialiser_filtre_bord_dalle)
+        btn_niveau_global.pack_forget()
+        btn_reset_global.pack(side="right", padx=10, pady=10)
+    elif frame is frame_type_plafond:
+        btn_reset_global.config(command=reinitialiser_filtre_type_plafond)
+        btn_niveau_global.pack_forget()
+        btn_reset_global.pack(side="right", padx=10, pady=10)
 
 btn_accueil = create_nav_button("🏠", "PAGE ACCUEIL", lambda : show_frame(frame_accueil), "Retour à la page d'accueil du logiciel.")
 tk.Frame(sidebar_frame, height=2, bg="#ECEFF1").pack(fill="x", padx=2, pady=5)
@@ -2296,21 +2343,15 @@ tk.Label(center_container, text="IFC Analyser révolutionne le métier d'économ
 label_surface_coffrage_totale = tk.Label(center_container, text="Surface de coffrage totale : 0.00 m²", font=("Helvetica", 12), bg="#F2F2F2", fg="#263238")
 # La ligne est volontairement non affichée sur la page d'accueil
 # label_surface_coffrage_totale.pack(pady=10)
+home_btn_frame = tk.Frame(center_container, bg="#F2F2F2")
+home_btn_frame.pack(pady=20)
+ttk.Button(home_btn_frame, text="📥 Importer IFC", command=importer_ifc).pack(side="left", padx=5)
+ttk.Button(home_btn_frame, text="📤 Exporter Excel", command=exporter_excel).pack(side="left", padx=5)
 print("Cadre d'accueil configuré")
 
 frame_murs_content = tk.Frame(frame_murs, bg="#F2F2F2")
 frame_murs_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_murs = tk.Frame(frame_murs_content, bg="#FFFFFF", bd=1, relief="solid")
-frame_filtre_murs.pack(fill="x", padx=10, pady=10)
-tk.Label(frame_filtre_murs, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_murs = tk.Entry(frame_filtre_murs, width=40)
-entree_filtre_murs.pack(side="left", padx=5)
-ttk.Button(frame_filtre_murs, text="Appliquer", command=appliquer_filtre_murs).pack(side="left", padx=5)
-btn_reset_murs = ttk.Button(frame_filtre_murs, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_murs)
-btn_reset_murs.pack(side="left", padx=5)
-btn_reset_murs.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-ttk.Button(frame_filtre_murs, text="Qt = 0", command=appliquer_filtre_zero_murs).pack(side="left", padx=5)
-btn_niveau_murs = create_niveau_button(frame_filtre_murs, open_filtre_niveau_murs)
+entree_filtre_murs = tk.Entry(frame_murs_content, width=40)
 print("Cadre de filtrage des murs créé")
 
 tree_murs = ttk.Treeview(frame_murs_content, columns=("Nom", "Surface (m²)", "Longueur ", "Volume (m³)", "Type"), show="headings")
@@ -2334,16 +2375,7 @@ print("Arborescence des murs créée")
 # --- Onglet ESCALIER (clone de MURS) ---
 frame_escalier_content = tk.Frame(frame_escalier, bg="#F2F2F2")
 frame_escalier_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_escalier = tk.Frame(frame_escalier_content, bg="#FFFFFF", bd=1, relief="solid")
-frame_filtre_escalier.pack(fill="x", padx=10, pady=10)
-tk.Label(frame_filtre_escalier, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_escalier = tk.Entry(frame_filtre_escalier, width=40)
-entree_filtre_escalier.pack(side="left", padx=5)
-ttk.Button(frame_filtre_escalier, text="Appliquer", command=appliquer_filtre_escalier).pack(side="left", padx=5)
-btn_reset_escalier = ttk.Button(frame_filtre_escalier, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_escalier)
-btn_reset_escalier.pack(side="left", padx=5)
-btn_reset_escalier.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-ttk.Button(frame_filtre_escalier, text="Qt = 0", command=appliquer_filtre_zero_escalier).pack(side="left", padx=5)
+entree_filtre_escalier = tk.Entry(frame_escalier_content, width=40)
 print("Cadre de filtrage des escaliers créé")
 
 tree_escalier = ttk.Treeview(frame_escalier_content, columns=("Nom", "HT volée", "HT contremarches", "NB contremarches", "NB marches"), show="headings")
@@ -2367,16 +2399,7 @@ frame_bord_dalle_content = tk.Frame(frame_bord_dalle, bg="#F2F2F2")
 frame_bord_dalle_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 
 # Barre de filtre
-frame_filtre_bord_dalle = tk.Frame(frame_bord_dalle_content, bg="#FFFFFF", bd=1, relief="solid")
-frame_filtre_bord_dalle.pack(fill="x", padx=10, pady=10)
-tk.Label(frame_filtre_bord_dalle, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_bord_dalle = tk.Entry(frame_filtre_bord_dalle, width=40)
-entree_filtre_bord_dalle.pack(side="left", padx=5)
-ttk.Button(frame_filtre_bord_dalle, text="Appliquer", command=appliquer_filtre_bord_dalle).pack(side="left", padx=5)
-btn_reset_bord_dalle = ttk.Button(frame_filtre_bord_dalle, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_bord_dalle)
-btn_reset_bord_dalle.pack(side="left", padx=5)
-btn_reset_bord_dalle.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-ttk.Button(frame_filtre_bord_dalle, text="Qt = 0", command=appliquer_filtre_zero_bord_dalle).pack(side="left", padx=5)
+entree_filtre_bord_dalle = tk.Entry(frame_bord_dalle_content, width=40)
 
 # Tableau principal
 tree_bord_dalle = ttk.Treeview(
@@ -2747,17 +2770,7 @@ print("Cadre de résumé des murs créés")
 
 frame_menuiseries_content = tk.Frame(frame_menuiseries, bg="#F2F2F2")
 frame_menuiseries_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_menuiseries = tk.Frame(frame_menuiseries_content, bg="#FFFFFF", bd=1, relief="solid")
-frame_filtre_menuiseries.pack(fill="x", padx=10, pady=10)
-tk.Label(frame_filtre_menuiseries, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_menuiseries = tk.Entry(frame_filtre_menuiseries, width=40)
-entree_filtre_menuiseries.pack(side="left", padx=5)
-ttk.Button(frame_filtre_menuiseries, text="Appliquer", command=appliquer_filtre_menuiseries).pack(side="left", padx=5)
-btn_reset_menuiseries = ttk.Button(frame_filtre_menuiseries, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_menuiseries)
-btn_reset_menuiseries.pack(side="left", padx=5)
-btn_reset_menuiseries.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-ttk.Button(frame_filtre_menuiseries, text="Qt = 0", command=appliquer_filtre_zero_menuiseries).pack(side="left", padx=5)
-btn_niveau_menuiseries = create_niveau_button(frame_filtre_menuiseries, open_filtre_niveau_menuiseries)
+entree_filtre_menuiseries = tk.Entry(frame_menuiseries_content, width=40)
 print("Cadre de filtrage des menuiseries créées")
 
 tree_menuiseries = ttk.Treeview(frame_menuiseries_content, columns=("Nom", "Surface (m²)", "Longueur ", "Hauteur (m)", "Type"), show="headings")
@@ -3014,17 +3027,7 @@ tree_surfaces_menuiseries.bind("<<TreeviewSelect>>", afficher_infos_menuiseries_
 
 frame_type_sol_content = tk.Frame(frame_type_sol, bg="#F2F2F2")
 frame_type_sol_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_type_sol = tk.Frame(frame_type_sol_content, bg="#FFFFFF", bd=1, relief="solid")
-frame_filtre_type_sol.pack(fill="x", padx=10, pady=10)
-tk.Label(frame_filtre_type_sol, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_type_sol = tk.Entry(frame_filtre_type_sol, width=40)
-entree_filtre_type_sol.pack(side="left", padx=5)
-ttk.Button(frame_filtre_type_sol, text="Appliquer", command=appliquer_filtre_type_sol).pack(side="left", padx=5)
-btn_reset_type_sol = ttk.Button(frame_filtre_type_sol, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_type_sol)
-btn_reset_type_sol.pack(side="left", padx=5)
-btn_reset_type_sol.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-ttk.Button(frame_filtre_type_sol, text="Qt = 0", command=appliquer_filtre_zero_type_sol).pack(side="left", padx=5)
-btn_niveau_type_sol = create_niveau_button(frame_filtre_type_sol, open_filtre_niveau_type_sol)
+entree_filtre_type_sol = tk.Entry(frame_type_sol_content, width=40)
 print("Cadre de filtrage des sols créé")
 
 tree_type_sol = ttk.Treeview(frame_type_sol_content, columns=("Nom", "Surface (m²)", "Longueur ", "Type"), show="headings")
@@ -3301,17 +3304,7 @@ def _update_resume_garde_corps(nom_sel: str):
 
 frame_garde_corps_content = tk.Frame(frame_garde_corps, bg="#F2F2F2")
 frame_garde_corps_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_garde_corps = tk.Frame(frame_garde_corps_content, bg="#FFFFFF", bd=1, relief="solid")
-frame_filtre_garde_corps.pack(fill="x", padx=10, pady=10)
-tk.Label(frame_filtre_garde_corps, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_garde_corps = tk.Entry(frame_filtre_garde_corps, width=40)
-entree_filtre_garde_corps.pack(side="left", padx=5)
-ttk.Button(frame_filtre_garde_corps, text="Appliquer", command=appliquer_filtre_garde_corps).pack(side="left", padx=5)
-btn_reset_garde_corps = ttk.Button(frame_filtre_garde_corps, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_filtre_garde_corps)
-btn_reset_garde_corps.pack(side="left", padx=5)
-btn_reset_garde_corps.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-ttk.Button(frame_filtre_garde_corps, text="Qt = 0", command=appliquer_filtre_zero_garde_corps).pack(side="left", padx=5)
-btn_niveau_garde_corps = create_niveau_button(frame_filtre_garde_corps, open_filtre_niveau_garde_corps)
+entree_filtre_garde_corps = tk.Entry(frame_garde_corps_content, width=40)
 print("Cadre de filtrage des garde-corps créé")
 
 tree_garde_corps = ttk.Treeview(frame_garde_corps_content, columns=("Nom", "Largeur (m)", "Type"), show="headings")
@@ -3435,20 +3428,7 @@ grid_infos_garde_corps.grid_columnconfigure(0, weight=1)
 # Titre Informations Complémentaires
 frame_poteaux_content = tk.Frame(frame_poteaux, bg="#F2F2F2")
 frame_poteaux_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_poteaux = tk.Frame(frame_poteaux_content, bg="#FFFFFF", bd=1, relief="solid")
-frame_filtre_poteaux.pack(fill="x", padx=10, pady=10)
-tk.Label(frame_filtre_poteaux, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_poteaux = tk.Entry(frame_filtre_poteaux, width=40)
-entree_filtre_poteaux.pack(side="left", padx=5)
-ttk.Button(frame_filtre_poteaux, text="Appliquer",  command=appliquer_filtre_poteaux).pack(side="left", padx=5)
-btn_reset_poteaux = ttk.Button(frame_filtre_poteaux,
-           text="Réinitialiser",
-           style="Reset.TButton",
-           command=reinitialiser_filtre_poteaux)
-btn_reset_poteaux.pack(side="left", padx=5)
-btn_reset_poteaux.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-ttk.Button(frame_filtre_poteaux, text="Qt = 0", command=appliquer_filtre_zero_poteaux).pack(side="left", padx=5)
-btn_niveau_poteaux = create_niveau_button(frame_filtre_poteaux, open_filtre_niveau_poteaux)
+entree_filtre_poteaux = tk.Entry(frame_poteaux_content, width=40)
 
 
 tree_poteaux = ttk.Treeview(
@@ -3616,20 +3596,7 @@ grid_types_poteaux.bind("<Configure>", on_configure_grid_types_poteaux)
 # —— UI POUTRES ———————————————————————————————————————————
 frame_poutres_content = tk.Frame(frame_poutres, bg="#F2F2F2")
 frame_poutres_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
-frame_filtre_poutres = tk.Frame(frame_poutres_content, bg="#FFFFFF", bd=1, relief="solid")
-frame_filtre_poutres.pack(fill="x", padx=10, pady=10)
-tk.Label(frame_filtre_poutres, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_poutres = tk.Entry(frame_filtre_poutres, width=40)
-entree_filtre_poutres.pack(side="left", padx=5)
-ttk.Button(frame_filtre_poutres, text="Appliquer",  command=appliquer_filtre_poutres).pack(side="left", padx=5)
-btn_reset_poutres = ttk.Button(frame_filtre_poutres,
-           text="Réinitialiser",
-           style="Reset.TButton",
-           command=reinitialiser_filtre_poutres)
-btn_reset_poutres.pack(side="left", padx=5)
-btn_reset_poutres.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-ttk.Button(frame_filtre_poutres, text="Qt = 0", command=appliquer_filtre_zero_poutres).pack(side="left", padx=5)
-btn_niveau_poutres = create_niveau_button(frame_filtre_poutres, open_filtre_niveau_poutres)
+entree_filtre_poutres = tk.Entry(frame_poutres_content, width=40)
 
 
 tree_poutres = ttk.Treeview(
@@ -3819,17 +3786,7 @@ if __name__ == "__main__":
 frame_descente_ep_content = tk.Frame(frame_descente_ep, bg="#F2F2F2")
 frame_descente_ep_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 
-frame_filtre_ep = tk.Frame(frame_descente_ep_content, bg="#FFFFFF", bd=1, relief="solid")
-frame_filtre_ep.pack(fill="x", padx=10, pady=10)
-tk.Label(frame_filtre_ep, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_ep = tk.Entry(frame_filtre_ep, width=40)
-entree_filtre_ep.pack(side="left", padx=5)
-ttk.Button(frame_filtre_ep, text="Appliquer",  command=lambda: appliquer_filtre_ep()).pack(side="left", padx=5)
-btn_reset_ep = ttk.Button(frame_filtre_ep, text="Réinitialiser", style="Reset.TButton", command=lambda: reinitialiser_filtre_ep())
-btn_reset_ep.pack(side="left", padx=5)
-btn_reset_ep.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-ttk.Button(frame_filtre_ep, text="Qt = 0", command=lambda: appliquer_filtre_zero_ep()).pack(side="left", padx=5)
-btn_niveau_ep = create_niveau_button(frame_filtre_ep, open_filtre_niveau_ep)
+entree_filtre_ep = tk.Entry(frame_descente_ep_content, width=40)
 
 tree_ep = ttk.Treeview(
     frame_descente_ep_content,
@@ -4090,16 +4047,7 @@ frame_type_plafond_content = tk.Frame(frame_type_plafond, bg="#F2F2F2")
 frame_type_plafond_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 
 # ---- Barre de filtre ----
-frame_filtre_type_plafond = tk.Frame(frame_type_plafond_content, bg="#FFFFFF", bd=1, relief="solid")
-frame_filtre_type_plafond.pack(fill="x", padx=10, pady=10)
-tk.Label(frame_filtre_type_plafond, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
-entree_filtre_type_plafond = tk.Entry(frame_filtre_type_plafond, width=40)
-entree_filtre_type_plafond.pack(side="left", padx=5)
-ttk.Button(frame_filtre_type_plafond, text="Appliquer", command=lambda: appliquer_filtre_type_plafond()).pack(side="left", padx=5)
-btn_reset_type_plafond = ttk.Button(frame_filtre_type_plafond, text="Réinitialiser", style="Reset.TButton", command=lambda: reinitialiser_filtre_type_plafond())
-btn_reset_type_plafond.pack(side="left", padx=5)
-btn_reset_type_plafond.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-ttk.Button(frame_filtre_type_plafond, text="Qt = 0", command=lambda: appliquer_filtre_zero_type_plafond()).pack(side="left", padx=5)
+entree_filtre_type_plafond = tk.Entry(frame_type_plafond_content, width=40)
 print("Cadre de filtrage des plafonds créé")
 
 # ---- Treeview principal ----
