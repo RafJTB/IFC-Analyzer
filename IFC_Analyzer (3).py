@@ -2223,30 +2223,22 @@ def set_selected(btn) :
 
 # --- Utilitaire pour créer un bloc avec ombre -------------------------------
 def create_shadow_frame(parent, width=650, pad=10):
-    """Retourne un ``Canvas`` et une ``Frame`` avec un effet d'ombre douce."""
-
+    """Crée un conteneur avec un effet d'ombre douce autour du bloc."""
     canvas = tk.Canvas(parent, bg="#F2F2F2", highlightthickness=0, bd=0)
-    shadow_rect = canvas.create_rectangle(0, 0, 0, 0, fill="#d0d0d0", outline="")
+    canvas.pack(side="right", fill="y", padx=pad, pady=pad)
 
+    shadow_rect = canvas.create_rectangle(0, 0, 0, 0, fill="#d0d0d0", outline="")
     frame = tk.Frame(canvas, bg="white", width=width)
     canvas_window = canvas.create_window((0, 0), window=frame, anchor="nw")
 
     def update_shadow(_=None):
-        canvas.coords(
-            shadow_rect,
-            4,
-            4,
-            frame.winfo_width() + 4,
-            frame.winfo_height() + 4,
-        )
+        canvas.coords(shadow_rect, 4, 4, frame.winfo_width() + 4, frame.winfo_height() + 4)
         canvas.tag_lower(shadow_rect, canvas_window)
         canvas.config(scrollregion=canvas.bbox("all"))
 
     frame.bind("<Configure>", update_shadow)
     update_shadow()
-
-    # L'appelant choisit comment placer le canvas (``pack`` ou ``grid``)
-    return canvas, frame
+    return frame
 
 content_frame = tk.Frame(root, bg="#F2F2F2")
 content_frame.pack(side="left", expand=True, fill="both", padx=10, pady=10)
@@ -2408,8 +2400,7 @@ tree_bord_dalle.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=1
 scroll_bord_dalle.pack(side="right", fill="y")
 
 # Panneau résumé à droite
-shadow_canvas_bord_dalle, frame_resume_bord_dalle = create_shadow_frame(frame_bord_dalle)
-shadow_canvas_bord_dalle.pack(side="right", fill="y", padx=10, pady=10)
+frame_resume_bord_dalle = create_shadow_frame(frame_bord_dalle)
 frame_resume_bord_dalle.pack_propagate(False)
 
 # Titre résumé
@@ -2474,8 +2465,7 @@ print("UI BORD DE DALLE créée")
 
 
 # Bloc Résumé escalier
-shadow_canvas_escalier, frame_resume_escalier = create_shadow_frame(frame_escalier)
-shadow_canvas_escalier.pack(side="right", fill="y", padx=10, pady=10)
+frame_resume_escalier = create_shadow_frame(frame_escalier)
 frame_resume_escalier.pack_propagate(False)
 title_frame_resume_escalier = tk.Frame(frame_resume_escalier, bg="#004D40")
 title_frame_resume_escalier.pack(fill="x", padx=5, pady=(5,0))
@@ -2494,8 +2484,7 @@ tk.Label(grid_resume_escalier, text="Nombre total de marches :", bg="#FFFFFF").g
 nb_total_marches = sum(e[4] for e in donnees_ifc.get(ifc_actif, {}).get("escaliers", []))
 tk.Label(grid_resume_escalier, text=str(nb_total_marches), bg="#FFFFFF").grid(row=1, column=1, sticky="e", padx=5, pady=2)
 
-shadow_canvas_murs, frame_resume_murs = create_shadow_frame(frame_murs)
-shadow_canvas_murs.pack(side="right", fill="y", padx=10, pady=10)
+frame_resume_murs = create_shadow_frame(frame_murs)
 frame_resume_murs.pack_propagate(False)
 title_frame_resume_murs = tk.Frame(frame_resume_murs, bg="#004D40")
 title_frame_resume_murs.pack(fill="x", padx=5, pady=(5,0))
@@ -2788,8 +2777,7 @@ tree_menuiseries.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=
 scroll_menuiseries.pack(side="right", fill="y")
 print("Arborescence des menuiseries créées")
 
-shadow_canvas_menuiseries, frame_resume_menuiseries = create_shadow_frame(frame_menuiseries)  # Même largeur que "MURS"
-shadow_canvas_menuiseries.pack(side="right", fill="y", padx=10, pady=10)
+frame_resume_menuiseries = create_shadow_frame(frame_menuiseries)  # Même largeur que "MURS"
 frame_resume_menuiseries.pack_propagate(False)
 title_frame_resume_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#004D40")
 title_frame_resume_menuiseries.pack(fill="x", padx=5, pady=(5,0))
@@ -3055,8 +3043,7 @@ tree_type_sol.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_type_sol.pack(side="right", fill="y")
 print("Arborescence des sols créée")
 
-shadow_canvas_type_sol, frame_resume_type_sol = create_shadow_frame(frame_type_sol)
-shadow_canvas_type_sol.pack(side="right", fill="y", padx=10, pady=10)
+frame_resume_type_sol = create_shadow_frame(frame_type_sol)
 frame_resume_type_sol.pack_propagate(False)
 title_frame_resume_type_sol = tk.Frame(frame_resume_type_sol, bg="#004D40")
 title_frame_resume_type_sol.pack(fill="x", padx=5, pady=(5,0))
@@ -3346,8 +3333,7 @@ print("Arborescence des garde-corps créée")
 # Remplacer la partie frame_resume_garde_corps par le code ci-dessous :
 
 # Cadre de résumé
-shadow_canvas_gc, frame_resume_garde_corps = create_shadow_frame(frame_garde_corps)
-shadow_canvas_gc.pack(side="right", fill="y", padx=10, pady=10)
+frame_resume_garde_corps = create_shadow_frame(frame_garde_corps)
 frame_resume_garde_corps.pack_propagate(False)
 
 # Titre Résumé
@@ -3480,8 +3466,7 @@ tree_poteaux.configure(yscrollcommand=scroll_poteaux.set)
 tree_poteaux.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_poteaux.pack(side="right", fill="y")
 
-shadow_canvas_poteaux, frame_resume_poteaux = create_shadow_frame(frame_poteaux)
-shadow_canvas_poteaux.pack(side="right", fill="y", padx=10, pady=10)
+frame_resume_poteaux = create_shadow_frame(frame_poteaux)
 frame_resume_poteaux.pack_propagate(False)
 title_frame_resume_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 title_frame_resume_poteaux.pack(fill="x", padx=5, pady=(5,0))
@@ -3663,8 +3648,7 @@ tree_poutres.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_poutres.pack(side="right", fill="y")
 tree_poutres.bind("<<TreeviewSelect>>", afficher_infos_poutres)
 
-shadow_canvas_poutres, frame_resume_poutres = create_shadow_frame(frame_poutres)
-shadow_canvas_poutres.pack(side="right", fill="y", padx=10, pady=10)
+frame_resume_poutres = create_shadow_frame(frame_poutres)
 frame_resume_poutres.pack_propagate(False)
 title_frame_resume_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
 title_frame_resume_poutres.pack(fill="x", padx=5, pady=(5,0))
@@ -3886,8 +3870,7 @@ def _update_resume_descente_ep(nom):
 tree_ep.bind("<<TreeviewSelect>>", afficher_infos_descente_ep)
 scroll_ep.pack(side="right", fill="y")
 
-shadow_canvas_ep, frame_resume_ep = create_shadow_frame(frame_descente_ep)
-shadow_canvas_ep.pack(side="right", fill="y", padx=10, pady=10)
+frame_resume_ep = create_shadow_frame(frame_descente_ep)
 frame_resume_ep.pack_propagate(False)
 title_frame_resume_ep = tk.Frame(frame_resume_ep, bg="#004D40")
 title_frame_resume_ep.pack(fill="x", padx=5, pady=(5,0))
@@ -4158,8 +4141,7 @@ tree_type_plafond.bind("<Button-3>", show_context_menu_type_plafond)
 print("Arborescence des plafonds créée")
 
 # ---- Colonne de résumé / droite ----
-shadow_canvas_type_plafond, frame_resume_type_plafond = create_shadow_frame(frame_type_plafond)
-shadow_canvas_type_plafond.pack(side="right", fill="y", padx=10, pady=10)
+frame_resume_type_plafond = create_shadow_frame(frame_type_plafond)
 frame_resume_type_plafond.pack_propagate(False)
 
 title_frame_resume_type_plafond = tk.Frame(frame_resume_type_plafond, bg="#004D40")
