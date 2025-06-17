@@ -2133,7 +2133,7 @@ ttk.Button(header_frame, text="📥 Importer IFC", command=importer_ifc).pack(si
 ttk.Button(header_frame, text="📤 Exporter Excel", command=exporter_excel).pack(side="right", padx=10, pady=10)
 print("Éléments du header ajoutés")
 
-sidebar_frame = tk.Frame(root, bg="#263238", width=172)
+sidebar_frame = tk.Frame(root, bg="#004D40", width=172)
 sidebar_frame.pack(side="left", fill="y")
 sidebar_frame.pack_propagate(False)
 print("Cadre de la barre latérale créé")
@@ -2167,14 +2167,14 @@ class Tooltip :
 
 def create_nav_button(emoji, text, command, tooltip_text) :
     global selected_button
-    btn_frame = tk.Frame(sidebar_frame, bg="#263238", height=30)
+    btn_frame = tk.Frame(sidebar_frame, bg="#004D40", height=30)
     btn_frame.pack(fill="x", padx=2, pady=2)
-    canvas = tk.Canvas(btn_frame, bg="#263238", highlightthickness=0, height=30)
+    canvas = tk.Canvas(btn_frame, bg="#004D40", highlightthickness=0, height=30)
     canvas.pack(fill="x")
-    btn = tk.Button(canvas, bg="#263238", bd=0, command=lambda: [set_selected(btn), command()])
+    btn = tk.Button(canvas, bg="#004D40", bd=0, command=lambda: [set_selected(btn), command()])
     btn.place(relx=0, rely=0, relwidth=1, relheight=1)
-    emoji_label = tk.Label(canvas, text=emoji, font=("Helvetica", 12), bg="#263238", fg="#ECEFF1", width=1, anchor="w")
-    text_label = tk.Label(canvas, text=text, font=("Helvetica", 9), bg="#263238", fg="#ECEFF1", anchor="w")
+    emoji_label = tk.Label(canvas, text=emoji, font=("Helvetica", 12), bg="#004D40", fg="#ECEFF1", width=1, anchor="w")
+    text_label = tk.Label(canvas, text=text, font=("Helvetica", 9), bg="#004D40", fg="#ECEFF1", anchor="w")
     canvas.create_window(10, 15, window=emoji_label, anchor="w")
     canvas.create_window(35, 15, window=text_label, anchor="w")
     Tooltip(btn_frame, tooltip_text)
@@ -2187,9 +2187,9 @@ def create_nav_button(emoji, text, command, tooltip_text) :
             text_label.config(bg="#37474F", fg="#ECEFF1")
     def on_leave(e) :
         if btn != selected_button :
-            canvas.config(bg="#263238")
-            emoji_label.config(bg="#263238", fg="#ECEFF1")
-            text_label.config(bg="#263238", fg="#ECEFF1")
+            canvas.config(bg="#004D40")
+            emoji_label.config(bg="#004D40", fg="#ECEFF1")
+            text_label.config(bg="#004D40", fg="#ECEFF1")
     btn_frame.bind("<Enter>", on_enter)
     btn_frame.bind("<Leave>", on_leave)
     emoji_label.bind("<Enter>", on_enter)
@@ -2206,9 +2206,9 @@ def set_selected(btn) :
     global selected_button
     for button, canvas in canvas_rectangles.items() :
         canvas.delete("highlight")
-        canvas.config(bg="#263238")
+        canvas.config(bg="#004D40")
         for child in canvas.winfo_children() :
-            child.config(bg="#263238", fg="#ECEFF1")
+            child.config(bg="#004D40", fg="#ECEFF1")
     selected_button = btn
     canvas = canvas_rectangles[btn]
     canvas.config(bg="#E0E0E0")
