@@ -383,7 +383,7 @@ def importer_ifc():
         print(f"Début import IFC : {chemin_fichier}")
         if progress_canvas :
             progress_canvas.destroy()
-        progress_canvas = tk.Canvas(center_container, width=200, height=200, bg="#FAFAFA", highlightthickness=0)
+        progress_canvas = tk.Canvas(center_container, width=200, height=200, bg="#F2F2F2", highlightthickness=0)
         progress_canvas.pack(before=label_titre_accueil, pady=20)
         # Cercle de fond (gris clair)
         progress_canvas.create_oval(20, 20, 180, 180, outline="#E0E0E0", width=8, tags="bg")
@@ -1249,17 +1249,17 @@ def afficher_donnees_murs(murs):
         widget.destroy()
     left_row = right_row = 0
     # --- colonne gauche
-    tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(longueur_totale, " ml"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    tk.Label(grid_resume_murs, text="📦 Volume :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(volume_total, " m³"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📦 Volume :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(volume_total, " m³"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_totale, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_nette, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
 
     # --- calcul surfaces nettes par catégorie
@@ -1271,17 +1271,17 @@ def afficher_donnees_murs(murs):
         surface_cloisons_nette = max(surface_cloisons - surface_menuiseries_tot * ratio_cloisons, 0.0)
 
     # --- colonne droite
-    tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    tk.Label(grid_resume_murs, text="🧱 Surface murs nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🧱 Surface murs nette :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs_nette, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     for widget in grid_types_murs.winfo_children() :
         widget.destroy()
     # on cache canvas au départ
@@ -1384,37 +1384,37 @@ def afficher_donnees_menuiseries(menuiseries):
     left_row = right_row = 0
 
     if count > 0:
-        tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
         left_row += 1
 
-    tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_menuiseries, text=f"{round(longueur_totale, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{round(longueur_totale, 2)} ml", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
 
-    tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_menuiseries, text=f"{round(surface_totale, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{round(surface_totale, 2)} m²", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
 
     if embrasures > 0:
-        tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(embrasures, 2)} ml", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(embrasures, 2)} ml", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
         left_row += 1
 
     if surface_mint > 0:
-        tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mint, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mint, 2)} m²", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
         right_row += 1
 
     if surface_mext > 0:
-        tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mext, 2)} m²", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+        tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+        tk.Label(grid_resume_menuiseries, text=f"{round(surface_mext, 2)} m²", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
         right_row += 1
 
     facade_total = _calc_total_facade_surface()
     pourc_vitree = (surface_mext / facade_total * 100) if facade_total > 0 else 0.0
-    tk.Label(grid_resume_menuiseries, text="% de Façades vitrées :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_menuiseries, text=f"{round(pourc_vitree, 2)} %", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="% de Façades vitrées :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{round(pourc_vitree, 2)} %", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
     for widget in grid_types_menuiseries.winfo_children() :
         widget.destroy()
@@ -1461,16 +1461,16 @@ def afficher_donnees_type_sol(sols=None):
     for w in grid_resume_type_sol.winfo_children():
         w.destroy()
     row = 0
-    tk.Label(grid_resume_type_sol, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="📏 Longueur :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
-    tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
     surface_nette = _calc_surface_nette_sols(sols)
 
-    tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
     # --- bloc "Surfaces par type" remplacé par Treeview
     # Mise à jour du Treeview des surfaces par type
@@ -1514,11 +1514,11 @@ def afficher_donnees_garde_corps(garde_corps=None):
     for w in grid_resume_garde_corps.winfo_children():
         w.destroy()
     row = 0
-    tk.Label(grid_resume_garde_corps, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_garde_corps, text="📏 Longueur :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     # ligne vide pour conserver la hauteur
     row += 1
-    tk.Label(grid_resume_garde_corps, text="", bg="#E8F5E9").grid(row=row, column=0, pady=2)
+    tk.Label(grid_resume_garde_corps, text="", bg="#FFFFFF").grid(row=row, column=0, pady=2)
 
     maj_largeur_par_type_garde_corps(garde_corps)
 
@@ -1582,8 +1582,8 @@ def _update_infos_poteaux(nom_sel: str, storey: str = None):
     else:
         niveaux = [storey] if storey else []
     niveau_txt = " - ".join(niveaux) if niveaux else "N/A"
-    tk.Label(grid_infos_poteaux, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_poteaux, text=niveau_txt, bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_poteaux, text="Niveau :", bg="#FFFFFF", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_poteaux, text=niveau_txt, bg="#FFFFFF", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
 
 
 def _update_resume_poteaux(nom_sel: str):
@@ -1628,8 +1628,8 @@ def _update_infos_poutres(nom_sel: str, storey: str = None):
     else:
         niveaux = [storey] if storey else []
     niveau_txt = " - ".join(niveaux) if niveaux else "N/A"
-    tk.Label(grid_infos_poutres, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_poutres, text=niveau_txt, bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_poutres, text="Niveau :", bg="#FFFFFF", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_poutres, text=niveau_txt, bg="#FFFFFF", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
 
 
 def _update_resume_poutres(nom_sel: str):
@@ -1720,11 +1720,11 @@ def maj_par_type_poutres(poutres=None):
         agg[nom] = agg.get(nom, 0) + longu
     # injection
     for i, (nom, longu) in enumerate(sorted(agg.items())):
-        tk.Label(grid_types_poutres, text="🧱", bg="#E8F5E9")\
+        tk.Label(grid_types_poutres, text="🧱", bg="#FFFFFF")\
             .grid(row=i, column=0, padx=10, sticky="w")
-        tk.Label(grid_types_poutres, text=f"{nom} :", bg="#E8F5E9", width=60, anchor="w")\
+        tk.Label(grid_types_poutres, text=f"{nom} :", bg="#FFFFFF", width=60, anchor="w")\
             .grid(row=i, column=1)
-        tk.Label(grid_types_poutres, text=f"{round(longu,2)} m", bg="#E8F5E9")\
+        tk.Label(grid_types_poutres, text=f"{round(longu,2)} m", bg="#FFFFFF")\
             .grid(row=i, column=2, padx=(0, 20), sticky="e")
 
 def appliquer_filtre_poutres():
@@ -2077,13 +2077,13 @@ try:
 
     # --- Style for green Treeviews ---
     style = ttk.Style()
-    style.configure("Green.Treeview", background="#E8F5E9", fieldbackground="#E8F5E9", foreground="black")
+    style.configure("Green.Treeview", background="#FFFFFF", fieldbackground="#FFFFFF", foreground="black")
     style.map("Green.Treeview",
-                     background=[("selected", "#E8F5E9")],
+                     background=[("selected", "#FFFFFF")],
                      foreground=[("selected", "black")])
     root.title("🏢 Analyseur IFC")
     root.geometry("1200x750")
-    root.configure(bg="#FAFAFA")
+    root.configure(bg="#F2F2F2")
     print("Fenêtre Tkinter initialisée")
 except Exception as e:
     print(f"Erreur d'initialisation Tkinter : {e}")
@@ -2104,8 +2104,8 @@ style.configure("Treeview",
 
 # Re-apply green Treeview style so empty areas keep green background
 style.configure("Green.Treeview",
-                background="#E8F5E9",
-                fieldbackground="#E8F5E9",
+                background="#FFFFFF",
+                fieldbackground="#FFFFFF",
                 foreground="black")
 style.map("Green.Treeview",
           background=[("selected", "#A5D6A7")],
@@ -2221,20 +2221,20 @@ def set_selected(btn) :
     for child in canvas.winfo_children() :
         child.config(bg="#E0E0E0", fg="#000000")
 
-content_frame = tk.Frame(root, bg="#FAFAFA")
+content_frame = tk.Frame(root, bg="#F2F2F2")
 content_frame.pack(side="left", expand=True, fill="both", padx=10, pady=10)
 print("Contenu frame créé")
-frame_accueil = tk.Frame(content_frame, bg="#FAFAFA")
-frame_murs = tk.Frame(content_frame, bg="#FAFAFA")
-frame_menuiseries = tk.Frame(content_frame, bg="#FAFAFA")
-frame_type_sol = tk.Frame(content_frame, bg="#FAFAFA")
-frame_garde_corps = tk.Frame(content_frame, bg="#FAFAFA")
-frame_poteaux = tk.Frame(content_frame, bg="#FAFAFA")
-frame_poutres = tk.Frame(content_frame, bg="#FAFAFA")
-frame_descente_ep = tk.Frame(content_frame, bg="#FAFAFA")
-frame_escalier = tk.Frame(content_frame, bg="#FAFAFA")
-frame_bord_dalle = tk.Frame(content_frame, bg="#FAFAFA")
-frame_type_plafond = tk.Frame(content_frame, bg="#FAFAFA")
+frame_accueil = tk.Frame(content_frame, bg="#F2F2F2")
+frame_murs = tk.Frame(content_frame, bg="#F2F2F2")
+frame_menuiseries = tk.Frame(content_frame, bg="#F2F2F2")
+frame_type_sol = tk.Frame(content_frame, bg="#F2F2F2")
+frame_garde_corps = tk.Frame(content_frame, bg="#F2F2F2")
+frame_poteaux = tk.Frame(content_frame, bg="#F2F2F2")
+frame_poutres = tk.Frame(content_frame, bg="#F2F2F2")
+frame_descente_ep = tk.Frame(content_frame, bg="#F2F2F2")
+frame_escalier = tk.Frame(content_frame, bg="#F2F2F2")
+frame_bord_dalle = tk.Frame(content_frame, bg="#F2F2F2")
+frame_type_plafond = tk.Frame(content_frame, bg="#F2F2F2")
 
 print("Frames principaux créés")
 current_frame = frame_accueil
@@ -2267,19 +2267,19 @@ for btn in hidden_nav_buttons:
 
 print("Boutons de navigation créés")
 
-frame_accueil_content = tk.Frame(frame_accueil, bg="#FAFAFA")
+frame_accueil_content = tk.Frame(frame_accueil, bg="#F2F2F2")
 frame_accueil_content.pack(expand=True, fill="both", padx=10, pady=10)
-center_container = tk.Frame(frame_accueil_content, bg="#FAFAFA")
+center_container = tk.Frame(frame_accueil_content, bg="#F2F2F2")
 center_container.place(relx=0.5, rely=0.5, anchor="center")
-label_titre_accueil = tk.Label(center_container, text="Logiciel à but non lucratif", font=("Helvetica", 16, "bold"), bg="#FAFAFA", fg="#263238")
+label_titre_accueil = tk.Label(center_container, text="Logiciel à but non lucratif", font=("Helvetica", 16, "bold"), bg="#F2F2F2", fg="#263238")
 label_titre_accueil.pack(pady=10)
-tk.Label(center_container, text="IFC Analyser révolutionne le métier d'économiste en automatisant l'extraction et l'analyse des données IFC.", font=("Helvetica", 12, "italic"), bg="#FAFAFA", fg="#263238", wraplength=500, justify="center").pack(pady=10)
-label_surface_coffrage_totale = tk.Label(center_container, text="Surface de coffrage totale : 0.00 m²", font=("Helvetica", 12), bg="#FAFAFA", fg="#263238")
+tk.Label(center_container, text="IFC Analyser révolutionne le métier d'économiste en automatisant l'extraction et l'analyse des données IFC.", font=("Helvetica", 12, "italic"), bg="#F2F2F2", fg="#263238", wraplength=500, justify="center").pack(pady=10)
+label_surface_coffrage_totale = tk.Label(center_container, text="Surface de coffrage totale : 0.00 m²", font=("Helvetica", 12), bg="#F2F2F2", fg="#263238")
 # La ligne est volontairement non affichée sur la page d'accueil
 # label_surface_coffrage_totale.pack(pady=10)
 print("Cadre d'accueil configuré")
 
-frame_murs_content = tk.Frame(frame_murs, bg="#FAFAFA")
+frame_murs_content = tk.Frame(frame_murs, bg="#F2F2F2")
 frame_murs_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 frame_filtre_murs = tk.Frame(frame_murs_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_murs.pack(fill="x", padx=10, pady=10)
@@ -2303,7 +2303,7 @@ tree_murs.column("Surface (m²)", anchor="center", width=40, minwidth=40, stretc
 tree_murs.column("Longueur ", anchor="center", width=40, minwidth=40, stretch=True)
 tree_murs.column("Volume (m³)", anchor="center", width=40, minwidth=40, stretch=True)
 tree_murs.column("Type", anchor="center", width=40, minwidth=40, stretch=True)
-tree_murs.tag_configure("evenrow", background="#F5F5F5")
+tree_murs.tag_configure("evenrow", background="#F2F2F2")
 tree_murs.tag_configure("oddrow", background="#FFFFFF")
 tree_murs.tag_configure("redrow", background="#EF9A9A")
 scroll_murs = ttk.Scrollbar(frame_murs_content, orient="vertical", command=tree_murs.yview)
@@ -2313,7 +2313,7 @@ scroll_murs.pack(side="right", fill="y")
 print("Arborescence des murs créée")
 
 # --- Onglet ESCALIER (clone de MURS) ---
-frame_escalier_content = tk.Frame(frame_escalier, bg="#FAFAFA")
+frame_escalier_content = tk.Frame(frame_escalier, bg="#F2F2F2")
 frame_escalier_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 frame_filtre_escalier = tk.Frame(frame_escalier_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_escalier.pack(fill="x", padx=10, pady=10)
@@ -2335,7 +2335,7 @@ tree_escalier.column("HT volée", anchor="center", width=80, minwidth=80, stretc
 tree_escalier.column("HT contremarches", anchor="center", width=80, minwidth=80, stretch=True)
 tree_escalier.column("NB contremarches", anchor="center", width=80, minwidth=80, stretch=True)
 tree_escalier.column("NB marches", anchor="center", width=80, minwidth=80, stretch=True)
-tree_escalier.tag_configure("evenrow", background="#F5F5F5")
+tree_escalier.tag_configure("evenrow", background="#F2F2F2")
 tree_escalier.tag_configure("oddrow", background="#FFFFFF")
 scroll_escalier = ttk.Scrollbar(frame_escalier_content, orient="vertical", command=tree_escalier.yview)
 tree_escalier.configure(yscrollcommand=scroll_escalier.set)
@@ -2344,7 +2344,7 @@ scroll_escalier.pack(side="right", fill="y")
 print("Arborescence des escaliers créée")
 
 # --- Onglet BORD DE DALLE -----------------------------------------------------
-frame_bord_dalle_content = tk.Frame(frame_bord_dalle, bg="#FAFAFA")
+frame_bord_dalle_content = tk.Frame(frame_bord_dalle, bg="#F2F2F2")
 frame_bord_dalle_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 
 # Barre de filtre
@@ -2373,7 +2373,7 @@ for col, anchor, width in [
 
     tree_bord_dalle.heading(col, text=col)
     tree_bord_dalle.column(col, anchor=anchor, width=width)
-tree_bord_dalle.tag_configure("evenrow", background="#F5F5F5")
+tree_bord_dalle.tag_configure("evenrow", background="#F2F2F2")
 tree_bord_dalle.tag_configure("oddrow",  background="#FFFFFF")
 scroll_bord_dalle = ttk.Scrollbar(frame_bord_dalle_content, orient="vertical", command=tree_bord_dalle.yview)
 tree_bord_dalle.configure(yscrollcommand=scroll_bord_dalle.set)
@@ -2459,13 +2459,13 @@ grid_resume_escalier = tk.Frame(general_frame_escalier, bg="white")
 grid_resume_escalier.pack(pady=5)
 grid_resume_escalier.grid_columnconfigure(1, weight=1)
 # Hauteur totale
-tk.Label(grid_resume_escalier, text="Hauteur totale :", bg="#E8F5E9").grid(row=0, column=0, sticky="w", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text="Hauteur totale :", bg="#FFFFFF").grid(row=0, column=0, sticky="w", padx=5, pady=2)
 hauteur_total = sum(e[1] for e in donnees_ifc.get(ifc_actif, {}).get("escaliers", []))
-tk.Label(grid_resume_escalier, text=f"{hauteur_total:.2f}", bg="#E8F5E9").grid(row=0, column=1, sticky="e", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text=f"{hauteur_total:.2f}", bg="#FFFFFF").grid(row=0, column=1, sticky="e", padx=5, pady=2)
 # Nombre total de marches
-tk.Label(grid_resume_escalier, text="Nombre total de marches :", bg="#E8F5E9").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text="Nombre total de marches :", bg="#FFFFFF").grid(row=1, column=0, sticky="w", padx=5, pady=2)
 nb_total_marches = sum(e[4] for e in donnees_ifc.get(ifc_actif, {}).get("escaliers", []))
-tk.Label(grid_resume_escalier, text=str(nb_total_marches), bg="#E8F5E9").grid(row=1, column=1, sticky="e", padx=5, pady=2)
+tk.Label(grid_resume_escalier, text=str(nb_total_marches), bg="#FFFFFF").grid(row=1, column=1, sticky="e", padx=5, pady=2)
 
 frame_resume_murs = tk.Frame(frame_murs, bg="white", width=650)
 frame_resume_murs.pack(side="right", fill="y", padx=10, pady=10)
@@ -2473,9 +2473,9 @@ frame_resume_murs.pack_propagate(False)
 title_frame_resume_murs = tk.Frame(frame_resume_murs, bg="#004D40")
 title_frame_resume_murs.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_murs, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
-general_frame = tk.Frame(frame_resume_murs, bg="#E8F5E9", bd=2, relief="groove")
+general_frame = tk.Frame(frame_resume_murs, bg="#FFFFFF", bd=2, relief="groove")
 general_frame.pack(fill="x", padx=5, pady=5)
-grid_resume_murs = tk.Frame(general_frame, bg="#E8F5E9")
+grid_resume_murs = tk.Frame(general_frame, bg="#FFFFFF")
 grid_resume_murs.pack(pady=5)
 grid_resume_murs.grid_columnconfigure(1, weight=1)
 grid_resume_murs.grid_columnconfigure(3, weight=1)
@@ -2484,15 +2484,15 @@ grid_resume_murs.grid_columnconfigure(3, weight=1)
 title_frame_filtrage_murs = tk.Frame(frame_resume_murs, bg="#004D40")
 title_frame_filtrage_murs.pack(fill="x", padx=5, pady=(15,0))
 tk.Label(title_frame_filtrage_murs, text="FILTRAGE PAR NOMS", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
-types_frame = tk.Frame(frame_resume_murs, bg="#E8F5E9", bd=2, relief="groove")
+types_frame = tk.Frame(frame_resume_murs, bg="#FFFFFF", bd=2, relief="groove")
 types_frame.pack(fill="both", padx=5, pady=5, expand=True)
 title_frame_types_murs = tk.Frame(frame_resume_murs, bg="#004D40")
 title_frame_types_murs.pack(fill="x", padx=5, pady=(15, 0))
 
 # ----- Conteneur INFORMATIONS COMPLÉMENTAIRES pour MURS -----
-info_frame_murs = tk.Frame(frame_resume_murs, bg="#E8F5E9", bd=2, relief="groove")
+info_frame_murs = tk.Frame(frame_resume_murs, bg="#FFFFFF", bd=2, relief="groove")
 info_frame_murs.pack(fill="x", padx=5, pady=5)
-grid_infos_murs = tk.Frame(info_frame_murs, bg="#E8F5E9")
+grid_infos_murs = tk.Frame(info_frame_murs, bg="#FFFFFF")
 grid_infos_murs.pack(pady=5, fill="x")
 grid_infos_murs.grid_columnconfigure(1, weight=1)
 grid_infos_murs.grid_columnconfigure(0, weight=1)
@@ -2503,7 +2503,7 @@ tk.Label(title_frame_types_murs, text="INFORMATIONS COMPLÉMENTAIRES", font=TITL
 
 canvas_grid_types_murs = tk.Canvas(
     types_frame,
-    bg="#E8F5E9",
+    bg="#FFFFFF",
     highlightthickness=0,
     height=150
 )
@@ -2515,7 +2515,7 @@ canvas_grid_types_murs.pack_forget()
 
 
 # ---- Treeview complémentaire pour MURS --------------------------------------
-data_frame_types_murs = tk.Frame(types_frame, bg="#E8F5E9")
+data_frame_types_murs = tk.Frame(types_frame, bg="#FFFFFF")
 data_frame_types_murs.pack(fill="both", padx=5, pady=5, expand=True)
 
 tree_surfaces_murs = ttk.Treeview(data_frame_types_murs, columns=("Type", "m²"), show="headings", height=8)
@@ -2524,8 +2524,8 @@ tree_surfaces_murs.heading("Type", text="Type")
 tree_surfaces_murs.heading("m²", text="m²")
 tree_surfaces_murs.column("Type", anchor="w", width=500, stretch=True)
 tree_surfaces_murs.column("m²", anchor="e", width=80, stretch=False)
-tree_surfaces_murs.tag_configure("evenrow", background="#E8F5E9")
-tree_surfaces_murs.tag_configure("oddrow", background="#E8F5E9")
+tree_surfaces_murs.tag_configure("evenrow", background="#FFFFFF")
+tree_surfaces_murs.tag_configure("oddrow", background="#FFFFFF")
 scroll_surfaces_murs = ttk.Scrollbar(data_frame_types_murs, orient="vertical", command=tree_surfaces_murs.yview)
 tree_surfaces_murs.configure(yscrollcommand=scroll_surfaces_murs.set)
 tree_surfaces_murs.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
@@ -2605,14 +2605,14 @@ def _update_infos_mur(nom_sel: str, storey: str = None):
                 val = str(val) if val is not None else ""
         if key == "IsExternal" and val not in ("", "N/A"):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
-        tk.Label(grid_infos_murs, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_infos_murs, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_infos_murs, text=f"{label} :", bg="#FFFFFF", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_murs, text=str(val), bg="#FFFFFF", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
     # Gestion des niveaux multiples
     label = "Niveau" if len(storeys) <= 1 else "Niveaux"
     valeur = " - ".join(storeys) if storeys else "N/A"
     row = len(mapping)
-    tk.Label(grid_infos_murs, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_murs, text=valeur, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_murs, text=f"{label} :", bg="#FFFFFF", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_murs, text=valeur, bg="#FFFFFF", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 
 def _update_resume_mur(nom_sel: str):
@@ -2636,17 +2636,17 @@ def _update_resume_mur(nom_sel: str):
     for w in grid_resume_murs.winfo_children():
         w.destroy()
     left_row = right_row = 0
-    tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📏 Longueur :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(longueur_totale, " ml"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    tk.Label(grid_resume_murs, text="📦 Volume :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(volume_total, " m³"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📦 Volume :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(volume_total, " m³"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📐 Surface brute :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_totale, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="📏 Surface nette :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_nette, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
 
     surface_murs_nette = surface_cloisons_nette = 0.0
@@ -2656,17 +2656,17 @@ def _update_resume_mur(nom_sel: str):
         surface_murs_nette = max(surface_murs - surface_menuiseries_tot * ratio_murs, 0.0)
         surface_cloisons_nette = max(surface_cloisons - surface_menuiseries_tot * ratio_cloisons, 0.0)
 
-    tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🧱 Surface murs :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    tk.Label(grid_resume_murs, text="🧱 Surface murs nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🧱 Surface murs nette :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_murs_nette, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_murs, text="🏢 Surface de cloisons nette :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_murs, text=_format_summary_value(surface_cloisons_nette, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
 
 
 def afficher_infos_mur(event=None):
@@ -2729,7 +2729,7 @@ canvas_grid_types_murs.bind("<Button-5>", lambda event: canvas_grid_types_murs.y
 
 print("Cadre de résumé des murs créés")
 
-frame_menuiseries_content = tk.Frame(frame_menuiseries, bg="#FAFAFA")
+frame_menuiseries_content = tk.Frame(frame_menuiseries, bg="#F2F2F2")
 frame_menuiseries_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 frame_filtre_menuiseries = tk.Frame(frame_menuiseries_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_menuiseries.pack(fill="x", padx=10, pady=10)
@@ -2753,7 +2753,7 @@ tree_menuiseries.column("Surface (m²)", anchor="center", width=40, minwidth=40,
 tree_menuiseries.column("Longueur ", anchor="center", width=40, minwidth=40, stretch=True)
 tree_menuiseries.column("Hauteur (m)", anchor="center", width=40, minwidth=40, stretch=True)
 tree_menuiseries.column("Type", anchor="center", width=40, minwidth=40, stretch=True)
-tree_menuiseries.tag_configure("evenrow", background="#F5F5F5")
+tree_menuiseries.tag_configure("evenrow", background="#F2F2F2")
 tree_menuiseries.tag_configure("oddrow", background="#FFFFFF")
 scroll_menuiseries = ttk.Scrollbar(frame_menuiseries_content, orient="vertical", command=tree_menuiseries.yview)
 tree_menuiseries.configure(yscrollcommand=scroll_menuiseries.set)
@@ -2767,9 +2767,9 @@ frame_resume_menuiseries.pack_propagate(False)
 title_frame_resume_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#004D40")
 title_frame_resume_menuiseries.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_menuiseries, text="RÉSUMÉ", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-general_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
+general_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#FFFFFF", bd=2, relief="groove")
 general_frame_menuiseries.pack(fill="x", padx=5, pady=5)
-grid_resume_menuiseries = tk.Frame(general_frame_menuiseries, bg="#E8F5E9")
+grid_resume_menuiseries = tk.Frame(general_frame_menuiseries, bg="#FFFFFF")
 grid_resume_menuiseries.pack(pady=5)
 grid_resume_menuiseries.grid_columnconfigure(1, weight=1)
 grid_resume_menuiseries.grid_columnconfigure(3, weight=1)
@@ -2778,12 +2778,12 @@ grid_resume_menuiseries.grid_columnconfigure(3, weight=1)
 title_frame_filtrage_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#004D40")
 title_frame_filtrage_menuiseries.pack(fill="x", padx=5, pady=(15, 0))
 tk.Label(title_frame_filtrage_menuiseries, text="FILTRAGE PAR NOMS", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-types_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
+types_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#FFFFFF", bd=2, relief="groove")
 types_frame_menuiseries.pack(fill="both", padx=5, pady=5, expand=True)
 
 
 # ---- Treeview complémentaire pour MENUISERIES -------------------------------
-data_frame_types_menuiseries = tk.Frame(types_frame_menuiseries, bg="#E8F5E9")
+data_frame_types_menuiseries = tk.Frame(types_frame_menuiseries, bg="#FFFFFF")
 data_frame_types_menuiseries.pack(fill="both", expand=True, padx=5, pady=5)
 
 tree_surfaces_menuiseries = ttk.Treeview(data_frame_types_menuiseries, columns=("Type", "U"), show="headings")
@@ -2792,8 +2792,8 @@ for col in ("Type", "U"):
     tree_surfaces_menuiseries.heading(col, text=col)
 tree_surfaces_menuiseries.column("Type", anchor="w", width=200)
 tree_surfaces_menuiseries.column("U", anchor="e", width=40, stretch=False)
-tree_surfaces_menuiseries.tag_configure("evenrow", background="#E8F5E9")
-tree_surfaces_menuiseries.tag_configure("oddrow", background="#E8F5E9")
+tree_surfaces_menuiseries.tag_configure("evenrow", background="#FFFFFF")
+tree_surfaces_menuiseries.tag_configure("oddrow", background="#FFFFFF")
 scroll_surfaces_menuiseries = ttk.Scrollbar(data_frame_types_menuiseries, orient="vertical", command=tree_surfaces_menuiseries.yview)
 tree_surfaces_menuiseries.configure(yscrollcommand=scroll_surfaces_menuiseries.set)
 tree_surfaces_menuiseries.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
@@ -2820,13 +2820,13 @@ context_menu_surfaces_menuiseries = tk.Menu(root, tearoff=0)
 context_menu_surfaces_menuiseries.add_command(label="Copier", command=copy_type_summary_menuiseries)
 tree_surfaces_menuiseries.bind("<Button-3>", lambda e: (tree_surfaces_menuiseries.selection_set(tree_surfaces_menuiseries.identify_row(e.y)), context_menu_surfaces_menuiseries.post(e.x_root, e.y_root)))
 # -----------------------------------------------------------------------------
-grid_types_menuiseries_container = tk.Frame(types_frame_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
+grid_types_menuiseries_container = tk.Frame(types_frame_menuiseries, bg="#FFFFFF", bd=2, relief="groove")
 # grid_types_menuiseries_container.pack(fill="x", padx=5, pady=5)  # removed empty frame
 # Masquer par défaut le conteneur vide pour supprimer l\'espace inutile
 grid_types_menuiseries_container.pack_forget()
 
 
-canvas_grid_types_menuiseries = tk.Canvas(grid_types_menuiseries_container, bg="#E8F5E9", highlightthickness=0, height=150)
+canvas_grid_types_menuiseries = tk.Canvas(grid_types_menuiseries_container, bg="#FFFFFF", highlightthickness=0, height=150)
 canvas_grid_types_menuiseries.pack(side="left", fill="x", expand=True, padx=(5, 0), pady=5)
 
 scrollbar_grid_types_menuiseries = tk.Scrollbar(grid_types_menuiseries_container, orient="vertical", command=canvas_grid_types_menuiseries.yview)
@@ -2850,9 +2850,9 @@ print("Frame de CV des menuiseries créées")
 title_frame_types_menuiseries_bottom = tk.Frame(frame_resume_menuiseries, bg="#004D40")
 title_frame_types_menuiseries_bottom.pack(fill="x", padx=5, pady=(15, 0))
 tk.Label(title_frame_types_menuiseries_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-info_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#E8F5E9", bd=2, relief="groove")
+info_frame_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#FFFFFF", bd=2, relief="groove")
 info_frame_menuiseries.pack(fill="x", padx=5, pady=5)
-grid_infos_menuiseries = tk.Frame(info_frame_menuiseries, bg="#E8F5E9")
+grid_infos_menuiseries = tk.Frame(info_frame_menuiseries, bg="#FFFFFF")
 grid_infos_menuiseries.pack(pady=5, fill="x")
 grid_infos_menuiseries.grid_columnconfigure(1, weight=1)
 grid_infos_menuiseries.grid_columnconfigure(0, weight=1)
@@ -2897,14 +2897,14 @@ def _update_infos_menuiseries(nom_sel: str, storey: str = None):
                     pass
         if key == "Pset_WindowCommon/IsExternal" and val not in ("", "N/A"):
             val = "Oui" if str(val).lower() in ("true", "1", "yes", "oui") else "Non"
-        tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_infos_menuiseries, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#FFFFFF", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_menuiseries, text=str(val), bg="#FFFFFF", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
         row += 1
     label = "Niveau" if len(storeys) <= 1 else "Niveaux"
     valeur = " - ".join(storeys) if storeys else "N/A"
     # row already incremented through mapping
-    tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_menuiseries, text=valeur, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_menuiseries, text=f"{label} :", bg="#FFFFFF", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_menuiseries, text=valeur, bg="#FFFFFF", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 def _update_resume_menuiseries(nom_sel: str):
     """Met à jour le résumé pour la menuiserie sélectionnée."""
@@ -2925,28 +2925,28 @@ def _update_resume_menuiseries(nom_sel: str):
     for w in grid_resume_menuiseries.winfo_children():
         w.destroy()
     left_row = right_row = 0
-    tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="🔢 Nombre total :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{count} U", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_menuiseries, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📏 Longueur :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=_format_summary_value(longueur_totale, " ml"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_menuiseries, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📐 Surface :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=_format_summary_value(surface_totale, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_menuiseries, text=_format_summary_value(embrasures, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="🪟 Embrasures :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=left_row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=_format_summary_value(embrasures, " ml"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=left_row, column=1, sticky="e", padx=10)
     left_row += 1
-    tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_menuiseries, text=_format_summary_value(surface_mint, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📐 Surface MINT :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=_format_summary_value(surface_mint, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
-    tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_menuiseries, text=_format_summary_value(surface_mext, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="📐 Surface MEXT :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=_format_summary_value(surface_mext, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
     right_row += 1
     facade_total = _calc_total_facade_surface()
     pourc_vitree = (surface_mext / facade_total * 100) if facade_total > 0 else 0.0
-    tk.Label(grid_resume_menuiseries, text="% de Façades vitrées :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
-    tk.Label(grid_resume_menuiseries, text=f"{pourc_vitree:.2f} %", bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
+    tk.Label(grid_resume_menuiseries, text="% de Façades vitrées :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=right_row, column=2, sticky="w", padx=10)
+    tk.Label(grid_resume_menuiseries, text=f"{pourc_vitree:.2f} %", bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=right_row, column=3, sticky="e", padx=10)
 
 def _update_resume_type_sol(nom_sel: str, storey: str = None):
     """Met à jour le résumé pour le revêtement de sol sélectionné."""
@@ -2960,15 +2960,15 @@ def _update_resume_type_sol(nom_sel: str, storey: str = None):
     for w in grid_resume_type_sol.winfo_children():
         w.destroy()
     row = 0
-    tk.Label(grid_resume_type_sol, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="📏 Longueur :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(longueur_totale, " ml"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
-    tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="📐 Surface brute :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_totale, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
     surface_nette = _calc_surface_nette_sols(sols_src)
-    tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
 def afficher_infos_menuiseries(event=None):
     sel = tree_menuiseries.selection()
@@ -2997,7 +2997,7 @@ def afficher_infos_menuiseries_resume(event=None):
 tree_menuiseries.bind("<<TreeviewSelect>>", afficher_infos_menuiseries)
 tree_surfaces_menuiseries.bind("<<TreeviewSelect>>", afficher_infos_menuiseries_resume)
 
-frame_type_sol_content = tk.Frame(frame_type_sol, bg="#FAFAFA")
+frame_type_sol_content = tk.Frame(frame_type_sol, bg="#F2F2F2")
 frame_type_sol_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 frame_filtre_type_sol = tk.Frame(frame_type_sol_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_type_sol.pack(fill="x", padx=10, pady=10)
@@ -3020,7 +3020,7 @@ tree_type_sol.column("Surface (m²)", anchor="center", width=80, minwidth=80, st
 tree_type_sol.column("Longueur ", anchor="center", width=80, minwidth=80, stretch=True)
 tree_type_sol.column("Type", anchor="center", width=80, minwidth=80, stretch=True)
 tree_type_sol.configure(style="Treeview")
-tree_type_sol.tag_configure("evenrow", background="#F5F5F5")
+tree_type_sol.tag_configure("evenrow", background="#F2F2F2")
 tree_type_sol.tag_configure("oddrow", background="#FFFFFF")
 scroll_type_sol = ttk.Scrollbar(frame_type_sol_content, orient="vertical", command=tree_type_sol.yview)
 tree_type_sol.configure(yscrollcommand=scroll_type_sol.set)
@@ -3034,9 +3034,9 @@ frame_resume_type_sol.pack_propagate(False)
 title_frame_resume_type_sol = tk.Frame(frame_resume_type_sol, bg="#004D40")
 title_frame_resume_type_sol.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_type_sol, text="RÉSUMÉ", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-general_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove")
+general_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#FFFFFF", bd=2, relief="groove")
 general_frame_type_sol.pack(fill="x", padx=5, pady=5)
-grid_resume_type_sol = tk.Frame(general_frame_type_sol, bg="#E8F5E9")
+grid_resume_type_sol = tk.Frame(general_frame_type_sol, bg="#FFFFFF")
 grid_resume_type_sol.pack(pady=5)
 grid_resume_type_sol.grid_columnconfigure(1, weight=1)
 grid_resume_type_sol.grid_columnconfigure(3, weight=1)
@@ -3044,10 +3044,10 @@ grid_resume_type_sol.grid_columnconfigure(3, weight=1)
 title_frame_filtrage_type_sol = tk.Frame(frame_resume_type_sol, bg="#004D40")
 title_frame_filtrage_type_sol.pack(fill="x", padx=5, pady=(15, 0))
 tk.Label(title_frame_filtrage_type_sol, text="FILTRAGE PAR NOMS", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-types_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove")
+types_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#FFFFFF", bd=2, relief="groove")
 types_frame_type_sol.pack(fill="both", padx=5, pady=5, expand=True)
 
-data_frame_types_type_sol = tk.Frame(types_frame_type_sol, bg="#E8F5E9")
+data_frame_types_type_sol = tk.Frame(types_frame_type_sol, bg="#FFFFFF")
 data_frame_types_type_sol.pack(fill="both", expand=True, padx=5, pady=5)
 
 tree_surfaces_type_sol = ttk.Treeview(data_frame_types_type_sol, columns=("Type", "m²"), show="headings")
@@ -3056,8 +3056,8 @@ for col in ("Type", "m²"):
     tree_surfaces_type_sol.heading(col, text=col)
 tree_surfaces_type_sol.column("Type", anchor="w", width=200)
 tree_surfaces_type_sol.column("m²", anchor="e", width=60, stretch=False)
-tree_surfaces_type_sol.tag_configure("evenrow", background="#E8F5E9")
-tree_surfaces_type_sol.tag_configure("oddrow", background="#E8F5E9")
+tree_surfaces_type_sol.tag_configure("evenrow", background="#FFFFFF")
+tree_surfaces_type_sol.tag_configure("oddrow", background="#FFFFFF")
 scroll_surfaces_type_sol = ttk.Scrollbar(data_frame_types_type_sol, orient="vertical", command=tree_surfaces_type_sol.yview)
 tree_surfaces_type_sol.configure(yscrollcommand=scroll_surfaces_type_sol.set)
 tree_surfaces_type_sol.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
@@ -3190,9 +3190,9 @@ def afficher_infos_poteaux_resume(event=None):
 title_frame_types_type_sol_bottom = tk.Frame(frame_resume_type_sol, bg="#004D40")
 title_frame_types_type_sol_bottom.pack(fill="x", padx=5, pady=(15, 0))
 tk.Label(title_frame_types_type_sol_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-info_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#E8F5E9", bd=2, relief="groove")
+info_frame_type_sol = tk.Frame(frame_resume_type_sol, bg="#FFFFFF", bd=2, relief="groove")
 info_frame_type_sol.pack(fill="x", padx=5, pady=5)
-grid_infos_type_sol = tk.Frame(info_frame_type_sol, bg="#E8F5E9")
+grid_infos_type_sol = tk.Frame(info_frame_type_sol, bg="#FFFFFF")
 grid_infos_type_sol.pack(pady=5, fill="x")
 grid_infos_type_sol.grid_columnconfigure(1, weight=1)
 grid_infos_type_sol.grid_columnconfigure(0, weight=1)
@@ -3237,13 +3237,13 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
                 val = f"{float(val):.2f}"
             except (TypeError, ValueError, AttributeError):
                 val = str(val)
-        tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_infos_type_sol, text=str(val), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#FFFFFF", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_type_sol, text=str(val), bg="#FFFFFF", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
     label = "Niveau" if len(storeys) <= 1 else "Niveaux"
     niveaux = " - ".join(storeys) if storeys else "N/A"
     row = len(mapping)
-    tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_type_sol, text=niveaux, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#FFFFFF", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_type_sol, text=niveaux, bg="#FFFFFF", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 
 def hide_infos_garde_corps():
@@ -3268,8 +3268,8 @@ def _update_infos_garde_corps(nom_sel: str, largeur: float = None, typ: str = No
     niveau = storey or info.get("Niveau de base")
     if not niveau:
         niveau = " - ".join(storeys) if storeys else "N/A"
-    tk.Label(grid_infos_garde_corps, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_garde_corps, text=str(niveau), bg="#E8F5E9", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_garde_corps, text="Niveau :", bg="#FFFFFF", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_garde_corps, text=str(niveau), bg="#FFFFFF", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
 
 def _update_resume_garde_corps(nom_sel: str):
     """Met à jour le résumé pour le garde-corps sélectionné."""
@@ -3280,12 +3280,12 @@ def _update_resume_garde_corps(nom_sel: str):
     for w in grid_resume_garde_corps.winfo_children():
         w.destroy()
     row = 0
-    tk.Label(grid_resume_garde_corps, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_garde_corps, text="📏 Longueur :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_garde_corps, text=_format_summary_value(longueur_totale, " m"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
-    tk.Label(grid_resume_garde_corps, text="", bg="#E8F5E9").grid(row=row, column=0, pady=2)
+    tk.Label(grid_resume_garde_corps, text="", bg="#FFFFFF").grid(row=row, column=0, pady=2)
 
-frame_garde_corps_content = tk.Frame(frame_garde_corps, bg="#FAFAFA")
+frame_garde_corps_content = tk.Frame(frame_garde_corps, bg="#F2F2F2")
 frame_garde_corps_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 frame_filtre_garde_corps = tk.Frame(frame_garde_corps_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_garde_corps.pack(fill="x", padx=10, pady=10)
@@ -3305,7 +3305,7 @@ for col in ("Nom", "Largeur (m)", "Type") :
     tree_garde_corps.heading(col, text=col)
     tree_garde_corps.column(col, anchor="center", width=120)
 tree_garde_corps.column("Nom", width=200)
-tree_garde_corps.tag_configure("evenrow", background="#F5F5F5")
+tree_garde_corps.tag_configure("evenrow", background="#F2F2F2")
 tree_garde_corps.tag_configure("oddrow", background="#FFFFFF")
 scroll_garde_corps = ttk.Scrollbar(frame_garde_corps_content, orient="vertical", command=tree_garde_corps.yview)
 tree_garde_corps.configure(yscrollcommand=scroll_garde_corps.set)
@@ -3329,10 +3329,10 @@ title_frame_resume_garde_corps.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_garde_corps, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
 # Cadre général
-general_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#E8F5E9", bd=2, relief="groove")
+general_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#FFFFFF", bd=2, relief="groove")
 general_frame_garde_corps.pack(fill="x", padx=5, pady=5)
 
-grid_resume_garde_corps = tk.Frame(general_frame_garde_corps, bg="#E8F5E9")
+grid_resume_garde_corps = tk.Frame(general_frame_garde_corps, bg="#FFFFFF")
 grid_resume_garde_corps.pack(pady=5, expand=True)
 grid_resume_garde_corps.grid_columnconfigure(1, weight=1)
 
@@ -3380,8 +3380,8 @@ tree_surfaces_garde_corps.heading("Type", text="Type")
 tree_surfaces_garde_corps.heading("m",    text="m")
 tree_surfaces_garde_corps.column("Type", anchor="w", width=200)
 tree_surfaces_garde_corps.column("m",    anchor="e", width=80, stretch=False)
-tree_surfaces_garde_corps.tag_configure("evenrow", background="#E8F5E9")
-tree_surfaces_garde_corps.tag_configure("oddrow",  background="#E8F5E9")
+tree_surfaces_garde_corps.tag_configure("evenrow", background="#FFFFFF")
+tree_surfaces_garde_corps.tag_configure("oddrow",  background="#FFFFFF")
 
 scroll_surfaces_garde_corps = ttk.Scrollbar(
     data_frame_types_garde_corps, orient="vertical", command=tree_surfaces_garde_corps.yview
@@ -3411,16 +3411,16 @@ scroll_surfaces_garde_corps.pack(side="right", fill="y", pady=5)
 title_frame_types_garde_corps_bottom = tk.Frame(frame_resume_garde_corps, bg="#004D40")
 title_frame_types_garde_corps_bottom.pack(fill="x", padx=5, pady=(15, 0))
 tk.Label(title_frame_types_garde_corps_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-info_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#E8F5E9", bd=2, relief="groove")
+info_frame_garde_corps = tk.Frame(frame_resume_garde_corps, bg="#FFFFFF", bd=2, relief="groove")
 info_frame_garde_corps.pack(fill="x", padx=5, pady=5)
-grid_infos_garde_corps = tk.Frame(info_frame_garde_corps, bg="#E8F5E9")
+grid_infos_garde_corps = tk.Frame(info_frame_garde_corps, bg="#FFFFFF")
 grid_infos_garde_corps.pack(pady=5, fill="x")
 grid_infos_garde_corps.grid_columnconfigure(1, weight=1)
 grid_infos_garde_corps.grid_columnconfigure(0, weight=1)
 
 
 # Titre Informations Complémentaires
-frame_poteaux_content = tk.Frame(frame_poteaux, bg="#FAFAFA")
+frame_poteaux_content = tk.Frame(frame_poteaux, bg="#F2F2F2")
 frame_poteaux_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 frame_filtre_poteaux = tk.Frame(frame_poteaux_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_poteaux.pack(fill="x", padx=10, pady=10)
@@ -3446,7 +3446,7 @@ tree_poteaux = ttk.Treeview(
 for col in ("Nom", "Largeur (m)", "Surface (m²)", "Volume (m³)", "Type") :
     tree_poteaux.heading(col, text=col)
     tree_poteaux.column(col, anchor="center", width=120)
-tree_poteaux.tag_configure("evenrow", background="#F5F5F5")
+tree_poteaux.tag_configure("evenrow", background="#F2F2F2")
 tree_poteaux.tag_configure("oddrow",  background="#FFFFFF")
 scroll_poteaux = ttk.Scrollbar(frame_poteaux_content, orient="vertical", command=tree_poteaux.yview)
 tree_poteaux.configure(yscrollcommand=scroll_poteaux.set)
@@ -3459,29 +3459,29 @@ frame_resume_poteaux.pack_propagate(False)
 title_frame_resume_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 title_frame_resume_poteaux.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_poteaux, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
-general_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
+general_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#FFFFFF", bd=2, relief="groove")
 general_frame_poteaux.pack(fill="x", padx=5, pady=5)
-grid_resume_poteaux = tk.Frame(general_frame_poteaux, bg="#E8F5E9")
+grid_resume_poteaux = tk.Frame(general_frame_poteaux, bg="#FFFFFF")
 grid_resume_poteaux.pack(pady=5)
 # — Résumé POTEAUX —
-tk.Label(grid_resume_poteaux, text="📏 Largeur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_largeur_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="📏 Largeur totale :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_largeur_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m", bg="#FFFFFF", font=("Helvetica", 10, "bold"))
 label_largeur_totale_poteaux.grid(row=0, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poteaux, text="🏗️Surface de coffrage :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
-label_surface_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m²", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="🏗️Surface de coffrage :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
+label_surface_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m²", bg="#FFFFFF", font=("Helvetica", 10, "bold"))
 label_surface_totale_poteaux.grid(row=1, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
-label_volume_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m³", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poteaux, text="📦 Volume total :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
+label_volume_totale_poteaux = tk.Label(grid_resume_poteaux, text="0.00 m³", bg="#FFFFFF", font=("Helvetica", 10, "bold"))
 label_volume_totale_poteaux.grid(row=2, column=1, sticky="e", padx=10)
 # Cadre Filtrage par noms pour les poteaux
 title_frame_filtrage_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 title_frame_filtrage_poteaux.pack(fill="x", padx=5, pady=(15,0))
 tk.Label(title_frame_filtrage_poteaux, text="FILTRAGE PAR NOMS", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
-types_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
+types_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#FFFFFF", bd=2, relief="groove")
 types_frame_poteaux.pack(fill="both", padx=5, pady=5, expand=True)
 
 # ---- Treeview résumé POTEAUX ---------------------------------
-data_frame_types_poteaux = tk.Frame(types_frame_poteaux, bg="#E8F5E9")
+data_frame_types_poteaux = tk.Frame(types_frame_poteaux, bg="#FFFFFF")
 data_frame_types_poteaux.pack(fill="both", expand=True, padx=5, pady=5)
 
 tree_surfaces_poteaux = ttk.Treeview(
@@ -3495,8 +3495,8 @@ tree_surfaces_poteaux.heading("Type", text="Type")
 tree_surfaces_poteaux.heading("m",    text="m")
 tree_surfaces_poteaux.column("Type", anchor="w", width=500, stretch=True)
 tree_surfaces_poteaux.column("m",    anchor="e", width=80,  stretch=False)
-tree_surfaces_poteaux.tag_configure("evenrow", background="#E8F5E9")
-tree_surfaces_poteaux.tag_configure("oddrow",  background="#E8F5E9")
+tree_surfaces_poteaux.tag_configure("evenrow", background="#FFFFFF")
+tree_surfaces_poteaux.tag_configure("oddrow",  background="#FFFFFF")
 
 scroll_surfaces_poteaux = ttk.Scrollbar(
     data_frame_types_poteaux, orient="vertical",
@@ -3567,7 +3567,7 @@ def maj_surface_coffrage_totale():
 
 root.after(0, maj_par_type_poteaux)
 
-grid_types_poteaux_container = tk.Frame(types_frame_poteaux, bg="#E8F5E9", bd=1, relief="solid")
+grid_types_poteaux_container = tk.Frame(types_frame_poteaux, bg="#FFFFFF", bd=1, relief="solid")
 grid_types_poteaux_container.pack(fill="x", padx=5, pady=5)
 grid_types_poteaux_container.pack_forget()
 
@@ -3575,15 +3575,15 @@ grid_types_poteaux_container.pack_forget()
 info_frame_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
 info_frame_poteaux.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(info_frame_poteaux, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
-info_container_poteaux = tk.Frame(frame_resume_poteaux, bg="#E8F5E9", bd=2, relief="groove")
+info_container_poteaux = tk.Frame(frame_resume_poteaux, bg="#FFFFFF", bd=2, relief="groove")
 info_container_poteaux.pack(fill="x", padx=5, pady=5)
-grid_infos_poteaux = tk.Frame(info_container_poteaux, bg="#E8F5E9")
+grid_infos_poteaux = tk.Frame(info_container_poteaux, bg="#FFFFFF")
 grid_infos_poteaux.pack(pady=5, fill="x")
 grid_infos_poteaux.grid_columnconfigure(1, weight=1)
 grid_infos_poteaux.grid_columnconfigure(0, weight=1)
 
 
-canvas_grid_types_poteaux = tk.Canvas(grid_types_poteaux_container, bg="#E8F5E9", highlightthickness=0, height=150)
+canvas_grid_types_poteaux = tk.Canvas(grid_types_poteaux_container, bg="#FFFFFF", highlightthickness=0, height=150)
 canvas_grid_types_poteaux.pack(side="left", fill="x", expand=True, padx=(5, 0), pady=5)
 
 scrollbar_grid_types_poteaux = tk.Scrollbar(grid_types_poteaux_container, orient="vertical", command=canvas_grid_types_poteaux.yview)
@@ -3591,7 +3591,7 @@ scrollbar_grid_types_poteaux.pack(side="right", fill="y", pady=5)
 
 canvas_grid_types_poteaux.configure(yscrollcommand=scrollbar_grid_types_poteaux.set)
 
-grid_types_poteaux = tk.Frame(canvas_grid_types_poteaux, bg="#E8F5E9")
+grid_types_poteaux = tk.Frame(canvas_grid_types_poteaux, bg="#FFFFFF")
 canvas_grid_types_poteaux.create_window((0, 0), window=grid_types_poteaux, anchor="nw")
 
 def on_configure_grid_types_poteaux(event):
@@ -3602,7 +3602,7 @@ grid_types_poteaux.bind("<Configure>", on_configure_grid_types_poteaux)
 
 
 # —— UI POUTRES ———————————————————————————————————————————
-frame_poutres_content = tk.Frame(frame_poutres, bg="#FAFAFA")
+frame_poutres_content = tk.Frame(frame_poutres, bg="#F2F2F2")
 frame_poutres_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 frame_filtre_poutres = tk.Frame(frame_poutres_content, bg="#FFFFFF", bd=1, relief="solid")
 frame_filtre_poutres.pack(fill="x", padx=10, pady=10)
@@ -3628,7 +3628,7 @@ tree_poutres = ttk.Treeview(
 for col in ("Nom", "Largeur (m)", "Surface (m²)", "Volume (m³)", "Type") :
     tree_poutres.heading(col, text=col)
     tree_poutres.column(col, anchor="center", width=120)
-tree_poutres.tag_configure("evenrow", background="#F5F5F5")
+tree_poutres.tag_configure("evenrow", background="#F2F2F2")
 tree_poutres.tag_configure("oddrow",  background="#FFFFFF")
 scroll_poutres = ttk.Scrollbar(frame_poutres_content, orient="vertical", command=tree_poutres.yview)
 tree_poutres.configure(yscrollcommand=scroll_poutres.set)
@@ -3642,29 +3642,29 @@ frame_resume_poutres.pack_propagate(False)
 title_frame_resume_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
 title_frame_resume_poutres.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_poutres, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
-general_frame_poutres = tk.Frame(frame_resume_poutres, bg="#E8F5E9", bd=2, relief="groove")
+general_frame_poutres = tk.Frame(frame_resume_poutres, bg="#FFFFFF", bd=2, relief="groove")
 general_frame_poutres.pack(fill="x", padx=5, pady=5)
-grid_resume_poutres = tk.Frame(general_frame_poutres, bg="#E8F5E9")
+grid_resume_poutres = tk.Frame(general_frame_poutres, bg="#FFFFFF")
 grid_resume_poutres.pack(pady=5)
 # Nouveau bandeau "INFORMATIONS COMPLÉMENTAIRES" juste sous le tableau Résumé
 # — Résumé POUTRES —
-tk.Label(grid_resume_poutres, text="📏 Longueur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_longueur_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poutres, text="📏 Longueur totale :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_longueur_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m", bg="#FFFFFF", font=("Helvetica", 10, "bold"))
 label_longueur_totale_poutres.grid(row=0, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poutres, text="🏗️Surface de coffrage :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
-label_surface_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m²", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poutres, text="🏗️Surface de coffrage :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=1, column=0, sticky="w", padx=10)
+label_surface_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m²", bg="#FFFFFF", font=("Helvetica", 10, "bold"))
 label_surface_totale_poutres.grid(row=1, column=1, sticky="e", padx=10)
-tk.Label(grid_resume_poutres, text="📦 Volume total :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
-label_volume_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m³", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_poutres, text="📦 Volume total :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=10)
+label_volume_totale_poutres = tk.Label(grid_resume_poutres, text="0.00 m³", bg="#FFFFFF", font=("Helvetica", 10, "bold"))
 label_volume_totale_poutres.grid(row=2, column=1, sticky="e", padx=10)
 title_frame_filtrage_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
 title_frame_filtrage_poutres.pack(fill="x", padx=5, pady=(15,0))
 tk.Label(title_frame_filtrage_poutres, text="FILTRAGE PAR NOMS", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
-types_frame_poutres = tk.Frame(frame_resume_poutres, bg="#E8F5E9", bd=2, relief="groove")
+types_frame_poutres = tk.Frame(frame_resume_poutres, bg="#FFFFFF", bd=2, relief="groove")
 types_frame_poutres.pack(fill="both", padx=5, pady=5, expand=True)
 
 # ---- Treeview résumé POUTRES ---------------------------------
-data_frame_types_poutres = tk.Frame(types_frame_poutres, bg="#E8F5E9")
+data_frame_types_poutres = tk.Frame(types_frame_poutres, bg="#FFFFFF")
 data_frame_types_poutres.pack(fill="both", padx=5, pady=5, expand=True)
 
 tree_surfaces_poutres = ttk.Treeview(
@@ -3678,8 +3678,8 @@ tree_surfaces_poutres.heading("Type", text="Type")
 tree_surfaces_poutres.heading("m",    text="m")
 tree_surfaces_poutres.column("Type", anchor="w", width=500, stretch=True)
 tree_surfaces_poutres.column("m",    anchor="e", width=80,  stretch=False)
-tree_surfaces_poutres.tag_configure("evenrow", background="#E8F5E9")
-tree_surfaces_poutres.tag_configure("oddrow",  background="#E8F5E9")
+tree_surfaces_poutres.tag_configure("evenrow", background="#FFFFFF")
+tree_surfaces_poutres.tag_configure("oddrow",  background="#FFFFFF")
 
 scroll_surfaces_poutres = ttk.Scrollbar(
     data_frame_types_poutres, orient="vertical",
@@ -3720,9 +3720,9 @@ tree_surfaces_poutres.bind("<<TreeviewSelect>>", afficher_infos_poutres_resume)
 info_frame_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
 info_frame_poutres.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(info_frame_poutres, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
-info_container_poutres = tk.Frame(frame_resume_poutres, bg="#E8F5E9", bd=2, relief="groove")
+info_container_poutres = tk.Frame(frame_resume_poutres, bg="#FFFFFF", bd=2, relief="groove")
 info_container_poutres.pack(fill="x", padx=5, pady=5)
-grid_infos_poutres = tk.Frame(info_container_poutres, bg="#E8F5E9")
+grid_infos_poutres = tk.Frame(info_container_poutres, bg="#FFFFFF")
 grid_infos_poutres.pack(pady=5, fill="x")
 grid_infos_poutres.grid_columnconfigure(1, weight=1)
 grid_infos_poutres.grid_columnconfigure(0, weight=1)
@@ -3752,13 +3752,13 @@ root.after(0, maj_par_type_poutres)
 # tk.Label(types_frame_poutres, text="Longueurs par type", font=("Helvetica", 12, "bold"), bg="white", fg="#004D40")\
     # .pack(anchor="center", pady=5)
 
-grid_types_poutres_container = tk.Frame(types_frame_poutres, bg="#E8F5E9", bd=1, relief="solid")
+grid_types_poutres_container = tk.Frame(types_frame_poutres, bg="#FFFFFF", bd=1, relief="solid")
 # grid_types_poutres_container.pack(fill="x", padx=5, pady=5)
 grid_types_poutres_container.pack_forget()  # hidden to remove blank area
 
-tk.Label(grid_types_poutres_container, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#E8F5E9", fg="#004D40").pack(anchor="center", pady=5)
+tk.Label(grid_types_poutres_container, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#FFFFFF", fg="#004D40").pack(anchor="center", pady=5)
 
-canvas_grid_types_poutres = tk.Canvas(grid_types_poutres_container, bg="#E8F5E9", highlightthickness=0, height=150)
+canvas_grid_types_poutres = tk.Canvas(grid_types_poutres_container, bg="#FFFFFF", highlightthickness=0, height=150)
 canvas_grid_types_poutres.pack(side="left", fill="x", expand=True, padx=(5, 0), pady=5)
 
 scrollbar_grid_types_poutres = tk.Scrollbar(grid_types_poutres_container, orient="vertical", command=canvas_grid_types_poutres.yview)
@@ -3766,7 +3766,7 @@ scrollbar_grid_types_poutres.pack(side="right", fill="y", pady=5)
 
 canvas_grid_types_poutres.configure(yscrollcommand=scrollbar_grid_types_poutres.set)
 
-grid_types_poutres = tk.Frame(canvas_grid_types_poutres, bg="#E8F5E9")
+grid_types_poutres = tk.Frame(canvas_grid_types_poutres, bg="#FFFFFF")
 canvas_grid_types_poutres.create_window((0, 0), window=grid_types_poutres, anchor="nw")
 
 def on_configure_grid_types_poutres(event):
@@ -3785,16 +3785,16 @@ try:
         logo_image = Image.open(logo_path)
         logo_image = logo_image.resize((120, 120), Image.Resampling.LANCZOS)
         logo_photo = ImageTk.PhotoImage(logo_image)
-        logo_label = tk.Label(root, image=logo_photo, bg="#FAFAFA", borderwidth=0, highlightthickness=0)
+        logo_label = tk.Label(root, image=logo_photo, bg="#F2F2F2", borderwidth=0, highlightthickness=0)
         logo_label.image = logo_photo # Garder une référence pour éviter la suppression par le garbage collector
         logo_label.place(relx=0.01, rely=0.99, anchor="sw")
         print("Logo chargé avec succès")
     else:
         print(f"Erreur : Le fichier logo n'existe pas à : {logo_path}")
-        tk.Label(root, text="Logo non trouvé", font=("Helvetica", 10), bg="#FAFAFA", fg="#FF0000").place(relx=0.01,rely=0.99,anchor="sw")
+        tk.Label(root, text="Logo non trouvé", font=("Helvetica", 10), bg="#F2F2F2", fg="#FF0000").place(relx=0.01,rely=0.99,anchor="sw")
 except Exception as e:
     print(f"Erreur lors du chargement du logo : {e}")
-    tk.Label(root, text="Erreur : Logo non chargé", font=("Helvetica", 10), bg="#FAFAFA", fg="#FF0000").place(relx=0.01,rely=0.99,anchor="sw")
+    tk.Label(root, text="Erreur : Logo non chargé", font=("Helvetica", 10), bg="#F2F2F2", fg="#FF0000").place(relx=0.01,rely=0.99,anchor="sw")
 
 # --- Afficher d'abord la page d'accueil
 show_frame(frame_accueil)
@@ -3805,7 +3805,7 @@ if __name__ == "__main__":
     print("Lancement de l'application…")
     
 # —— UI DESCENTE EP ———————————————————————————————————————————
-frame_descente_ep_content = tk.Frame(frame_descente_ep, bg="#FAFAFA")
+frame_descente_ep_content = tk.Frame(frame_descente_ep, bg="#F2F2F2")
 frame_descente_ep_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 
 frame_filtre_ep = tk.Frame(frame_descente_ep_content, bg="#FFFFFF", bd=1, relief="solid")
@@ -3828,7 +3828,7 @@ tree_ep = ttk.Treeview(
 for col in ("Nom", "Longueur (m)", "Type"):
     tree_ep.heading(col, text=col)
     tree_ep.column(col, anchor="center", width=150)
-tree_ep.tag_configure("evenrow", background="#F5F5F5")
+tree_ep.tag_configure("evenrow", background="#F2F2F2")
 tree_ep.tag_configure("oddrow",  background="#FFFFFF")
 scroll_ep = ttk.Scrollbar(frame_descente_ep_content, orient="vertical", command=tree_ep.yview)
 tree_ep.configure(yscrollcommand=scroll_ep.set)
@@ -3866,13 +3866,13 @@ title_frame_resume_ep = tk.Frame(frame_resume_ep, bg="#004D40")
 title_frame_resume_ep.pack(fill="x", padx=5, pady=(5,0))
 tk.Label(title_frame_resume_ep, text="RÉSUMÉ", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
-general_frame_ep = tk.Frame(frame_resume_ep, bg="#E8F5E9", bd=2, relief="groove")
+general_frame_ep = tk.Frame(frame_resume_ep, bg="#FFFFFF", bd=2, relief="groove")
 general_frame_ep.pack(fill="x", padx=5, pady=5)
-grid_resume_ep = tk.Frame(general_frame_ep, bg="#E8F5E9")
+grid_resume_ep = tk.Frame(general_frame_ep, bg="#FFFFFF")
 grid_resume_ep.pack(pady=5, expand=True)
 grid_resume_ep.grid_columnconfigure(1, weight=1)
-tk.Label(grid_resume_ep, text="📏 Longueur totale :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
-label_dimension_totale_ep = tk.Label(grid_resume_ep, text="0.00 m", bg="#E8F5E9", font=("Helvetica", 10, "bold"))
+tk.Label(grid_resume_ep, text="📏 Longueur totale :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+label_dimension_totale_ep = tk.Label(grid_resume_ep, text="0.00 m", bg="#FFFFFF", font=("Helvetica", 10, "bold"))
 label_dimension_totale_ep.grid(row=0, column=1, sticky="e", padx=10)
 
 title_frame_filtrage_ep = tk.Frame(frame_resume_ep, bg="#004D40")
@@ -3895,8 +3895,8 @@ tree_surfaces_ep.heading("Type", text="Type")
 tree_surfaces_ep.heading("m", text="m")
 tree_surfaces_ep.column("Type", anchor="w", width=500, stretch=True)
 tree_surfaces_ep.column("m", anchor="e", width=80, stretch=False)
-tree_surfaces_ep.tag_configure("evenrow", background="#E8F5E9")
-tree_surfaces_ep.tag_configure("oddrow",  background="#E8F5E9")
+tree_surfaces_ep.tag_configure("evenrow", background="#FFFFFF")
+tree_surfaces_ep.tag_configure("oddrow",  background="#FFFFFF")
 scroll_surfaces_ep = ttk.Scrollbar(data_frame_types_ep, orient="vertical", command=tree_surfaces_ep.yview)
 tree_surfaces_ep.configure(yscrollcommand=scroll_surfaces_ep.set)
 tree_surfaces_ep.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=5)
@@ -3907,9 +3907,9 @@ title_frame_info_ep = tk.Frame(frame_resume_ep, bg="#004D40")
 title_frame_info_ep.pack(fill="x", padx=5, pady=(15, 0))
 tk.Label(title_frame_info_ep, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
 
-info_frame_ep = tk.Frame(frame_resume_ep, bg="#E8F5E9", bd=2, relief="groove")
+info_frame_ep = tk.Frame(frame_resume_ep, bg="#FFFFFF", bd=2, relief="groove")
 info_frame_ep.pack(fill="x", padx=5, pady=5)
-grid_infos_ep = tk.Frame(info_frame_ep, bg="#E8F5E9")
+grid_infos_ep = tk.Frame(info_frame_ep, bg="#FFFFFF")
 grid_infos_ep.pack(pady=5, fill="x")
 grid_infos_ep.grid_columnconfigure(1, weight=1)
 grid_infos_ep.grid_columnconfigure(0, weight=1)
@@ -3993,12 +3993,12 @@ def _update_infos_ep(nom_sel: str, longueur: float = None, storey: str = None):
     niveau_txt = " - ".join(storeys) if storeys else "N/A"
 
     row = 0
-    tk.Label(grid_infos_ep, text="Niveau :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_infos_ep, text=niveau_txt, bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_infos_ep, text="Niveau :", bg="#FFFFFF", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_ep, text=niveau_txt, bg="#FFFFFF", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
     row += 1
     if longueur is not None:
-        tk.Label(grid_infos_ep, text="Longueur :", bg="#E8F5E9", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
-        tk.Label(grid_infos_ep, text=_format_summary_value(longueur, " m"), bg="#E8F5E9", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+        tk.Label(grid_infos_ep, text="Longueur :", bg="#FFFFFF", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_ep, text=_format_summary_value(longueur, " m"), bg="#FFFFFF", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 def _update_resume_ep(nom_sel: str):
     ep_src = [e for e in _get_filtered_ep() if e[0] == nom_sel]
@@ -4008,10 +4008,10 @@ def _update_resume_ep(nom_sel: str):
     for w in grid_resume_ep.winfo_children():
         w.destroy()
     row = 0
-    tk.Label(grid_resume_ep, text="📏 Longueur :", bg="#E8F5E9", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
-    tk.Label(grid_resume_ep, text=_format_summary_value(total_dim, " m"), bg="#E8F5E9", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    tk.Label(grid_resume_ep, text="📏 Longueur :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_ep, text=_format_summary_value(total_dim, " m"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
     row += 1
-    tk.Label(grid_resume_ep, text="", bg="#E8F5E9").grid(row=row, column=0, pady=2)
+    tk.Label(grid_resume_ep, text="", bg="#FFFFFF").grid(row=row, column=0, pady=2)
 
 def afficher_infos_descente_ep(event=None):
     sel = tree_ep.selection()
@@ -4076,7 +4076,7 @@ tree_ep.bind("<<TreeviewSelect>>", afficher_infos_descente_ep)
 # (copié-collé de l’interface "TYPE DE SOL", renommé)
 
 # ---- Contenu principal ----
-frame_type_plafond_content = tk.Frame(frame_type_plafond, bg="#FAFAFA")
+frame_type_plafond_content = tk.Frame(frame_type_plafond, bg="#F2F2F2")
 frame_type_plafond_content.pack(side="left", expand=True, fill="both", padx=(0, 10))
 
 # ---- Barre de filtre ----
@@ -4103,7 +4103,7 @@ for col in ("Nom", "Surface (m²)", "Longueur ", "Type"):
     tree_type_plafond.column(col, anchor="center", width=80)
 tree_type_plafond.column("Nom", width=120)
 tree_type_plafond.tag_configure("evenrow", background="#FFFFFF")
-tree_type_plafond.tag_configure("oddrow",  background="#F5F5F5")
+tree_type_plafond.tag_configure("oddrow",  background="#F2F2F2")
 scroll_type_plafond = ttk.Scrollbar(frame_type_plafond_content, orient="vertical", command=tree_type_plafond.yview)
 tree_type_plafond.configure(yscrollcommand=scroll_type_plafond.set)
 tree_type_plafond.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
