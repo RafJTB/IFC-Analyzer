@@ -1148,17 +1148,38 @@ def update_ifc_tabs(new_ifc) :
     tab_buttons.clear()
     # Créer un style pour les onglets
     style = ttk.Style()
-    style.configure("Tab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#B0BEC5", foreground="#263238")
+    style.configure(
+        "Tab.TButton",
+        font=("Helvetica", 9, "bold"),
+        padding=[8, 4],
+        background="#B0BEC5",
+        foreground="#263238",
+        relief="flat",
+        borderwidth=0,
+    )
     style.map("Tab.TButton", background=[("active", "#4DB6AC"), ("!active", "#B0BEC5")])
     # Fond vert clair pour simuler une transparence sur l'onglet actif
-    style.configure("ActiveTab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#81C784", foreground="#FFFFFF")
+    style.configure(
+        "ActiveTab.TButton",
+        font=("Helvetica", 9, "bold"),
+        padding=[8, 4],
+        background="#81C784",
+        foreground="#FFFFFF",
+        relief="flat",
+        borderwidth=0,
+    )
     # Dictionnaire pour associer chaque bouton à son frame
     frame_dict = {}
     for chemin in donnees_ifc.keys() :
         nom_fichier = os.path.basename(chemin)
         display_name = nom_fichier[:15] + "..." if len(nom_fichier) > 15 else nom_fichier
         # Créer un cadre pour chaque bouton
-        btn_frame = tk.Frame(tabs_frame, bg="#004D40")
+        btn_frame = tk.Frame(
+            tabs_frame,
+            bg="#C0C0C0",
+            highlightthickness=0,
+            bd=0,
+        )
         btn_frame.pack(side="left", padx=2)
         # Créer le bouton ttk avec takefocus=False pour supprimer les bordures en pointillés
         btn = ttk.Button(btn_frame, text=display_name, style="Tab.TButton", command=lambda c=chemin: switch_ifc(c), takefocus=False)
@@ -1940,7 +1961,13 @@ def open_filtre_niveau(btn, callback):
 
 def create_niveau_button(parent, command):
     """Crée un bouton 'Niveau' standard dans *parent* et retourne sa référence."""
-    btn = ttk.Button(parent, text="Niveau", style="Level.TButton", command=command)
+    btn = ttk.Button(
+        parent,
+        text="NIVEAU",
+        style="Level.TButton",
+        command=command,
+        takefocus=False,
+    )
     btn.pack(side="left", padx=5)
     return btn
 
@@ -2116,12 +2143,44 @@ print("Style Treeview configuré")
 style.map("Treeview", background=[("selected", "#26A69A")], foreground=[("selected", "#FFFFFF")])
 style.configure("Treeview.Heading", font=("Helvetica", 11, "bold"), background="#26A69A", foreground="#FFFFFF")
 style.configure("TButton", font=("Helvetica", 10), background="#26A69A", foreground="#FFFFFF", padding=5)
-style.configure("Tab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#B0BEC5", foreground="#263238")
+style.configure(
+    "Tab.TButton",
+    font=("Helvetica", 9, "bold"),
+    padding=[8, 4],
+    background="#B0BEC5",
+    foreground="#263238",
+    relief="flat",
+    borderwidth=0,
+)
 style.map("Tab.TButton", background=[("active", "#4DB6AC"), ("!active", "#B0BEC5")])
-style.configure("ActiveTab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#4CAF50", foreground="#FFFFFF")
-style.configure("Reset.TButton", font=("Helvetica", 10), background="white", foreground="black", padding=5)
+style.configure(
+    "ActiveTab.TButton",
+    font=("Helvetica", 9, "bold"),
+    padding=[8, 4],
+    background="#4CAF50",
+    foreground="#FFFFFF",
+    relief="flat",
+    borderwidth=0,
+)
+style.configure(
+    "Reset.TButton",
+    font=("Helvetica", 10),
+    background="white",
+    foreground="black",
+    padding=5,
+    relief="flat",
+    borderwidth=1,
+)
 style.map("Reset.TButton", background=[("active", "lightgray")], foreground=[("active", "black")])
-style.configure("Level.TButton", font=("Helvetica", 10), background="white", foreground="black", padding=5)
+style.configure(
+    "Level.TButton",
+    font=("Helvetica", 10),
+    background="white",
+    foreground="black",
+    padding=5,
+    relief="flat",
+    borderwidth=1,
+)
 style.map("Level.TButton", background=[("active", "lightgray")], foreground=[("active", "black")])
 style.configure("redrow.Treeview", background="#EF9A9A")
 print("Styles configurés")
@@ -2131,10 +2190,22 @@ header_frame.pack(side="top", fill="x")
 print("Cadre d'en-tête créé")
 tk.Label(header_frame, text="🏢 IFC Analyzer", font=("Helvetica", 16, "bold"), bg="#004D40", fg="#FFFFFF").pack(side="left", padx=20, pady=10)
 tk.Label(header_frame, text="par Rafael Jeantin", font=("Helvetica", 8, "italic"), bg="#004D40", fg="#B0BEC5").pack(side="left", padx=5, pady=10)
-btn_reset_global = ttk.Button(header_frame, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_tous_filtres)
+btn_reset_global = ttk.Button(
+    header_frame,
+    text="RÉINITIALISER",
+    style="Reset.TButton",
+    command=reinitialiser_tous_filtres,
+    takefocus=False,
+)
 btn_reset_global.pack(side="right", padx=10, pady=10)
 btn_reset_global.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-btn_niveau_global = ttk.Button(header_frame, text="Niveau", style="Level.TButton", command=lambda: open_filtre_niveau_global())
+btn_niveau_global = ttk.Button(
+    header_frame,
+    text="NIVEAU",
+    style="Level.TButton",
+    command=lambda: open_filtre_niveau_global(),
+    takefocus=False,
+)
 btn_niveau_global.pack(side="right", padx=10, pady=10)
 print("Éléments du header ajoutés")
 
