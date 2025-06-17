@@ -2155,12 +2155,47 @@ btn_niveau_global = ttk.Button(
 btn_niveau_global.pack(side="right", padx=10, pady=10)
 
 # --- Barre de recherche (à gauche du bouton NIVEAU) ---
-search_frame = tk.Frame(header_frame, bg="#2D2D2D")
-# placement: side right, packs after NIVEAU to appear on sa gauche
-search_frame.pack(side="right", padx=5, pady=8)
-tk.Label(search_frame, text="🔍", bg="#2D2D2D", fg="#FFFFFF").pack(side="left", padx=5)
-search_entry = tk.Entry(search_frame, bd=0, bg="#2D2D2D", fg="#B0BEC5", insertbackground="#FFFFFF", width=15)
-search_entry.pack(side="left", padx=(0,8))
+root.update_idletasks()  # Assurer le calcul correct de la hauteur du bouton
+btn_height = btn_niveau_global.winfo_height()
+
+def _rounded_rect(canvas, x1, y1, x2, y2, radius=10, **kwargs):
+    points = [
+        x1 + radius, y1,
+        x2 - radius, y1,
+        x2, y1,
+        x2, y1 + radius,
+        x2, y2 - radius,
+        x2, y2,
+        x2 - radius, y2,
+        x1 + radius, y2,
+        x1, y2,
+        x1, y2 - radius,
+        x1, y1 + radius,
+        x1, y1,
+        x1 + radius, y1,
+    ]
+    return canvas.create_polygon(points, smooth=True, **kwargs)
+
+search_canvas = tk.Canvas(
+    header_frame,
+    width=160,
+    height=btn_height,
+    bg="#004D40",
+    highlightthickness=0,
+)
+search_canvas.pack(side="right", padx=5, pady=10)
+_rounded_rect(search_canvas, 0, 0, 160, btn_height, radius=btn_height // 2, fill="#004D40", outline="#004D40")
+search_icon = tk.Label(search_canvas, text="🔍", bg="#004D40", fg="#FFFFFF")
+search_canvas.create_window(10, btn_height // 2, window=search_icon, anchor="w")
+search_entry = tk.Entry(
+    search_canvas,
+    bd=0,
+    bg="#004D40",
+    fg="#B0BEC5",
+    insertbackground="#FFFFFF",
+    width=15,
+)
+search_canvas.create_window(30, btn_height // 2, window=search_entry, anchor="w")
 search_entry.insert(0, "Recherche")
 def _clear_placeholder(event):
     if search_entry.get() == "Recherche":
