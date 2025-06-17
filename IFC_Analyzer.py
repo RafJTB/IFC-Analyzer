@@ -1940,7 +1940,7 @@ def open_filtre_niveau(btn, callback):
 
 def create_niveau_button(parent, command):
     """Crée un bouton 'Niveau' standard dans *parent* et retourne sa référence."""
-    btn = ttk.Button(parent, text="Niveau", command=command)
+    btn = ttk.Button(parent, text="Niveau", style="Level.TButton", command=command)
     btn.pack(side="left", padx=5)
     return btn
 
@@ -2119,8 +2119,10 @@ style.configure("TButton", font=("Helvetica", 10), background="#26A69A", foregro
 style.configure("Tab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#B0BEC5", foreground="#263238")
 style.map("Tab.TButton", background=[("active", "#4DB6AC"), ("!active", "#B0BEC5")])
 style.configure("ActiveTab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#4CAF50", foreground="#FFFFFF")
-style.configure("Reset.TButton", font=("Helvetica", 10), background="#EF5350", foreground="#FFFFFF", padding=5)
-style.map("Reset.TButton", background=[("active", "#E53935")])
+style.configure("Reset.TButton", font=("Helvetica", 10), background="white", foreground="black", padding=5)
+style.map("Reset.TButton", background=[("active", "lightgray")], foreground=[("active", "black")])
+style.configure("Level.TButton", font=("Helvetica", 10), background="white", foreground="black", padding=5)
+style.map("Level.TButton", background=[("active", "lightgray")], foreground=[("active", "black")])
 style.configure("redrow.Treeview", background="#EF9A9A")
 print("Styles configurés")
 
@@ -2132,7 +2134,7 @@ tk.Label(header_frame, text="par Rafael Jeantin", font=("Helvetica", 8, "italic"
 btn_reset_global = ttk.Button(header_frame, text="Réinitialiser", style="Reset.TButton", command=reinitialiser_tous_filtres)
 btn_reset_global.pack(side="right", padx=10, pady=10)
 btn_reset_global.bind("<Double-Button-1>", reinitialiser_tous_filtres)
-btn_niveau_global = ttk.Button(header_frame, text="Niveau", command=lambda: open_filtre_niveau_global())
+btn_niveau_global = ttk.Button(header_frame, text="Niveau", style="Level.TButton", command=lambda: open_filtre_niveau_global())
 btn_niveau_global.pack(side="right", padx=10, pady=10)
 print("Éléments du header ajoutés")
 
@@ -2395,7 +2397,15 @@ tree_bord_dalle.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=1
 scroll_bord_dalle.pack(side="right", fill="y")
 
 # Panneau résumé à droite
-frame_resume_bord_dalle = tk.Frame(frame_bord_dalle, bg="white", width=650)
+frame_resume_bord_dalle = tk.Frame(
+    frame_bord_dalle,
+    bg="white",
+    width=650,
+    highlightbackground="gray",
+    highlightthickness=2,
+    bd=1,
+    relief="groove",
+)
 frame_resume_bord_dalle.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_bord_dalle.pack_propagate(False)
 
@@ -2461,7 +2471,15 @@ print("UI BORD DE DALLE créée")
 
 
 # Bloc Résumé escalier
-frame_resume_escalier = tk.Frame(frame_escalier, bg="white", width=650)
+frame_resume_escalier = tk.Frame(
+    frame_escalier,
+    bg="white",
+    width=650,
+    highlightbackground="gray",
+    highlightthickness=2,
+    bd=1,
+    relief="groove",
+)
 frame_resume_escalier.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_escalier.pack_propagate(False)
 title_frame_resume_escalier = tk.Frame(frame_resume_escalier, bg="#004D40")
@@ -2481,7 +2499,15 @@ tk.Label(grid_resume_escalier, text="Nombre total de marches :", bg="#FFFFFF").g
 nb_total_marches = sum(e[4] for e in donnees_ifc.get(ifc_actif, {}).get("escaliers", []))
 tk.Label(grid_resume_escalier, text=str(nb_total_marches), bg="#FFFFFF").grid(row=1, column=1, sticky="e", padx=5, pady=2)
 
-frame_resume_murs = tk.Frame(frame_murs, bg="white", width=650)
+frame_resume_murs = tk.Frame(
+    frame_murs,
+    bg="white",
+    width=650,
+    highlightbackground="gray",
+    highlightthickness=2,
+    bd=1,
+    relief="groove",
+)
 frame_resume_murs.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_murs.pack_propagate(False)
 title_frame_resume_murs = tk.Frame(frame_resume_murs, bg="#004D40")
@@ -2770,7 +2796,15 @@ tree_menuiseries.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=
 scroll_menuiseries.pack(side="right", fill="y")
 print("Arborescence des menuiseries créées")
 
-frame_resume_menuiseries = tk.Frame(frame_menuiseries, bg="white", width=650) # Même largeur que "MURS"
+frame_resume_menuiseries = tk.Frame(
+    frame_menuiseries,
+    bg="white",
+    width=650,  # Même largeur que "MURS"
+    highlightbackground="gray",
+    highlightthickness=2,
+    bd=1,
+    relief="groove",
+)
 frame_resume_menuiseries.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_menuiseries.pack_propagate(False)
 title_frame_resume_menuiseries = tk.Frame(frame_resume_menuiseries, bg="#004D40")
@@ -3032,7 +3066,15 @@ tree_type_sol.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_type_sol.pack(side="right", fill="y")
 print("Arborescence des sols créée")
 
-frame_resume_type_sol = tk.Frame(frame_type_sol, bg="white", width=650)
+frame_resume_type_sol = tk.Frame(
+    frame_type_sol,
+    bg="white",
+    width=650,
+    highlightbackground="gray",
+    highlightthickness=2,
+    bd=1,
+    relief="groove",
+)
 frame_resume_type_sol.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_type_sol.pack_propagate(False)
 title_frame_resume_type_sol = tk.Frame(frame_resume_type_sol, bg="#004D40")
@@ -3318,7 +3360,15 @@ print("Arborescence des garde-corps créée")
 # Remplacer la partie frame_resume_garde_corps par le code ci-dessous :
 
 # Cadre de résumé
-frame_resume_garde_corps = tk.Frame(frame_garde_corps, bg="white", width=650)
+frame_resume_garde_corps = tk.Frame(
+    frame_garde_corps,
+    bg="white",
+    width=650,
+    highlightbackground="gray",
+    highlightthickness=2,
+    bd=1,
+    relief="groove",
+)
 frame_resume_garde_corps.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_garde_corps.pack_propagate(False)
 
@@ -3444,7 +3494,15 @@ tree_poteaux.configure(yscrollcommand=scroll_poteaux.set)
 tree_poteaux.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_poteaux.pack(side="right", fill="y")
 
-frame_resume_poteaux = tk.Frame(frame_poteaux, bg="white", width=650)
+frame_resume_poteaux = tk.Frame(
+    frame_poteaux,
+    bg="white",
+    width=650,
+    highlightbackground="gray",
+    highlightthickness=2,
+    bd=1,
+    relief="groove",
+)
 frame_resume_poteaux.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_poteaux.pack_propagate(False)
 title_frame_resume_poteaux = tk.Frame(frame_resume_poteaux, bg="#004D40")
@@ -3619,7 +3677,15 @@ tree_poutres.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_poutres.pack(side="right", fill="y")
 tree_poutres.bind("<<TreeviewSelect>>", afficher_infos_poutres)
 
-frame_resume_poutres = tk.Frame(frame_poutres, bg="white", width=650)
+frame_resume_poutres = tk.Frame(
+    frame_poutres,
+    bg="white",
+    width=650,
+    highlightbackground="gray",
+    highlightthickness=2,
+    bd=1,
+    relief="groove",
+)
 frame_resume_poutres.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_poutres.pack_propagate(False)
 title_frame_resume_poutres = tk.Frame(frame_resume_poutres, bg="#004D40")
@@ -3837,7 +3903,15 @@ def _update_resume_descente_ep(nom):
 tree_ep.bind("<<TreeviewSelect>>", afficher_infos_descente_ep)
 scroll_ep.pack(side="right", fill="y")
 
-frame_resume_ep = tk.Frame(frame_descente_ep, bg="white", width=650)
+frame_resume_ep = tk.Frame(
+    frame_descente_ep,
+    bg="white",
+    width=650,
+    highlightbackground="gray",
+    highlightthickness=2,
+    bd=1,
+    relief="groove",
+)
 frame_resume_ep.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_ep.pack_propagate(False)
 title_frame_resume_ep = tk.Frame(frame_resume_ep, bg="#004D40")
@@ -4104,7 +4178,15 @@ tree_type_plafond.bind("<Button-3>", show_context_menu_type_plafond)
 print("Arborescence des plafonds créée")
 
 # ---- Colonne de résumé / droite ----
-frame_resume_type_plafond = tk.Frame(frame_type_plafond, bg="white", width=650)
+frame_resume_type_plafond = tk.Frame(
+    frame_type_plafond,
+    bg="white",
+    width=650,
+    highlightbackground="gray",
+    highlightthickness=2,
+    bd=1,
+    relief="groove",
+)
 frame_resume_type_plafond.pack(side="right", fill="y", padx=10, pady=10)
 frame_resume_type_plafond.pack_propagate(False)
 
