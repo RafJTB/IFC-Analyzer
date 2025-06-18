@@ -234,7 +234,7 @@ print(f"Version Python : {sys.version}")
 try:
     import tkinter as tk
     import tkinter.font as tkFont
-    from tkinter import ttk, filedialog
+    from tkinter import ttk, filedialog, messagebox
     print("tkinter importé avec succès")
 except ImportError as e:
     print(f"Erreur lors de l'importation de tkinter : {e}")
@@ -2223,6 +2223,7 @@ search_entry_header = tk.Entry(
 search_entry_header.insert(0, "🔍 Recherche")
 search_entry_header.bind("<FocusIn>", _search_focus_in)
 search_entry_header.bind("<FocusOut>", _search_focus_out)
+search_entry_header.bind("<Return>", rechercher_onglet)
 
 # Center the entry inside the canvas
 search_canvas_header.create_window(
@@ -2384,6 +2385,50 @@ create_nav_button("🎲", "BORD DE DALLE", lambda: (afficher_donnees_bord_dalle(
 create_nav_button("🔲", "TYPE DE PLAFOND", lambda: (afficher_donnees_type_plafond(), show_frame(frame_type_plafond)), "Afficher les données de type de plafond.")
 set_selected(btn_accueil)
 update_niveau_button_state()
+
+def rechercher_onglet(event=None):
+    """Recherche dans tous les onglets et affiche celui contenant le mot-clé."""
+    keyword = search_entry_header.get().strip()
+    if not keyword or keyword == "🔍 Recherche":
+        return
+    key_lower = keyword.lower()
+    targets = [
+        ("MURS", donnees_ifc.get(ifc_actif, {}).get("murs", []),
+         entree_filtre_murs, appliquer_filtre_murs, frame_murs),
+        ("MENUISERIES", donnees_ifc.get(ifc_actif, {}).get("menuiseries", []),
+         entree_filtre_menuiseries, appliquer_filtre_menuiseries, frame_menuiseries),
+        ("TYPE DE SOL", donnees_ifc.get(ifc_actif, {}).get("sols", []),
+         entree_filtre_type_sol, appliquer_filtre_type_sol, frame_type_sol),
+        ("GARDE CORPS", donnees_ifc.get(ifc_actif, {}).get("garde_corps", []),
+         entree_filtre_garde_corps, appliquer_filtre_garde_corps, frame_garde_corps),
+        ("POTEAUX", donnees_ifc.get(ifc_actif, {}).get("poteaux", []),
+         entree_filtre_poteaux, appliquer_filtre_poteaux, frame_poteaux),
+        ("POUTRES", donnees_ifc.get(ifc_actif, {}).get("poutres", []),
+         entree_filtre_poutres, appliquer_filtre_poutres, frame_poutres),
+        ("DESCENTE EP", donnees_ifc.get(ifc_actif, {}).get("descente_ep", []),
+         entree_filtre_ep, appliquer_filtre_ep, frame_descente_ep),
+        ("ESCALIER", donnees_ifc.get(ifc_actif, {}).get("escaliers", []),
+         entree_filtre_escalier, appliquer_filtre_escalier, frame_escalier),
+        ("BORD DE DALLE", donnees_ifc.get(ifc_actif, {}).get("bords_dalle", []),
+         entree_filtre_bord_dalle, appliquer_filtre_bord_dalle, frame_bord_dalle),
+        ("TYPE DE PLAFOND", donnees_ifc.get(ifc_actif, {}).get("plafonds", []),
+         entree_filtre_type_plafond, appliquer_filtre_type_plafond, frame_type_plafond),
+    ]
+
+    for label, data, entry, apply_func, frame in targets:
+        for row in data:
+            if key_lower in " ".join(str(v).lower() for v in row):
+                entry.delete(0, tk.END)
+                entry.insert(0, keyword)
+                apply_func()
+                for b in nav_buttons:
+                    if b.cget("text") == label:
+                        set_selected(b)
+                        break
+                show_frame(frame)
+                entry.focus_set()
+                return
+    messagebox.showinfo("Recherche", "Aucun résultat trouvé.")
 # → Cacher les onglets IFC tant qu’aucun fichier n’est importé
 hidden_nav_buttons = nav_buttons[1:]  # les 4 onglets MURS/MENUISERIES/…
 for btn in hidden_nav_buttons:
