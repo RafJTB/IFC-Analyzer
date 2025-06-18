@@ -2140,32 +2140,52 @@ tk.Label(header_frame, text="IFC Analyzer", font=("Helvetica", 16, "bold"), bg="
 tk.Label(header_frame, text="par Rafael Jeantin", font=("Helvetica", 8, "italic"), bg="#004D40", fg="#B0BEC5").pack(side="left", padx=5, pady=10)
 
 # Frame contenant les boutons d'action
+
 header_buttons_frame = tk.Frame(header_frame, bg="#004D40")
-header_buttons_frame.pack(side="right", padx=10, pady=10)
 
-btn_niveau_global = ttk.Button(
+btn_niveau_canvas, btn_niveau_global = create_round_button(
     header_buttons_frame,
-    text="NIVEAU",
-    style="Header.TButton",
+    "NIVEAU",
     command=lambda: open_filtre_niveau_global(),
+    width=80,
+    height=30,
 )
-btn_niveau_global.pack(side="left", padx=2)
+btn_niveau_canvas.pack(side="left", padx=2)
 
-btn_reset_global = ttk.Button(
+btn_reset_canvas, btn_reset_global = create_round_button(
     header_buttons_frame,
-    text="RÉINITIALISER",
-    style="Header.TButton",
+    "RÉINITIALISER",
     command=reinitialiser_tous_filtres,
+    width=100,
+    height=30,
 )
-btn_reset_global.pack(side="left", padx=2)
+btn_reset_canvas.pack(side="left", padx=2)
 btn_reset_global.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 
 # Sous-frame pour les boutons d'export
 export_frame_header = tk.Frame(header_buttons_frame, bg="#004D40")
 export_frame_header.pack(side="left", padx=2)
-ttk.Button(export_frame_header, text="📄 CSV", style="Header.TButton").pack(side="left", padx=2)
-ttk.Button(export_frame_header, text="📊 XLSX", style="Header.TButton").pack(side="left", padx=2)
-ttk.Button(export_frame_header, text="📑 PDF", style="Header.TButton").pack(side="left", padx=2)
+csv_canvas, _ = create_round_button(
+    export_frame_header,
+    "📄 CSV",
+    width=60,
+    height=30,
+)
+csv_canvas.pack(side="left", padx=2)
+xlsx_canvas, _ = create_round_button(
+    export_frame_header,
+    "📊 XLSX",
+    width=60,
+    height=30,
+)
+xlsx_canvas.pack(side="left", padx=2)
+pdf_canvas, _ = create_round_button(
+    export_frame_header,
+    "📑 PDF",
+    width=60,
+    height=30,
+)
+pdf_canvas.pack(side="left", padx=2)
 # ─── Search-bar ESCRONOMISTE style ─────────────────────────────
 def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=15, **kwargs):
     """Dessine un rectangle arrondi sur *canvas*."""
@@ -2193,6 +2213,18 @@ def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=15, **kwargs):
     ]
     return canvas.create_polygon(points, **kwargs, smooth=True)
 
+def create_round_button(parent, text, command=None, width=80, height=30, radius=15,
+                        bg="#FFFFFF", fg="#004D40", font=("Helvetica", 8, "bold")):
+    """Crée un bouton à bords arrondis similaire à la barre de recherche."""
+    canvas = tk.Canvas(parent, bg=parent.cget("bg"), highlightthickness=0,
+                       width=width, height=height)
+    create_rounded_rectangle(canvas, 0, 0, width, height, radius=radius,
+                             fill=bg, outline=bg)
+    btn = tk.Button(canvas, text=text, command=command, bd=0, bg=bg, fg=fg,
+                    activebackground=bg, activeforeground=fg, font=font)
+    canvas.create_window(width/2, height/2, window=btn)
+    return canvas, btn
+
 def _search_focus_in(event):
     if search_entry_header.get() == "🔍 Recherche":
         search_entry_header.delete(0, tk.END)
@@ -2207,10 +2239,11 @@ def _search_focus_out(event):
 search_frame_header = tk.Frame(header_frame, bg="#004D40")
 
 # Séparateur entre recherche et boutons
-header_separator = ttk.Separator(header_frame, orient="vertical")
+header_separator = tk.Frame(header_frame, bg="white", width=1)
 header_separator.pack(side="right", fill="y", pady=10)
 
 search_frame_header.pack(side="right", padx=10, pady=10)
+header_buttons_frame.pack(side="right", padx=10, pady=10)
 
 search_canvas_header = tk.Canvas(
     search_frame_header,
@@ -2494,25 +2527,50 @@ label_surface_coffrage_totale = tk.Label(
     fg="#263238",
 )
 # label_surface_coffrage_totale.pack(pady=10)
-ttk.Button(
+import_btn_canvas = tk.Canvas(
     center_container,
-    text="📂 Importer IFC",
+    bg="#F2F2F2",
+    highlightthickness=0,
+    width=200,
+    height=40,
+)
+import_btn_canvas.pack(pady=10)
+create_rounded_rectangle(
+    import_btn_canvas,
+    0,
+    0,
+    200,
+    40,
+    radius=20,
+    fill="#004D40",
+    outline="#004D40",
+)
+btn_importer_ifc = tk.Button(
+    import_btn_canvas,
+    text="📂 Sélectionner un fichier",
     command=importer_ifc,
-    style="Import.TButton",
-).pack(pady=10)
+    font=("Helvetica", 12, "bold"),
+    bg="#004D40",
+    fg="white",
+    bd=0,
+    activebackground="#004D40",
+    activeforeground="white",
+)
+import_btn_canvas.create_window(100, 20, window=btn_importer_ifc)
 
 # Bloc de présentation sous le bouton d'import
-presentation_frame = tk.Frame(center_container, bg="#E3F2FD", padx=20, pady=10)
+presentation_frame = tk.Frame(center_container, bg="#004D40", padx=20, pady=10)
 presentation_frame.pack(pady=10)
 tk.Label(
     presentation_frame,
     text=(
-        "IFC Analyzer est une application performante qui permet d’analyser "
-        "rapidement vos fichiers au format .IFC.\nConçue pour les professionnels du BIM, elle prend en charge jusqu’à 250 000 entités et offre une visualisation structurée des données de votre maquette numérique."
+        "Formats supportés : .IFC\n"
+        "Jusqu'à 250 000 entités\n"
+        "Visualisation structurée"
     ),
     font=("Helvetica", 10),
-    bg="#E3F2FD",
-    fg="#263238",
+    bg="#004D40",
+    fg="white",
     justify="center",
     wraplength=500,
 ).pack()
