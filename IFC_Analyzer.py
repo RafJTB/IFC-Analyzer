@@ -2119,6 +2119,15 @@ style.configure(
     relief="flat",
 )
 style.map("Simple.TButton", background=[("active", "#E0E0E0")])
+style.configure(
+    "Header.TButton",
+    font=("Helvetica", 8),
+    background="white",
+    foreground="black",
+    padding=3,
+    relief="flat",
+)
+style.map("Header.TButton", background=[("active", "#E0E0E0")])
 style.configure("Reset.TButton", font=("Helvetica", 9, "bold"), background="white", foreground="black", padding=5, relief="flat")
 style.map("Reset.TButton", background=[("active", "#E0E0E0")])
 style.configure("redrow.Treeview", background="#EF9A9A")
@@ -2129,21 +2138,34 @@ header_frame.pack(side="top", fill="x")
 print("Cadre d'en-tête créé")
 tk.Label(header_frame, text="IFC Analyzer", font=("Helvetica", 16, "bold"), bg="#004D40", fg="#FFFFFF").pack(side="left", padx=25, pady=10)
 tk.Label(header_frame, text="par Rafael Jeantin", font=("Helvetica", 8, "italic"), bg="#004D40", fg="#B0BEC5").pack(side="left", padx=5, pady=10)
-btn_reset_global = ttk.Button(
-    header_frame,
-    text="RÉINITIALISER",
-    style="Simple.TButton",
-    command=reinitialiser_tous_filtres,
-)
-btn_reset_global.pack(side="right", padx=10, pady=10)
-btn_reset_global.bind("<Double-Button-1>", reinitialiser_tous_filtres)
+
+# Frame contenant les boutons d'action
+header_buttons_frame = tk.Frame(header_frame, bg="#004D40")
+header_buttons_frame.pack(side="right", padx=10, pady=10)
+
 btn_niveau_global = ttk.Button(
-    header_frame,
+    header_buttons_frame,
     text="NIVEAU",
-    style="Simple.TButton",
+    style="Header.TButton",
     command=lambda: open_filtre_niveau_global(),
 )
-btn_niveau_global.pack(side="right", padx=10, pady=10)
+btn_niveau_global.pack(side="left", padx=2)
+
+btn_reset_global = ttk.Button(
+    header_buttons_frame,
+    text="RÉINITIALISER",
+    style="Header.TButton",
+    command=reinitialiser_tous_filtres,
+)
+btn_reset_global.pack(side="left", padx=2)
+btn_reset_global.bind("<Double-Button-1>", reinitialiser_tous_filtres)
+
+# Sous-frame pour les boutons d'export
+export_frame_header = tk.Frame(header_buttons_frame, bg="#004D40")
+export_frame_header.pack(side="left", padx=2)
+ttk.Button(export_frame_header, text="📄 CSV", style="Header.TButton").pack(side="left", padx=2)
+ttk.Button(export_frame_header, text="📊 XLSX", style="Header.TButton").pack(side="left", padx=2)
+ttk.Button(export_frame_header, text="📑 PDF", style="Header.TButton").pack(side="left", padx=2)
 # ─── Search-bar ESCRONOMISTE style ─────────────────────────────
 def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=15, **kwargs):
     """Dessine un rectangle arrondi sur *canvas*."""
@@ -2183,19 +2205,12 @@ def _search_focus_out(event):
 
 # Container frame for search bar
 search_frame_header = tk.Frame(header_frame, bg="#004D40")
-search_frame_header.pack(side="right", padx=10, pady=10)
 
-# Separator between search bar and export buttons
+# Séparateur entre recherche et boutons
 header_separator = ttk.Separator(header_frame, orient="vertical")
 header_separator.pack(side="right", fill="y", pady=10)
 
-# Frame for export buttons
-export_frame_header = tk.Frame(header_frame, bg="#004D40")
-export_frame_header.pack(side="right", padx=10, pady=10)
-
-ttk.Button(export_frame_header, text="📄 CSV", style="Simple.TButton").pack(side="left", padx=2)
-ttk.Button(export_frame_header, text="📊 XLSX", style="Simple.TButton").pack(side="left", padx=2)
-ttk.Button(export_frame_header, text="📑 PDF", style="Simple.TButton").pack(side="left", padx=2)
+search_frame_header.pack(side="right", padx=10, pady=10)
 
 search_canvas_header = tk.Canvas(
     search_frame_header,
@@ -2485,6 +2500,22 @@ ttk.Button(
     command=importer_ifc,
     style="Import.TButton",
 ).pack(pady=10)
+
+# Bloc de présentation sous le bouton d'import
+presentation_frame = tk.Frame(center_container, bg="#E3F2FD", padx=20, pady=10)
+presentation_frame.pack(pady=10)
+tk.Label(
+    presentation_frame,
+    text=(
+        "IFC Analyzer est une application performante qui permet d’analyser "
+        "rapidement vos fichiers au format .IFC.\nConçue pour les professionnels du BIM, elle prend en charge jusqu’à 250 000 entités et offre une visualisation structurée des données de votre maquette numérique."
+    ),
+    font=("Helvetica", 10),
+    bg="#E3F2FD",
+    fg="#263238",
+    justify="center",
+    wraplength=500,
+).pack()
 print("Cadre d'accueil configuré")
 
 frame_murs_content = tk.Frame(frame_murs, bg="#F2F2F2")
