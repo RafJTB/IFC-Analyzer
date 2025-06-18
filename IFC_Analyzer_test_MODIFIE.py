@@ -2595,7 +2595,8 @@ create_rounded_rectangle(
     40,
     radius=20,
     fill="#004D40",
-    outline="#004D40",
+    outline="black",
+    width=2,
 )
 btn_importer_ifc = tk.Button(
     import_btn_canvas,
