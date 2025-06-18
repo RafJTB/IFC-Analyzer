@@ -278,7 +278,7 @@ TITLE_FONT = ("Helvetica", 12, "bold")
 # --------------------------------------
 donnees_ifc = {} # {chemin_fichier : {"murs" : [], "menuiseries" : [], "sols" : [], "garde_corps" : []}}
 ifc_actif = None
-progress_canvas = None
+progress_bar = None
 tabs_frame = None
 tab_buttons = []
 
@@ -377,39 +377,27 @@ def by_type_safe(ifc_file, entity):
 # Importation et Chargement IFC
 # --------------------------------------
 def importer_ifc():
-    global ifc_actif, donnees_ifc, progress_canvas
+    global ifc_actif, donnees_ifc, progress_bar
     chemin_fichier = filedialog.askopenfilename(filetypes=[("Fichiers IFC", "*.ifc")])
     if chemin_fichier :
         print(f"Début import IFC : {chemin_fichier}")
-        if progress_canvas :
-            progress_canvas.destroy()
-        progress_canvas = tk.Canvas(center_container, width=200, height=200, bg="#F2F2F2", highlightthickness=0)
-        progress_canvas.pack(before=label_titre_accueil, pady=20)
-        # Cercle de fond (gris clair)
-        progress_canvas.create_oval(20, 20, 180, 180, outline="#B0B0B0", width=8, tags="bg")
+        if progress_bar:
+            progress_bar.destroy()
+        progress_bar = ttk.Progressbar(
+            center_container,
+            mode="determinate",
+            length=300,
+            style="green.Horizontal.TProgressbar",
+        )
+        progress_bar.pack(before=label_titre_accueil, pady=20)
 
         def update_progress(current, total) :
             if total == 0 :
                 percentage = 0
             else:
                 percentage = min(int((current / total) * 100), 100)
-            extent = (percentage / 100) * 360
-            progress_canvas.delete("arc")
-            progress_canvas.delete("text")
-            progress_canvas.create_arc(
-                20, 20, 180, 180,
-                start=90, extent=-extent,
-                fill="#4CAF50", outline="#4CAF50", width=8,
-                style="arc", tags="arc"
-            )
-            progress_canvas.create_text(
-                100, 100,
-                text=f"{percentage}%",
-                font=("Helvetica", 20, "bold"),
-                fill="#004D40",
-                tags="text"
-            )
-            progress_canvas.update()
+            progress_bar["value"] = percentage
+            progress_bar.update()
 
         def load_ifc(chemin) :
             global ifc_actif
@@ -418,7 +406,7 @@ def importer_ifc():
                 print(f"Fichier IFC ouvert : {chemin}")
             except Exception as e:
                 print(f"Erreur ouverture IFC : {e}")
-                progress_canvas.destroy()
+                progress_bar.destroy()
                 return
             donnees_ifc[chemin] = {
                 "bords_dalle": [],
@@ -1126,7 +1114,7 @@ def importer_ifc():
 
 
             update_progress(total_elements, total_elements)
-            progress_canvas.destroy()
+            progress_bar.destroy()
         # Lancer le chargement dans un thread séparé
         threading.Thread(target=lambda: load_ifc(chemin_fichier), daemon=True).start()
 
@@ -2116,6 +2104,9 @@ print("Style Treeview configuré")
 style.map("Treeview", background=[("selected", "#26A69A")], foreground=[("selected", "#FFFFFF")])
 style.configure("Treeview.Heading", font=("Helvetica", 11, "bold"), background="#26A69A", foreground="#FFFFFF")
 style.configure("TButton", font=("Helvetica", 10), background="#26A69A", foreground="#FFFFFF", padding=5)
+style.configure("Import.TButton", font=("Helvetica", 12, "bold"), background="#4CAF50", foreground="white", padding=10)
+style.map("Import.TButton", background=[("active", "#43A047")])
+style.configure("green.Horizontal.TProgressbar", troughcolor="#FFFFFF", background="#4CAF50")
 style.configure("Tab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#B0BEC5", foreground="#263238")
 style.map("Tab.TButton", background=[("active", "#4DB6AC"), ("!active", "#B0BEC5")])
 style.configure("ActiveTab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#4CAF50", foreground="#FFFFFF")
@@ -2193,6 +2184,18 @@ def _search_focus_out(event):
 # Container frame for search bar
 search_frame_header = tk.Frame(header_frame, bg="#004D40")
 search_frame_header.pack(side="right", padx=10, pady=10)
+
+# Separator between search bar and export buttons
+header_separator = ttk.Separator(header_frame, orient="vertical")
+header_separator.pack(side="right", fill="y", pady=10)
+
+# Frame for export buttons
+export_frame_header = tk.Frame(header_frame, bg="#004D40")
+export_frame_header.pack(side="right", padx=10, pady=10)
+
+ttk.Button(export_frame_header, text="📄 CSV", style="Simple.TButton").pack(side="left", padx=2)
+ttk.Button(export_frame_header, text="📊 XLSX", style="Simple.TButton").pack(side="left", padx=2)
+ttk.Button(export_frame_header, text="📑 PDF", style="Simple.TButton").pack(side="left", padx=2)
 
 search_canvas_header = tk.Canvas(
     search_frame_header,
@@ -2452,14 +2455,36 @@ frame_accueil_content = tk.Frame(frame_accueil, bg="#F2F2F2")
 frame_accueil_content.pack(expand=True, fill="both", padx=10, pady=10)
 center_container = tk.Frame(frame_accueil_content, bg="#F2F2F2")
 center_container.place(relx=0.5, rely=0.5, anchor="center")
-label_titre_accueil = tk.Label(center_container, text="Logiciel à but non lucratif", font=("Helvetica", 16, "bold"), bg="#F2F2F2", fg="#263238")
-label_titre_accueil.pack(pady=10)
-tk.Label(center_container, text="IFC Analyser révolutionne le métier d'économiste en automatisant l'extraction et l'analyse des données IFC.", font=("Helvetica", 12, "italic"), bg="#F2F2F2", fg="#263238", wraplength=500, justify="center").pack(pady=10)
-label_surface_coffrage_totale = tk.Label(center_container, text="Surface de coffrage totale : 0.00 m²", font=("Helvetica", 12), bg="#F2F2F2", fg="#263238")
-# La ligne est volontairement non affichée sur la page d'accueil
+
+label_titre_accueil = tk.Label(
+    center_container,
+    text="Bienvenue sur IFC Analyzer",
+    font=("Helvetica", 18, "bold"),
+    bg="#F2F2F2",
+    fg="#263238",
+)
+label_titre_accueil.pack(pady=(0, 10))
+tk.Label(
+    center_container,
+    text="📁 Formats supportés : .IFC",
+    font=("Helvetica", 12),
+    bg="#F2F2F2",
+    fg="#263238",
+).pack(pady=(0, 20))
+label_surface_coffrage_totale = tk.Label(
+    center_container,
+    text="Surface de coffrage totale : 0.00 m²",
+    font=("Helvetica", 12),
+    bg="#F2F2F2",
+    fg="#263238",
+)
 # label_surface_coffrage_totale.pack(pady=10)
-ttk.Button(center_container, text="📥 Importer IFC", command=importer_ifc).pack(pady=5)
-ttk.Button(center_container, text="📤 Exporter Excel", command=exporter_excel).pack(pady=5)
+ttk.Button(
+    center_container,
+    text="📂 Importer IFC",
+    command=importer_ifc,
+    style="Import.TButton",
+).pack(pady=10)
 print("Cadre d'accueil configuré")
 
 frame_murs_content = tk.Frame(frame_murs, bg="#F2F2F2")
