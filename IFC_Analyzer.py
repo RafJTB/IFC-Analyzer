@@ -1188,7 +1188,6 @@ def update_active_tab(frame_dict) :
     maj_largeur_par_type_garde_corps()
     maj_par_type_poteaux()
     maj_par_type_poutres()
-    maj_surface_coffrage_totale()
 
     # -- maj du résumé           ❌ À virer
     # label_largeur_totale_garde_corps.config(text=f"{round(largeur_totale, 2)} m")
@@ -1554,7 +1553,6 @@ def afficher_donnees_poteaux(poteaux=None):
             tags=(tag,),
         )
     maj_par_type_poteaux(poteaux)
-    maj_surface_coffrage_totale()
 def hide_infos_poteaux():
     """Masque le bloc d'informations complémentaires des poteaux."""
     for w in grid_infos_poteaux.winfo_children():
@@ -1692,7 +1690,6 @@ def afficher_donnees_poutres(poutres=None):
     label_surface_totale_poutres.config(text=f"{round(total_surf,2)} m²")
     label_volume_totale_poutres.config(text=f"{round(total_vol,2)} m³")
     maj_par_type_poutres(poutres)
-    maj_surface_coffrage_totale()
 
 def maj_par_type_poutres(poutres=None):
     if not ifc_actif or ifc_actif not in donnees_ifc:
@@ -2162,6 +2159,14 @@ btn_reset_canvas, btn_reset_global = create_round_button(
 btn_reset_canvas.pack(side="left", padx=2)
 btn_reset_global.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 
+# Barre de recherche placée entre le bouton "RÉINITIALISER" et les boutons d'export
+search_sep_left = tk.Frame(header_buttons_frame, bg="white", width=2)
+search_sep_left.pack(side="left", fill="y", pady=10)
+search_frame_header = tk.Frame(header_buttons_frame, bg="#004D40")
+search_frame_header.pack(side="left", padx=5, pady=10)
+search_sep_right = tk.Frame(header_buttons_frame, bg="white", width=2)
+search_sep_right.pack(side="left", fill="y", pady=10)
+
 # Sous-frame pour les boutons d'export
 export_frame_header = tk.Frame(header_buttons_frame, bg="#004D40")
 export_frame_header.pack(side="left", padx=2)
@@ -2187,7 +2192,7 @@ pdf_canvas, _ = create_round_button(
 )
 pdf_canvas.pack(side="left", padx=2)
 # ─── Search-bar ESCRONOMISTE style ─────────────────────────────
-def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=15, **kwargs):
+def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=10, **kwargs):
     """Dessine un rectangle arrondi sur *canvas*."""
     points = [
         x1+radius, y1,
@@ -2213,8 +2218,8 @@ def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=15, **kwargs):
     ]
     return canvas.create_polygon(points, **kwargs, smooth=True)
 
-def create_round_button(parent, text, command=None, width=80, height=30, radius=15,
-                        bg="#FFFFFF", fg="#004D40", font=("Helvetica", 8, "bold")):
+def create_round_button(parent, text, command=None, width=80, height=30, radius=10,
+                        bg="#004D40", fg="white", font=("Helvetica", 8, "bold")):
     """Crée un bouton à bords arrondis similaire à la barre de recherche."""
     canvas = tk.Canvas(parent, bg=parent.cget("bg"), highlightthickness=0,
                        width=width, height=height)
@@ -2235,14 +2240,6 @@ def _search_focus_out(event):
         search_entry_header.insert(0, "🔍 Recherche")
         search_entry_header.config(fg="gray")
 
-# Container frame for search bar
-search_frame_header = tk.Frame(header_frame, bg="#004D40")
-
-# Séparateur entre recherche et boutons
-header_separator = tk.Frame(header_frame, bg="white", width=1)
-header_separator.pack(side="right", fill="y", pady=10)
-
-search_frame_header.pack(side="right", padx=10, pady=10)
 header_buttons_frame.pack(side="right", padx=10, pady=10)
 
 search_canvas_header = tk.Canvas(
@@ -2258,7 +2255,7 @@ search_canvas_header.pack()
 create_rounded_rectangle(
     search_canvas_header,
     0, 0, 200, 30,
-    radius=15,
+    radius=10,
     fill="#FFFFFF",
     outline="#FFFFFF"
 )
@@ -2504,44 +2501,44 @@ frame_accueil_content.pack(expand=True, fill="both", padx=10, pady=10)
 center_container = tk.Frame(frame_accueil_content, bg="#F2F2F2")
 center_container.place(relx=0.5, rely=0.5, anchor="center")
 
+# Carte d'accueil avec bords arrondis
+accueil_canvas = tk.Canvas(center_container, bg="#F2F2F2", highlightthickness=0, width=320, height=180)
+accueil_canvas.pack()
+create_rounded_rectangle(accueil_canvas, 0, 0, 320, 180, radius=10, fill="#004D40", outline="#004D40")
+accueil_frame = tk.Frame(accueil_canvas, bg="#004D40")
+accueil_canvas.create_window(160, 90, window=accueil_frame)
+
 label_titre_accueil = tk.Label(
-    center_container,
+    accueil_frame,
     text="Bienvenue sur IFC Analyzer",
     font=("Helvetica", 18, "bold"),
-    bg="#F2F2F2",
-    fg="#263238",
+    bg="#004D40",
+    fg="white",
 )
-label_titre_accueil.pack(pady=(0, 10))
+label_titre_accueil.pack(pady=(10, 5))
 tk.Label(
-    center_container,
-    text="📁 Formats supportés : .IFC",
+    accueil_frame,
+    text="Formats supportés : .IFC",
     font=("Helvetica", 12),
-    bg="#F2F2F2",
-    fg="#263238",
-).pack(pady=(0, 20))
-label_surface_coffrage_totale = tk.Label(
-    center_container,
-    text="Surface de coffrage totale : 0.00 m²",
-    font=("Helvetica", 12),
-    bg="#F2F2F2",
-    fg="#263238",
-)
-# label_surface_coffrage_totale.pack(pady=10)
+    bg="#004D40",
+    fg="white",
+).pack(pady=(0, 10))
+
 import_btn_canvas = tk.Canvas(
-    center_container,
-    bg="#F2F2F2",
+    accueil_frame,
+    bg="#004D40",
     highlightthickness=0,
     width=200,
     height=40,
 )
-import_btn_canvas.pack(pady=10)
+import_btn_canvas.pack(pady=5)
 create_rounded_rectangle(
     import_btn_canvas,
     0,
     0,
     200,
     40,
-    radius=20,
+    radius=10,
     fill="#004D40",
     outline="#004D40",
 )
@@ -2558,22 +2555,6 @@ btn_importer_ifc = tk.Button(
 )
 import_btn_canvas.create_window(100, 20, window=btn_importer_ifc)
 
-# Bloc de présentation sous le bouton d'import
-presentation_frame = tk.Frame(center_container, bg="#004D40", padx=20, pady=10)
-presentation_frame.pack(pady=10)
-tk.Label(
-    presentation_frame,
-    text=(
-        "Formats supportés : .IFC\n"
-        "Jusqu'à 250 000 entités\n"
-        "Visualisation structurée"
-    ),
-    font=("Helvetica", 10),
-    bg="#004D40",
-    fg="white",
-    justify="center",
-    wraplength=500,
-).pack()
 print("Cadre d'accueil configuré")
 
 frame_murs_content = tk.Frame(frame_murs, bg="#F2F2F2")
@@ -3815,15 +3796,6 @@ def maj_par_type_poteaux(poteaux=None):
     for idx, (nom, larg) in enumerate(sorted(agg.items())):
         tag = "evenrow" if idx % 2 == 0 else "oddrow"
         tree_surfaces_poteaux.insert("", "end", values=(nom, round(larg, 2)), tags=(tag,))
-
-def maj_surface_coffrage_totale():
-    """Calcule la surface de coffrage totale Poteaux + Poutres."""
-    data = donnees_ifc.get(ifc_actif, {})
-    surf_poteaux = sum(p[2] for p in data.get("poteaux", []))
-    surf_poutres = sum(p[2] for p in data.get("poutres", []))
-    total = surf_poteaux + surf_poutres
-    label_surface_coffrage_totale.config(text=f"Surface de coffrage totale : {round(total,2)} m²")
-
 
 root.after(0, maj_par_type_poteaux)
 
