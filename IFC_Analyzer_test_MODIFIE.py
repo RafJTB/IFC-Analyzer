@@ -2194,6 +2194,16 @@ btn_reset_canvas, btn_reset_global = create_round_button(
 btn_reset_canvas.pack(side="left", padx=2)
 btn_reset_global.bind("<Double-Button-1>", reinitialiser_tous_filtres)
 
+# Séparateurs et barre de recherche au centre
+separator_left = tk.Frame(header_buttons_frame, bg="white", width=2, height=30)
+separator_left.pack(side="left", padx=5, pady=10, fill="y")
+
+search_frame_header = tk.Frame(header_buttons_frame, bg="#004D40")
+search_frame_header.pack(side="left", padx=5, pady=10)
+
+separator_right = tk.Frame(header_buttons_frame, bg="white", width=2, height=30)
+separator_right.pack(side="left", padx=5, pady=10, fill="y")
+
 # Sous-frame pour les boutons d'export
 export_frame_header = tk.Frame(header_buttons_frame, bg="#004D40")
 export_frame_header.pack(side="left", padx=2)
@@ -2267,14 +2277,6 @@ def _search_focus_out(event):
         search_entry_header.insert(0, "🔍 Recherche")
         search_entry_header.config(fg="gray")
 
-# Container frame for search bar
-search_frame_header = tk.Frame(header_frame, bg="#004D40")
-
-# Séparateur entre recherche et boutons
-header_separator = tk.Frame(header_frame, bg="white", width=1)
-header_separator.pack(side="right", fill="y", pady=10)
-
-search_frame_header.pack(side="right", padx=10, pady=10)
 header_buttons_frame.pack(side="right", padx=10, pady=10)
 
 search_canvas_header = tk.Canvas(
@@ -2533,35 +2535,53 @@ print("Boutons de navigation créés")
 
 frame_accueil_content = tk.Frame(frame_accueil, bg="#F2F2F2")
 frame_accueil_content.pack(expand=True, fill="both", padx=10, pady=10)
-center_container = tk.Frame(frame_accueil_content, bg="#F2F2F2")
-center_container.place(relx=0.5, rely=0.5, anchor="center")
+accueil_canvas = tk.Canvas(
+    frame_accueil_content,
+    bg="#F2F2F2",
+    highlightthickness=0,
+    width=360,
+    height=220,
+)
+accueil_canvas.place(relx=0.5, rely=0.5, anchor="center")
+create_rounded_rectangle(
+    accueil_canvas,
+    0,
+    0,
+    360,
+    220,
+    radius=20,
+    fill="#004D40",
+    outline="#004D40",
+)
+center_container = tk.Frame(accueil_canvas, bg="#004D40")
+accueil_canvas.create_window(180, 110, window=center_container)
 
 label_titre_accueil = tk.Label(
     center_container,
     text="Bienvenue sur IFC Analyzer",
     font=("Helvetica", 18, "bold"),
-    bg="#F2F2F2",
-    fg="#263238",
+    bg="#004D40",
+    fg="white",
 )
 label_titre_accueil.pack(pady=(0, 10))
 tk.Label(
     center_container,
     text="📁 Formats supportés : .IFC",
     font=("Helvetica", 12),
-    bg="#F2F2F2",
-    fg="#263238",
+    bg="#004D40",
+    fg="white",
 ).pack(pady=(0, 20))
 label_surface_coffrage_totale = tk.Label(
     center_container,
     text="Surface de coffrage totale : 0.00 m²",
     font=("Helvetica", 12),
-    bg="#F2F2F2",
-    fg="#263238",
+    bg="#004D40",
+    fg="white",
 )
 # label_surface_coffrage_totale.pack(pady=10)
 import_btn_canvas = tk.Canvas(
     center_container,
-    bg="#F2F2F2",
+    bg="#004D40",
     highlightthickness=0,
     width=200,
     height=40,
@@ -2589,23 +2609,6 @@ btn_importer_ifc = tk.Button(
     activeforeground="white",
 )
 import_btn_canvas.create_window(100, 20, window=btn_importer_ifc)
-
-# Bloc de présentation sous le bouton d'import
-presentation_frame = tk.Frame(center_container, bg="#004D40", padx=20, pady=10)
-presentation_frame.pack(pady=10)
-tk.Label(
-    presentation_frame,
-    text=(
-        "Formats supportés : .IFC\n"
-        "Jusqu'à 250 000 entités\n"
-        "Visualisation structurée"
-    ),
-    font=("Helvetica", 10),
-    bg="#004D40",
-    fg="white",
-    justify="center",
-    wraplength=500,
-).pack()
 print("Cadre d'accueil configuré")
 
 frame_murs_content = tk.Frame(frame_murs, bg="#F2F2F2")
