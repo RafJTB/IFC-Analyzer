@@ -2221,6 +2221,17 @@ search_entry_header = tk.Entry(
     insertbackground="black"
 )
 search_entry_header.insert(0, "🔍 Recherche")
+
+def rechercher_onglet(event=None):
+    query = search_entry_header.get().strip().lower()
+    if not query:
+        return
+    for btn in tab_buttons:
+        if query in btn.cget("text").lower():
+            btn.invoke()
+            return
+    messagebox.showinfo("Recherche", f"Aucun onglet trouvé pour « {query} »")
+
 search_entry_header.bind("<FocusIn>", _search_focus_in)
 search_entry_header.bind("<FocusOut>", _search_focus_out)
 search_entry_header.bind("<Return>", rechercher_onglet)
