@@ -274,6 +274,9 @@ import re              # NEW ➜ même niveau d’indent que les autres
 print("Imports de base (os, threading, time, re) réussis")
 TITLE_FONT = ("Helvetica", 12, "bold")
 
+# Rayon par défaut des boutons arrondis
+BUTTON_RADIUS = 18
+
 # --------------------------------------
 # Variables Globales
 # --------------------------------------
@@ -1133,50 +1136,40 @@ def update_ifc_tabs(new_ifc) :
         tabs_frame = tk.Frame(header_frame, bg="#004D40")
         tabs_frame.pack(side="left", padx=10, pady=5)
     for btn in tab_buttons :
-        btn.destroy()
+        btn.master.destroy()
     tab_buttons.clear()
-    # Créer un style pour les onglets
-    style = ttk.Style()
-    style.configure("Tab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#B0BEC5", foreground="#263238")
-    style.map("Tab.TButton", background=[("active", "#4DB6AC"), ("!active", "#B0BEC5")])
-    # Fond vert clair pour simuler une transparence sur l'onglet actif
-    style.configure("ActiveTab.TButton", font=("Helvetica", 9, "bold"), padding=[8, 4], background="#81C784", foreground="#FFFFFF")
-    # Dictionnaire pour associer chaque bouton à son frame
-    frame_dict = {}
+    canvas_dict = {}
     for chemin in donnees_ifc.keys() :
         nom_fichier = os.path.basename(chemin)
         display_name = nom_fichier[:15] + "..." if len(nom_fichier) > 15 else nom_fichier
-        # Créer un cadre pour chaque bouton
-        btn_frame = tk.Frame(tabs_frame, bg="#004D40")
-        btn_frame.pack(side="left", padx=2)
-        # Créer le bouton ttk avec takefocus=False pour supprimer les bordures en pointillés
-        btn = ttk.Button(btn_frame, text=display_name, style="Tab.TButton", command=lambda c=chemin: switch_ifc(c), takefocus=False)
-        btn.pack(fill="x")
-        # Stocker le cadre et le bouton
-        frame_dict[btn] = btn_frame
+        canvas, btn = create_round_button(
+            tabs_frame,
+            display_name,
+            command=lambda c=chemin: switch_ifc(c),
+            width=100,
+            height=25,
+        )
+        canvas.pack(side="left", padx=2)
+        canvas_dict[btn] = canvas
         tab_buttons.append(btn)
-        # Lier pour survoler
-        btn.bind("<Enter>", lambda e, b=btn: b.configure(style="Tab.TButton"))
-        btn.bind("<Leave>", lambda e, b=btn: b.configure(style="Tab.TButton"))
     ifc_actif = new_ifc
-    update_active_tab(frame_dict)
+    update_active_tab(canvas_dict)
 
-def update_active_tab(frame_dict) :
-    style = ttk.Style()
+def update_active_tab(canvas_dict) :
     for btn in tab_buttons :
-        # Réinitialiser tous les frames
-        frame = frame_dict.get(btn)
-        if frame :
-            frame.config(bg="#004D40")
+        canvas = canvas_dict.get(btn)
         chemin = btn.cget("text")
         if len(chemin) > 15 :
             chemin = chemin[:15] + "..."
         if os.path.basename(ifc_actif) == chemin or os.path.basename(ifc_actif)[:15] + "..." == chemin :
-            btn.configure(style="ActiveTab.TButton")
-            if frame :
-                frame.config(bg="#004D40") # Le frame reste en fond sombre, seule la couleur du bouton change
+            bg = "#81C784"
+            fg = "#FFFFFF"
         else:
-            btn.configure(style="Tab.TButton")
+            bg = "#B0BEC5"
+            fg = "#263238"
+        btn.config(bg=bg, fg=fg, activebackground=bg, activeforeground=fg)
+        if canvas:
+            canvas.itemconfig(canvas.rect_id, fill=bg, outline=bg)
     # Mettre à jour l'affichage des données
     if ifc_actif in donnees_ifc :
         afficher_donnees_murs(donnees_ifc[ifc_actif]["murs"])
@@ -1202,9 +1195,9 @@ def switch_ifc(chemin):
     global ifc_actif
     ifc_actif = chemin
     print(f"Basculer vers IFC : {ifc_actif}")
-    # Récréer frame_dict pour update_active_tab
-    frame_dict = {btn : btn.master for btn in tab_buttons}
-    update_active_tab(frame_dict)
+    # Récréer canvas_dict pour update_active_tab
+    canvas_dict = {btn: btn.master for btn in tab_buttons}
+    update_active_tab(canvas_dict)
 
 # --------------------------------------
 # Affichage des données
@@ -2145,7 +2138,7 @@ tk.Label(header_frame, text="par Rafael Jeantin", font=("Helvetica", 8, "italic"
 # Frame contenant les boutons d'action
 
 # ── Helpers pour boutons arrondis ─────────────────────────────────
-def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=15, **kwargs):
+def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=BUTTON_RADIUS, **kwargs):
     """Dessine un rectangle arrondi sur *canvas*."""
     points = [
         x1+radius, y1,
@@ -2163,16 +2156,17 @@ def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=15, **kwargs):
     ]
     return canvas.create_polygon(points, **kwargs, smooth=True, splinesteps=36)
 
-def create_round_button(parent, text, command=None, width=80, height=30, radius=15,
+def create_round_button(parent, text, command=None, width=80, height=30, radius=BUTTON_RADIUS,
                         bg="#FFFFFF", fg="#004D40", font=("Helvetica", 8, "bold")):
     """Crée un bouton à bords arrondis similaire à la barre de recherche."""
     canvas = tk.Canvas(parent, bg=parent.cget("bg"), highlightthickness=0,
                        width=width, height=height)
-    create_rounded_rectangle(canvas, 0, 0, width, height, radius=radius,
-                             fill=bg, outline=bg)
+    rect = create_rounded_rectangle(canvas, 0, 0, width, height, radius=radius,
+                                    fill=bg, outline=bg)
     btn = tk.Button(canvas, text=text, command=command, bd=0, bg=bg, fg=fg,
                     activebackground=bg, activeforeground=fg, font=font)
     canvas.create_window(width/2, height/2, window=btn)
+    canvas.rect_id = rect
     return canvas, btn
 # ────────────────────────────────────────────────────────────────
 
@@ -2232,7 +2226,7 @@ pdf_canvas, _ = create_round_button(
 )
 pdf_canvas.pack(side="left", padx=2)
 # ─── Search-bar ESCRONOMISTE style ─────────────────────────────
-def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=15, **kwargs):
+def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=BUTTON_RADIUS, **kwargs):
     """Dessine un rectangle arrondi sur *canvas*."""
     points = [
         x1+radius, y1,
@@ -2258,16 +2252,17 @@ def create_rounded_rectangle(canvas, x1, y1, x2, y2, radius=15, **kwargs):
     ]
     return canvas.create_polygon(points, **kwargs, smooth=True, splinesteps=36)
 
-def create_round_button(parent, text, command=None, width=80, height=30, radius=15,
+def create_round_button(parent, text, command=None, width=80, height=30, radius=BUTTON_RADIUS,
                         bg="#FFFFFF", fg="#004D40", font=("Helvetica", 8, "bold")):
     """Crée un bouton à bords arrondis similaire à la barre de recherche."""
     canvas = tk.Canvas(parent, bg=parent.cget("bg"), highlightthickness=0,
                        width=width, height=height)
-    create_rounded_rectangle(canvas, 0, 0, width, height, radius=radius,
-                             fill=bg, outline=bg)
+    rect = create_rounded_rectangle(canvas, 0, 0, width, height, radius=radius,
+                                    fill=bg, outline=bg)
     btn = tk.Button(canvas, text=text, command=command, bd=0, bg=bg, fg=fg,
                     activebackground=bg, activeforeground=fg, font=font)
     canvas.create_window(width/2, height/2, window=btn)
+    canvas.rect_id = rect
     return canvas, btn
 
 def _search_focus_in(event):
@@ -2295,7 +2290,7 @@ search_canvas_header.pack()
 create_rounded_rectangle(
     search_canvas_header,
     0, 0, 200, 30,
-    radius=15,
+    radius=BUTTON_RADIUS,
     fill="#FFFFFF",
     outline="#FFFFFF"
 )
