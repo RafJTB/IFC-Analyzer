@@ -244,6 +244,16 @@ def copy_type_summary_bord_dalle(event=None):
         root.clipboard_clear()
         root.clipboard_append("\n".join(["\t".join(map(str, tree_longueurs_par_type_bord_dalle.item(i)["values"])) for i in sel]))
 
+def appliquer_filtre_resume_bord_dalle(event=None):
+    """Filtre le tableau de résumé des bords de dalle selon le texte saisi."""
+    filtre = entree_filtre_resume_bord_dalle.get().strip().lower()
+    for iid in tree_longueurs_par_type_bord_dalle.get_children():
+        val = str(tree_longueurs_par_type_bord_dalle.item(iid)["values"][0]).lower()
+        if filtre and filtre not in val:
+            tree_longueurs_par_type_bord_dalle.detach(iid)
+        else:
+            tree_longueurs_par_type_bord_dalle.reattach(iid, "", "end")
+
 print(f"Version Python : {sys.version}")
 
 try:
@@ -2783,11 +2793,23 @@ tk.Label(grid_resume_bord_dalle, text="📏 Longueur totale :", bg="white", font
 label_longueur_totale_bord_dalle = tk.Label(grid_resume_bord_dalle, text="0.00 ml", bg="white", font=("Helvetica", 10, "bold"))
 label_longueur_totale_bord_dalle.grid(row=0, column=1, sticky="e", padx=10)
 
+# Cadre FILTRAGE PAR NOMS
+title_frame_filtrage_bord_dalle = tk.Frame(frame_resume_bord_dalle, bg="#004D40")
+title_frame_filtrage_bord_dalle.pack(fill="x", padx=5, pady=(15,0))
+tk.Label(title_frame_filtrage_bord_dalle, text="FILTRAGE PAR NOMS", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
+
+frame_filtrage_bord_dalle = tk.Frame(frame_resume_bord_dalle, bg="white", bd=1, relief="solid")
+frame_filtrage_bord_dalle.pack(fill="x", padx=5, pady=5)
+tk.Label(frame_filtrage_bord_dalle, text="🔎 Filtrage par noms :", bg="white").pack(side="left", padx=5)
+entree_filtre_resume_bord_dalle = tk.Entry(frame_filtrage_bord_dalle)
+entree_filtre_resume_bord_dalle.pack(side="left", fill="x", expand=True, padx=5)
+entree_filtre_resume_bord_dalle.bind("<KeyRelease>", appliquer_filtre_resume_bord_dalle)
+
 # Titre informations complémentaires
 types_frame_bord_dalle = tk.Frame(frame_resume_bord_dalle, bg="white", bd=1, relief="solid")
-types_frame_bord_dalle.pack(fill="x", padx=5, pady=5)
+types_frame_bord_dalle.pack(fill="both", padx=5, pady=5, expand=True)
 data_frame_types_bord_dalle = tk.Frame(types_frame_bord_dalle, bg="white")
-data_frame_types_bord_dalle.pack(fill="both", padx=5, pady=5)
+data_frame_types_bord_dalle.pack(fill="both", padx=5, pady=5, expand=True)
 
 tree_longueurs_par_type_bord_dalle = ttk.Treeview(
     data_frame_types_bord_dalle,
