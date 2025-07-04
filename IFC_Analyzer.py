@@ -172,29 +172,44 @@ def appliquer_filtre_zero_escalier():
             tree_escalier.detach(item)
 
 # --- Fonctions de filtrage pour BORD DE DALLE ---
+def _get_filtered_bord_dalle():
+    bords = donnees_ifc.get(ifc_actif, {}).get("bords_dalle", [])
+    if filtre_zero_bord_dalle:
+        bords = [b for b in bords if b[1] == 0]
+    if filtre_niveaux_bord_dalle:
+        if len(bords) > 0 and len(bords[0]) > 3:
+            bords = [b for b in bords if b[3] in filtre_niveaux_bord_dalle]
+    if filtre_texte_bord_dalle:
+        lower = filtre_texte_bord_dalle
+        bords = [b for b in bords if lower in b[0].lower()]
+    return bords
+
+
+def _apply_filters_bord_dalle():
+    afficher_donnees_bord_dalle(_get_filtered_bord_dalle())
+
+
 def appliquer_filtre_bord_dalle():
-    filtre = entree_filtre_bord_dalle.get().lower()
-    for item in tree_bord_dalle.get_children():
-        valeurs = tree_bord_dalle.item(item)['values']
-        if filtre in " ".join(str(v).lower() for v in valeurs):
-            tree_bord_dalle.reattach(item, '', 'end')
-        else:
-            tree_bord_dalle.detach(item)
+    """Active le filtrage texte pour les bords de dalle."""
+    global filtre_texte_bord_dalle
+    filtre_texte_bord_dalle = entree_filtre_bord_dalle.get().lower()
+    _apply_filters_bord_dalle()
+
 
 def reinitialiser_filtre_bord_dalle():
-    """Réinitialise le filtre et réaffiche toutes les données de bord de dalle."""
+    """Réinitialise tous les filtres appliqués sur les bords de dalle."""
+    global filtre_texte_bord_dalle, filtre_zero_bord_dalle, filtre_niveaux_bord_dalle
     entree_filtre_bord_dalle.delete(0, tk.END)
-    afficher_donnees_bord_dalle()
+    filtre_texte_bord_dalle = ""
+    filtre_zero_bord_dalle = False
+    filtre_niveaux_bord_dalle = []
+    _apply_filters_bord_dalle()
 
 
 def appliquer_filtre_zero_bord_dalle():
-    # Affiche uniquement les éléments ayant une longueur nulle
-    for item in tree_bord_dalle.get_children():
-        longueur = tree_bord_dalle.item(item)['values'][1]  # colonne longueur
-        if longueur in (0, '0', 0.0, '0.0'):
-            tree_bord_dalle.reattach(item, '', 'end')
-        else:
-            tree_bord_dalle.detach(item)
+    global filtre_zero_bord_dalle
+    filtre_zero_bord_dalle = True
+    _apply_filters_bord_dalle()
 
 def afficher_donnees_bord_dalle(bords=None):
     bords = bords or donnees_ifc.get(ifc_actif, {}).get("bords_dalle", [])
@@ -317,6 +332,9 @@ filtre_niveaux_poutres = []
 filtre_texte_ep = ""
 filtre_zero_ep = False
 filtre_niveaux_ep = []
+filtre_texte_bord_dalle = ""
+filtre_zero_bord_dalle = False
+filtre_niveaux_bord_dalle = []
 
 # Résumés en Treeview (créés plus bas dans l’UI)
 tree_surfaces_garde_corps = None
@@ -2742,6 +2760,7 @@ scroll_bord_dalle = ttk.Scrollbar(frame_bord_dalle_content, orient="vertical", c
 tree_bord_dalle.configure(yscrollcommand=scroll_bord_dalle.set)
 tree_bord_dalle.pack(side="left", expand=True, fill="both", padx=(10, 0), pady=10)
 scroll_bord_dalle.pack(side="right", fill="y")
+tree_bord_dalle.bind("<<TreeviewSelect>>", afficher_infos_bord_dalle)
 
 # Panneau résumé à droite
 frame_resume_bord_dalle = tk.Frame(frame_bord_dalle, bg="white", width=650)
@@ -2805,6 +2824,12 @@ tree_longueurs_par_type_bord_dalle.bind("<Button-3>", lambda e: (
 title_frame_types_bord_dalle = tk.Frame(frame_resume_bord_dalle, bg="#004D40")
 title_frame_types_bord_dalle.pack(fill="x", padx=5, pady=(15,0))
 tk.Label(title_frame_types_bord_dalle, text="INFORMATIONS COMPLÉMENTAIRES", font=TITLE_FONT, bg="#004D40", fg="white").pack(pady=5)
+info_frame_bord_dalle = tk.Frame(frame_resume_bord_dalle, bg="#FFFFFF", bd=2, relief="groove")
+info_frame_bord_dalle.pack(fill="x", padx=5, pady=5)
+grid_infos_bord_dalle = tk.Frame(info_frame_bord_dalle, bg="#FFFFFF")
+grid_infos_bord_dalle.pack(pady=5, fill="x")
+grid_infos_bord_dalle.grid_columnconfigure(1, weight=1)
+grid_infos_bord_dalle.grid_columnconfigure(0, weight=1)
 
 print("UI BORD DE DALLE créée")
 
@@ -4441,6 +4466,76 @@ for btn in nav_buttons:
 
 root.after(0, maj_par_type_ep)
 tree_ep.bind("<<TreeviewSelect>>", afficher_infos_descente_ep)
+
+# ---- Logique BORD DE DALLE (copiée de DESCENTE EP) ----
+def hide_infos_bord_dalle():
+    for w in grid_infos_bord_dalle.winfo_children():
+        w.destroy()
+
+
+def _update_infos_bord_dalle(nom_sel: str, longueur: float = None, storey: str = None):
+    """Affiche uniquement le niveau pour le bord de dalle sélectionné."""
+    hide_infos_bord_dalle()
+    infos = donnees_ifc.get(ifc_actif, {}).get("bords_dalle_infos", {})
+    if storey is None:
+        storeys = sorted({s.strip() for (n, s) in infos if n == nom_sel and s and s.strip()})
+    else:
+        storeys = [storey.strip()] if infos.get((nom_sel, storey)) else []
+        storeys = [s for s in storeys if s]
+    niveau_txt = " - ".join(storeys) if storeys else "N/A"
+    tk.Label(grid_infos_bord_dalle, text="Niveau :", bg="#FFFFFF", anchor="w").grid(row=0, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_bord_dalle, text=niveau_txt, bg="#FFFFFF", anchor="e").grid(row=0, column=1, sticky="e", padx=10)
+
+
+def _update_resume_bord_dalle(nom_sel: str):
+    bords_src = [b for b in _get_filtered_bord_dalle() if b[0] == nom_sel]
+    if not bords_src:
+        return
+    total_len = sum(b[1] for b in bords_src)
+    for w in grid_resume_bord_dalle.winfo_children():
+        w.destroy()
+    tk.Label(grid_resume_bord_dalle, text="📏 Longueur :", bg="white", font=("Helvetica", 10)).grid(row=0, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_bord_dalle, text=_format_summary_value(total_len, " ml"), bg="white", font=("Helvetica", 10, "bold")).grid(row=0, column=1, sticky="e", padx=10)
+
+
+def afficher_infos_bord_dalle(event=None):
+    sel = tree_bord_dalle.selection()
+    if not sel:
+        hide_infos_bord_dalle()
+        return
+    values = tree_bord_dalle.item(sel[0])["values"]
+    nom_sel = values[0]
+    try:
+        longueur = float(values[1])
+    except (ValueError, TypeError):
+        longueur = 0.0
+    bord_type = values[2]
+    storey = None
+    for b in donnees_ifc.get(ifc_actif, {}).get("bords_dalle", []):
+        if b[0] == nom_sel and abs(b[1] - longueur) < 0.01 and b[2] == bord_type:
+            storey = b[3] if len(b) > 3 else None
+            break
+    _update_infos_bord_dalle(nom_sel, longueur=longueur, storey=storey)
+    _update_resume_bord_dalle(nom_sel)
+
+
+def afficher_infos_bord_dalle_resume(event=None):
+    sel = tree_longueurs_par_type_bord_dalle.selection()
+    if not sel:
+        hide_infos_bord_dalle()
+        return
+    nom_sel = tree_longueurs_par_type_bord_dalle.item(sel[0])["values"][0]
+    _update_resume_bord_dalle(nom_sel)
+    _update_infos_bord_dalle(nom_sel)
+
+# Interaction summary tree for bords de dalle
+tree_longueurs_par_type_bord_dalle.bind("<<TreeviewSelect>>", afficher_infos_bord_dalle_resume)
+
+# Nav button update to trigger data refresh for BORD DE DALLE
+for btn in nav_buttons:
+    if btn.cget("text") == "BORD DE DALLE":
+        btn.configure(command=lambda b=btn: (set_selected(b), _apply_filters_bord_dalle(), show_frame(frame_bord_dalle)))
+        break
 
 # —— UI TYPE DE PLAFOND ———————————————————————————————————————————
 # (copié-collé de l’interface "TYPE DE SOL", renommé)
