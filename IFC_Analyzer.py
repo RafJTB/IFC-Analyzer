@@ -141,6 +141,11 @@ def _calc_surface_nette_sols(sols_list):
     return max(surface_nette, 0.0)
 
 
+def _calc_surface_nette_plafond(plafonds_list):
+    """Retourne la surface nette des plafonds (identique à la surface brute)."""
+    return sum(p[1] for p in plafonds_list)
+
+
 def on_configure_grid_types_murs(event):
     """Réajuste la zone de scroll du canvas des types de murs."""
     canvas_grid_types_murs.configure(scrollregion=canvas_grid_types_murs.bbox("all"))
@@ -312,6 +317,7 @@ tab_buttons = []
 btn_niveau_murs = None
 btn_niveau_menuiseries = None
 btn_niveau_type_sol = None
+btn_niveau_type_plafond = None
 btn_niveau_garde_corps = None
 btn_niveau_poteaux = None
 btn_niveau_poutres = None
@@ -331,6 +337,10 @@ filtre_zero_menuiseries = False
 filtre_texte_type_sol = ""
 filtre_zero_type_sol = False
 filtre_niveaux_type_sol = []
+# Filtres actifs pour le tableau TYPE DE PLAFOND
+filtre_texte_type_plafond = ""
+filtre_zero_type_plafond = False
+filtre_niveaux_type_plafond = []
 # Filtres actifs pour le tableau GARDE CORPS
 filtre_texte_garde_corps = ""
 filtre_zero_garde_corps = False
@@ -447,6 +457,7 @@ def importer_ifc():
                 "sols":        [],
                 "sols_infos": {},
                 "plafonds":    [],
+                "plafonds_infos": {},
                 "garde_corps": [],
                 "garde_corps_infos": {},
                 "poteaux":     [],
@@ -1856,6 +1867,22 @@ def _get_filtered_type_sol():
 def _apply_filters_type_sol():
     afficher_donnees_type_sol(_get_filtered_type_sol())
 
+# ----- Filtres pour TYPE DE PLAFOND -----
+def _get_filtered_type_plafond():
+    plafs = donnees_ifc.get(ifc_actif, {}).get("plafonds", [])
+    if filtre_zero_type_plafond:
+        plafs = [p for p in plafs if p[1] == 0]
+    if filtre_niveaux_type_plafond:
+        if len(plafs) > 0 and len(plafs[0]) > 3:
+            plafs = [p for p in plafs if p[3] in filtre_niveaux_type_plafond]
+    if filtre_texte_type_plafond:
+        lower = filtre_texte_type_plafond
+        plafs = [p for p in plafs if lower in p[0].lower()]
+    return plafs
+
+def _apply_filters_type_plafond():
+    afficher_donnees_type_plafond(_get_filtered_type_plafond())
+
 # ----- Filtres pour GARDE CORPS -----
 def _get_filtered_garde_corps():
     gc = donnees_ifc.get(ifc_actif, {}).get("garde_corps", [])
@@ -1929,6 +1956,18 @@ def appliquer_filtre_zero_type_sol():
     filtre_zero_type_sol = True
     _apply_filters_type_sol()
 
+def appliquer_filtre_type_plafond():
+    """Active le filtrage texte pour les plafonds."""
+    global filtre_texte_type_plafond
+    filtre_texte_type_plafond = entree_filtre_type_plafond.get().lower()
+    _apply_filters_type_plafond()
+
+def appliquer_filtre_zero_type_plafond():
+    """Filtrer pour n’afficher que les plafonds avec surface (m²) égale à 0."""
+    global filtre_zero_type_plafond
+    filtre_zero_type_plafond = True
+    _apply_filters_type_plafond()
+
 def appliquer_filtre_zero_murs():
     """Active le filtre pour n'afficher que les murs de quantité nulle."""
     global filtre_zero_murs
@@ -1981,6 +2020,13 @@ def appliquer_filtre_niveau_type_sol(niveaux):
 
 def open_filtre_niveau_type_sol():
     open_filtre_niveau(btn_niveau_type_sol, appliquer_filtre_niveau_type_sol)
+
+def appliquer_filtre_niveau_type_plafond(niveaux):
+    """Filtrer les revêtements de plafond selon une liste de niveaux."""
+    appliquer_filtre_niveau("filtre_niveaux_type_plafond", _apply_filters_type_plafond, niveaux)
+
+def open_filtre_niveau_type_plafond():
+    open_filtre_niveau(btn_niveau_type_plafond, appliquer_filtre_niveau_type_plafond)
 
 def appliquer_filtre_niveau_garde_corps(niveaux):
     """Filtrer les garde-corps selon une liste de niveaux."""
@@ -2470,6 +2516,7 @@ niveau_callbacks = {
     frame_murs: appliquer_filtre_niveau_murs,
     frame_menuiseries: appliquer_filtre_niveau_menuiseries,
     frame_type_sol: appliquer_filtre_niveau_type_sol,
+    frame_type_plafond: appliquer_filtre_niveau_type_plafond,
     frame_garde_corps: appliquer_filtre_niveau_garde_corps,
     frame_poteaux: appliquer_filtre_niveau_poteaux,
     frame_poutres: appliquer_filtre_niveau_poutres,
@@ -3368,6 +3415,28 @@ def _update_resume_type_sol(nom_sel: str, storey: str = None):
     tk.Label(grid_resume_type_sol, text="🏠 Surface nette :", bg="#FFFFFF", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_resume_type_sol, text=_format_summary_value(surface_nette, " m²"), bg="#FFFFFF", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
 
+def _update_resume_type_plafond(nom_sel: str, storey: str = None):
+    """Met à jour le résumé pour le revêtement de plafond sélectionné."""
+    plaf_src = [p for p in _get_filtered_type_plafond() if p[0] == nom_sel]
+    if not plaf_src:
+        return
+    longueur_totale = surface_totale = 0.0
+    for _, surface, longueur, *_ in plaf_src:
+        longueur_totale += longueur
+        surface_totale += surface
+    for w in grid_resume_type_plafond.winfo_children():
+        w.destroy()
+    row = 0
+    tk.Label(grid_resume_type_plafond, text="📏 Longueur :", bg="white", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_plafond, text=_format_summary_value(longueur_totale, " ml"), bg="white", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    tk.Label(grid_resume_type_plafond, text="📐 Surface brute :", bg="white", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_plafond, text=_format_summary_value(surface_totale, " m²"), bg="white", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+    row += 1
+    surface_nette = _calc_surface_nette_plafond(plaf_src)
+    tk.Label(grid_resume_type_plafond, text="🏠 Surface nette :", bg="white", font=("Helvetica", 10)).grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_resume_type_plafond, text=_format_summary_value(surface_nette, " m²"), bg="white", font=("Helvetica", 10, "bold")).grid(row=row, column=1, sticky="e", padx=10)
+
 def afficher_infos_menuiseries(event=None):
     sel = tree_menuiseries.selection()
     if not sel:
@@ -3511,6 +3580,30 @@ def afficher_infos_type_sol_resume(event=None):
     _update_infos_type_sol(nom_sel)
     _update_resume_type_sol(nom_sel)
 
+def afficher_infos_type_plafond(event=None):
+    sel = tree_type_plafond.selection()
+    if not sel:
+        hide_infos_type_plafond()
+        return
+    values = tree_type_plafond.item(sel[0])["values"]
+    nom_sel = values[0]
+    try:
+        surface = float(values[1])
+        longueur = float(values[2])
+    except (ValueError, TypeError):
+        surface = longueur = 0.0
+    _update_infos_type_plafond(nom_sel)
+    _update_resume_type_plafond(nom_sel)
+
+def afficher_infos_type_plafond_resume(event=None):
+    sel = tree_surfaces_type_plafond.selection()
+    if not sel:
+        hide_infos_type_plafond()
+        return
+    nom_sel = tree_surfaces_type_plafond.item(sel[0])["values"][0]
+    _update_infos_type_plafond(nom_sel)
+    _update_resume_type_plafond(nom_sel)
+
 def afficher_infos_garde_corps(event=None):
     sel = tree_garde_corps.selection()
     if not sel:
@@ -3637,6 +3730,52 @@ def _update_infos_type_sol(nom_sel: str, storey: str = None):
     row = len(mapping)
     tk.Label(grid_infos_type_sol, text=f"{label} :", bg="#FFFFFF", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
     tk.Label(grid_infos_type_sol, text=niveaux, bg="#FFFFFF", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+
+def hide_infos_type_plafond():
+    """Masque le bloc d'informations complémentaires des plafonds."""
+    for w in grid_infos_type_plafond.winfo_children():
+        w.destroy()
+
+def _update_infos_type_plafond(nom_sel: str, storey: str = None):
+    """Affiche les informations complémentaires pour le revêtement de plafond donné."""
+    hide_infos_type_plafond()
+    infos = donnees_ifc.get(ifc_actif, {}).get("plafonds_infos", {})
+    info = {}
+    if storey is not None:
+        info = infos.get((nom_sel, storey), {})
+        if not info:
+            for (n, s), data in infos.items():
+                if n == nom_sel:
+                    info = data
+                    break
+    else:
+        info = {}
+    storeys = sorted({s for (n, s) in infos if n == nom_sel and s})
+    mapping = [
+        ("Cotes / Élévation haut", "Cotes / Élévation haut"),
+        ("Cotes / Élévation base", "Cotes / Élévation base"),
+        ("Cotes / Épaisseur", "Cotes / Épaisseur"),
+    ]
+    for row, (key, label) in enumerate(mapping):
+        val = info.get(key)
+        if val in (None, "", "None"):
+            val = "N/A"
+        elif isinstance(val, (int, float)):
+            val = f"{val:.2f}"
+        else:
+            try:
+                if isinstance(val, str):
+                    val = val.replace(",", ".")
+                val = f"{float(val):.2f}"
+            except (TypeError, ValueError, AttributeError):
+                val = str(val)
+        tk.Label(grid_infos_type_plafond, text=f"{label} :", bg="white", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+        tk.Label(grid_infos_type_plafond, text=str(val), bg="white", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
+    label = "Niveau" if len(storeys) <= 1 else "Niveaux"
+    niveaux = " - ".join(storeys) if storeys else "N/A"
+    row = len(mapping)
+    tk.Label(grid_infos_type_plafond, text=f"{label} :", bg="white", anchor="w").grid(row=row, column=0, sticky="w", padx=10)
+    tk.Label(grid_infos_type_plafond, text=niveaux, bg="white", anchor="e").grid(row=row, column=1, sticky="e", padx=10)
 
 
 def hide_infos_garde_corps():
@@ -4567,6 +4706,7 @@ frame_filtre_type_plafond = tk.Frame(frame_type_plafond_content, bg="#FFFFFF", b
 tk.Label(frame_filtre_type_plafond, text="🔎 Filtrer :", bg="#FFFFFF").pack(side="left", padx=5)
 entree_filtre_type_plafond = tk.Entry(frame_filtre_type_plafond, width=40)
 entree_filtre_type_plafond.pack(side="left", padx=5)
+btn_niveau_type_plafond = None
 print("Cadre de filtrage des plafonds créé")
 
 # ---- Treeview principal ----
@@ -4655,6 +4795,16 @@ tree_surfaces_type_plafond.configure(yscrollcommand=scroll_surfaces_type_plafond
 tree_surfaces_type_plafond.pack(side="left", fill="both", expand=True, padx=(5,0), pady=5)
 scroll_surfaces_type_plafond.pack(side="right", fill="y")
 
+title_frame_types_type_plafond_bottom = tk.Frame(frame_resume_type_plafond, bg="#004D40")
+title_frame_types_type_plafond_bottom.pack(fill="x", padx=5, pady=(15, 0))
+tk.Label(title_frame_types_type_plafond_bottom, text="INFORMATIONS COMPLÉMENTAIRES", font=("Helvetica", 12, "bold"), bg="#004D40", fg="white").pack(pady=5)
+info_frame_type_plafond = tk.Frame(frame_resume_type_plafond, bg="white", bd=2, relief="groove")
+info_frame_type_plafond.pack(fill="x", padx=5, pady=5)
+grid_infos_type_plafond = tk.Frame(info_frame_type_plafond, bg="white")
+grid_infos_type_plafond.pack(pady=5, fill="x")
+grid_infos_type_plafond.grid_columnconfigure(1, weight=1)
+grid_infos_type_plafond.grid_columnconfigure(0, weight=1)
+
 # ---- Fonctions de données pour TYPE DE PLAFOND ----
 def afficher_donnees_type_plafond(plafs=None):
     if plafs is None:
@@ -4674,7 +4824,8 @@ def afficher_donnees_type_plafond(plafs=None):
 
     label_longueur_totale_type_plafond.config(text=f"{round(longueur_totale,2)} ml")
     label_surface_brut_type_plafond.config(text=f"{round(surface_totale,2)} m²")
-    label_surface_net_type_plafond.config(text=f"{round(surface_totale,2)} m²")
+    surface_nette = _calc_surface_nette_plafond(plafs)
+    label_surface_net_type_plafond.config(text=f"{round(surface_nette,2)} m²")
 
     tree_surfaces_type_plafond.delete(*tree_surfaces_type_plafond.get_children())
     for idx, (nom, surface) in enumerate(surfaces_par_nom.items()):
@@ -4692,17 +4843,22 @@ def afficher_donnees_type_plafond(plafs=None):
     tree_surfaces_type_plafond.column("m²", width=max_w + 20, stretch=False)
 
 def appliquer_filtre_type_plafond():
-    txt = entree_filtre_type_plafond.get().lower()
-    filtres = [p for p in donnees_ifc.get(ifc_actif, {}).get("plafonds", []) if txt in p[0].lower()]
-    afficher_donnees_type_plafond(filtres)
+    global filtre_texte_type_plafond
+    filtre_texte_type_plafond = entree_filtre_type_plafond.get().lower()
+    _apply_filters_type_plafond()
 
 def reinitialiser_filtre_type_plafond():
+    global filtre_texte_type_plafond, filtre_zero_type_plafond, filtre_niveaux_type_plafond
     entree_filtre_type_plafond.delete(0, tk.END)
-    afficher_donnees_type_plafond()
+    filtre_texte_type_plafond = ""
+    filtre_zero_type_plafond = False
+    filtre_niveaux_type_plafond = []
+    _apply_filters_type_plafond()
 
 def appliquer_filtre_zero_type_plafond():
-    zero = [p for p in donnees_ifc.get(ifc_actif, {}).get("plafonds", []) if p[1] == 0]
-    afficher_donnees_type_plafond(zero)
+    global filtre_zero_type_plafond
+    filtre_zero_type_plafond = True
+    _apply_filters_type_plafond()
 
 # ---- Interactions Résumé ----
 def copy_type_summary_plafond(event=None):
@@ -4720,6 +4876,8 @@ def filter_main_by_type_plafond(event=None):
 
 tree_surfaces_type_plafond.bind("<Button-1>", copy_type_summary_plafond)
 tree_surfaces_type_plafond.bind("<Double-1>", filter_main_by_type_plafond)
+tree_type_plafond.bind("<<TreeviewSelect>>", afficher_infos_type_plafond)
+tree_surfaces_type_plafond.bind("<<TreeviewSelect>>", afficher_infos_type_plafond_resume)
 
 print("Cadre de CV des plafonds créés")
 
