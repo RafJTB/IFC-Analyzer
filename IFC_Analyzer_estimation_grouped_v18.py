@@ -5112,8 +5112,10 @@ def _on_estimation_double_click(event):
         new_val = entry.get()
         tree_estimation.set(row_id, columns_estimation[col_index], new_val)
         entry.destroy()
-        if col_index in (3, 4):  # Quantité ou PU modifiés
+        if col_index == 3:  # Quantité modifiée
             _update_pt(row_id)
+        elif col_index == 4:  # Prix Unitaire modifié
+            _update_pu(row_id)
         _sync_estimation_cache()
 
     entry.bind("<Return>", _validate)
@@ -5335,8 +5337,10 @@ def _on_estimation_double_click(event):
         new_val = entry.get()
         tree_estimation.set(row_id, columns_estimation[col_index], new_val)
         entry.destroy()
-        if col_index in (3, 4):  # Quantité ou PU
+        if col_index == 3:  # Quantité
             _update_pt(row_id)
+        elif col_index == 4:  # PU
+            _update_pu(row_id)
         _sync_estimation_cache()
     entry.bind('<Return>', _validate)
     entry.bind('<FocusOut>', lambda e: entry.destroy())
@@ -6155,5 +6159,56 @@ if '_on_estimation_double_click' in globals():
         tree_estimation.unbind('<Double-1>')
     except Exception:
         pass
-    tree_estimation.bind('<Double-1>', _on_estimation_double_click)
+tree_estimation.bind('<Double-1>', _on_estimation_double_click)
 # ==================== END PATCH (v13) ================================
+
+# === BEGIN DUPLICATION PU ===
+def _iter_tree_items(tree):
+    """Iterate over all items of *tree* using a LIFO stack."""
+    stack = list(tree.get_children())
+    while stack:
+        iid = stack.pop()
+        yield iid
+        stack.extend(tree.get_children(iid))
+
+
+def _update_pt(row_id):
+    """Update Montant Total for *row_id* without duplication."""
+    try:
+        qty = float(tree_estimation.set(row_id, "Quantité") or 0)
+        pu = float(tree_estimation.set(row_id, "Prix Unitaire (€)") or 0)
+        tree_estimation.set(row_id, "Montant Total (€)", round(qty * pu, 2))
+    except ValueError:
+        tree_estimation.set(row_id, "Montant Total (€)", "")
+
+
+def _update_pu(row_id: str):
+    """Update PU for a row and optionally duplicate to matching names."""
+    _update_pt(row_id)
+    try:
+        pu_val = float(tree_estimation.set(row_id, "Prix Unitaire (€)") or 0)
+    except ValueError:
+        pu_val = None
+
+    if pu_val is not None:
+        from tkinter import messagebox
+        if messagebox.askyesno(
+            "Duplication PU",
+            f"Dupliquer le PU {pu_val:.2f} € pour toutes les lignes ayant le même 'Nom IFC (base)' ?",
+        ):
+            base_name = tree_estimation.set(row_id, "Nom IFC (base)")
+            for iid in _iter_tree_items(tree_estimation):
+                tags = tree_estimation.item(iid, "tags")
+                if 'catrow' in tags or 'subcatrow' in tags:
+                    continue
+                if tree_estimation.set(iid, "Nom IFC (base)") == base_name:
+                    tree_estimation.set(iid, "Prix Unitaire (€)", f"{pu_val:.2f}")
+                    try:
+                        q = float(tree_estimation.set(iid, "Quantité") or 0)
+                        tree_estimation.set(iid, "Montant Total (€)", round(q * pu_val, 2))
+                    except ValueError:
+                        tree_estimation.set(iid, "Montant Total (€)", "")
+
+    _sync_estimation_cache()
+    _maj_total_visible()
+# === END DUPLICATION PU ===
