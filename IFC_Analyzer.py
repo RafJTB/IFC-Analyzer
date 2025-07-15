@@ -5032,19 +5032,19 @@ label_total_pt.pack(anchor="w")
 summary_bar = tk.Frame(frame_estimation_content, bg="white")
 summary_bar.pack(side="bottom", fill="x", ipady=10)  # sticky footer
 
-# Bloc centré contenant Montant HT, TVA, Montant TTC
-center_block = tk.Frame(summary_bar, bg="white")
-center_block.pack(anchor="center")
+# Bloc centré contenant Montant HT, TVA, Montant TTC dans un rectangle grisé clair avec bords arrondis
+center_block = ctk.CTkFrame(summary_bar, corner_radius=10, fg_color="#F2F2F2")
+center_block.pack(expand=True, anchor="center", padx=10, pady=5)
 
 # Montant HT (variable mise à jour)
 label_montant_ht = tk.Label(center_block,
                             text="Montant Hors Taxe : 0 €",
                             font=("Helvetica", 10, "bold"),
-                            bg="white")
+                            bg="#F2F2F2")
 label_montant_ht.pack(side="left", pady=0, padx=5)
 
 # TVA (%)
-tk.Label(center_block, text="   TVA (%)", bg="white",
+tk.Label(center_block, text="   TVA (%)", bg="#F2F2F2",
          font=("Helvetica", 10)).pack(side="left", pady=0, padx=5)
 TVA_var = tk.StringVar(value="20")
 entry_tva = tk.Entry(center_block, textvariable=TVA_var, width=6)
@@ -5052,13 +5052,13 @@ entry_tva.pack(side="left", pady=0, padx=5)
 entry_tva.bind("<KeyRelease>", lambda *_: (_recalc_ttc(), _o3_refresh_ttc()))
 
 # Montant TTC (calculé)
-tk.Label(center_block, text="   Montant TTC :", bg="white",
+tk.Label(center_block, text="   Montant TTC :", bg="#F2F2F2",
          font=("Helvetica", 10)).pack(side="left", pady=0, padx=5)
 label_montant_ttc = tk.Label(center_block, text="0 €",
-                             bg="white",
+                             bg="#F2F2F2",
                              font=("Helvetica", 10, "bold"))
 label_montant_ttc.pack(side="left", pady=0, padx=5)
-# ------------------------ FIN PATCH v10 --------------------------------------
+# ------------------------ FIN PATCH v10 -------------------------------------- --------------------------------------
 def _maj_total_visible():
     total = 0.0
     for iid in tree_estimation.get_children():
@@ -5419,15 +5419,14 @@ frame_tva.pack(side='left', padx=(0, 10), anchor='n')
 tk.Label(frame_tva, text='TVA (%)', bg='#F2F2F2',
          font=('Helvetica', 10)).pack(anchor='w')
 
-TVA_var = tk.StringVar(value='20')
 entry_tva = tk.Entry(frame_tva, textvariable=TVA_var, width=6)
 entry_tva.pack(anchor='w', pady=(0, 10))
 
 tk.Label(frame_tva, text='Montant TTC', bg='#F2F2F2',
          font=('Helvetica', 10)).pack(anchor='w')
-label_montant_ttc = tk.Label(frame_tva, text='0 €', bg='#F2F2F2',
+label_montant_ttc_side = tk.Label(frame_tva, text='0 €', bg='#F2F2F2',
                              font=('Helvetica', 10, 'bold'))
-label_montant_ttc.pack(anchor='w')
+label_montant_ttc_side.pack(anchor='w')
 
 montant_ht_var = tk.DoubleVar(value=0.0)
 
@@ -5437,13 +5436,25 @@ def _recalc_ttc(*_):
         tva = float(TVA_var.get())
     except ValueError:
         label_montant_ttc.config(text='—')
+        try:
+            label_montant_ttc_side.config(text='—')
+        except Exception:
+            pass
         return
     ht = montant_ht_var.get()
     if tva != 0:
         ttc = round(ht * (1 + tva / 100), 2)  # Formule fournie par l’utilisateur
         label_montant_ttc.config(text=f'{ttc} €')
+        try:
+            label_montant_ttc_side.config(text=f'{ttc} €')
+        except Exception:
+            pass
     else:
         label_montant_ttc.config(text='—')
+        try:
+            label_montant_ttc_side.config(text='—')
+        except Exception:
+            pass
 
 TVA_var.trace_add('write', _recalc_ttc)
 
@@ -6056,11 +6067,19 @@ def _o3_refresh_ttc(*_):
         ttc = round(ht * (1 + tva_val / 100), 2)
         try:
             label_montant_ttc.config(text=f"{ttc:.2f} €")
+            try:
+                label_montant_ttc_side.config(text=f"{ttc:.2f} €")
+            except Exception:
+                pass
         except Exception:
             pass
     else:
         try:
             label_montant_ttc.config(text="—")
+            try:
+                label_montant_ttc_side.config(text="—")
+            except Exception:
+                pass
         except Exception:
             pass
 
@@ -6305,3 +6324,272 @@ def _update_pu(row_id: str):
     _sync_estimation_cache()
     _maj_total_visible()
 # === END DUPLICATION PU ===
+
+
+# ==================== PATCH: Subchapter cumulative quantities (v16) ====================
+def _update_subcatrow_quantities():
+    """Calcule la somme des quantités pour chaque sous‑chapitre gris et l’inscrit dans sa colonne 'Quantité'."""
+    if tree_estimation is None:
+        return
+    # Parcours des catégories (lignes racines marquées 'catrow')
+    for cat_iid in tree_estimation.get_children(''):
+        if 'catrow' not in tree_estimation.item(cat_iid, 'tags'):
+            continue
+        current_sub_iid = None
+        qty_sum = 0.0
+        # Les enfants sont déjà dans l’ordre d’affichage
+        for child_iid in tree_estimation.get_children(cat_iid):
+            tags = tree_estimation.item(child_iid, 'tags') or ()
+            if 'subcatrow' in tags:
+                # On termine le sous‑chapitre précédent
+                if current_sub_iid is not None:
+                    tree_estimation.set(current_sub_iid, "Quantité", round(qty_sum, 2))
+                # Nouveau sous‑chapitre
+                current_sub_iid = child_iid
+                qty_sum = 0.0
+            else:
+                # Ligne « poste » normale
+                try:
+                    q = float(str(tree_estimation.set(child_iid, "Quantité") or 0).replace(',', '.'))
+                except ValueError:
+                    q = 0.0
+                qty_sum += q
+        # Finalise le dernier sous‑chapitre de la catégorie
+        if current_sub_iid is not None:
+            tree_estimation.set(current_sub_iid, "Quantité", round(qty_sum, 2))
+
+# -- Injection dans le flux normal : après _insert_subchapters ou update PT --
+
+# Patch remplissage tableau pour recalculer
+if 'remplir_tableau_estimation' in globals() and not getattr(remplir_tableau_estimation, '_qtypatched', False):
+    _old_fill_v16 = remplir_tableau_estimation
+    def remplir_tableau_estimation(*args, **kwargs):
+        _old_fill_v16(*args, **kwargs)
+        try:
+            _insert_subchapters()
+        except Exception:
+            pass
+        _update_subcatrow_quantities()
+    remplir_tableau_estimation._qtypatched = True
+
+# Patch mise à jour PT pour déclencher recalcul
+if '_update_pt' in globals() and not getattr(_update_pt, '_qtypatched', False):
+    _old_update_pt_v16 = _update_pt
+    def _update_pt(row_id):
+        res = _old_update_pt_v16(row_id)
+        try:
+            _update_subcatrow_quantities()
+        except Exception:
+            pass
+        return res
+    _update_pt._qtypatched = True
+
+try:
+    # Exécution initiale si la table existe déjà
+    _update_subcatrow_quantities()
+except Exception:
+    pass
+# ==================== END PATCH (v16) =====================================
+
+
+# ==================== PATCH: Subchapter cumulative quantities (v17b) ====================
+# Cette version fonctionne même si les lignes racines ne portent pas le tag 'catrow'.
+def _update_subcatrow_quantities():
+    """Calcule la somme des quantités pour chaque sous‑chapitre gris et l’inscrit dans sa colonne 'Quantité'."""
+    if tree_estimation is None:
+        return
+    # On parcourt chaque ligne racine (catégorie)
+    for cat_iid in tree_estimation.get_children(''):
+        current_sub_iid = None
+        qty_sum = 0.0
+        # Les enfants sont déjà ordonnés comme à l’écran
+        for child_iid in tree_estimation.get_children(cat_iid):
+            tags = tree_estimation.item(child_iid, 'tags') or ()
+            if 'subcatrow' in tags:
+                # On clôture le sous‑chapitre précédent
+                if current_sub_iid is not None:
+                    tree_estimation.set(current_sub_iid, "Quantité", round(qty_sum, 2))
+                # On démarre le nouveau sous‑chapitre
+                current_sub_iid = child_iid
+                qty_sum = 0.0
+            else:
+                # Ligne poste ordinaire
+                try:
+                    q = float(str(tree_estimation.set(child_iid, "Quantité") or 0).replace(',', '.'))
+                except ValueError:
+                    q = 0.0
+                qty_sum += q
+        # Finalise le dernier sous‑chapitre
+        if current_sub_iid is not None:
+            tree_estimation.set(current_sub_iid, "Quantité", round(qty_sum, 2))
+
+# On repatche les fonctions existantes pour appeler cette nouvelle logique
+if 'remplir_tableau_estimation' in globals() and not getattr(remplir_tableau_estimation, '_qtypatched_v17b', False):
+    _old_fill_v17b = remplir_tableau_estimation
+    def remplir_tableau_estimation(*args, **kwargs):
+        _old_fill_v17b(*args, **kwargs)
+        try:
+            _insert_subchapters()
+        except Exception:
+            pass
+        _update_subcatrow_quantities()
+    remplir_tableau_estimation._qtypatched_v17b = True
+
+if '_update_pt' in globals() and not getattr(_update_pt, '_qtypatched_v17b', False):
+    _old_update_pt_v17b = _update_pt
+    def _update_pt(row_id):
+        res = _old_update_pt_v17b(row_id)
+        try:
+            _update_subcatrow_quantities()
+        except Exception:
+            pass
+        return res
+    _update_pt._qtypatched_v17b = True
+
+# Exécution initiale pour mettre à jour les quantités si la table est déjà chargée
+try:
+    _update_subcatrow_quantities()
+except Exception:
+    pass
+# ==================== END PATCH (v17b) ===================================
+
+# ==================== PATCH: Catrow cumulative quantities (v18) ====================
+def _o3_refresh_group_quantities():
+    """Recalcule les quantités cumulées pour chaque ligne de groupe (catrow / subcatrow)."""
+    if 'tree_estimation' not in globals():
+        return
+    factor_map = {"m²": 1, "m": 3, "m³": 0.1}
+
+    def _sum_children(iid):
+        total = 0.0
+        for child in tree_estimation.get_children(iid):
+            child_tags = tree_estimation.item(child, 'tags')
+            # Si l'enfant est lui‑même un groupe → on descend
+            if 'catrow' in child_tags or 'subcatrow' in child_tags:
+                total += _sum_children(child)
+            else:
+                try:
+                    total += float(tree_estimation.set(child, 'Quantité') or 0)
+                except ValueError:
+                    pass
+        return total
+
+    # Collecte de tous les groupes
+    group_iids = []
+    try:
+        group_iids.extend(list(tree_estimation.tag_has('catrow')))
+    except Exception:
+        pass
+    try:
+        group_iids.extend(list(tree_estimation.tag_has('subcatrow')))
+    except Exception:
+        pass
+
+    for gid in group_iids:
+        unit = tree_estimation.set(gid, 'Unité') or 'm²'
+        factor = factor_map.get(unit, 1)
+        qty = _sum_children(gid) * factor
+        tree_estimation.set(gid, 'Quantité', round(qty, 2))
+
+# -- Hook dans les constructions / éditions ----------------------------------
+if 'remplir_tableau_estimation' in globals() and not getattr(remplir_tableau_estimation, '_qtypatched_v18', False):
+    _old_fill_v18 = remplir_tableau_estimation
+    def remplir_tableau_estimation(*args, **kwargs):
+        res = _old_fill_v18(*args, **kwargs)
+        try:
+            _o3_refresh_group_quantities()
+        except Exception as e:
+            print('[DEBUG] refresh_group_quantities error:', e)
+        return res
+    remplir_tableau_estimation._qtypatched_v18 = True
+
+# Injection après édition quantité / PU
+def _o3_wrap_refresh(func_name):
+    if func_name in globals():
+        _orig = globals()[func_name]
+        def _wrapped(*args, **kwargs):
+            res = _orig(*args, **kwargs)
+            try:
+                _o3_refresh_group_quantities()
+            except Exception:
+                pass
+            return res
+        globals()[func_name] = _wrapped
+
+for fn in ('_update_pt', '_update_pu'):
+    _o3_wrap_refresh(fn)
+
+# Calcul immédiat si l'appli est déjà lancée
+try:
+    _o3_refresh_group_quantities()
+except Exception:
+    pass
+# ==================== FIN PATCH v18 ==========================================
+
+# ==================== PATCH: Cumul Quantités robuste (v19) ====================
+def _o3_refresh_group_quantities():
+    """Parcourt toutes les lignes catrow / subcatrow et cumule les quantités
+    de leurs descendants (lignes « simples », c.-à-d. sans tag cat‑/subcatrow)."""
+    if 'tree_estimation' not in globals():
+        return
+
+    def _safe_num(val):
+        try:
+            return float(str(val).replace(',', '.'))
+        except ValueError:
+            return 0.0
+
+    def _sum_children(iid):
+        total = 0.0
+        for child in tree_estimation.get_children(iid):
+            tags = tree_estimation.item(child, 'tags')
+            if 'catrow' in tags or 'subcatrow' in tags:
+                total += _sum_children(child)
+            else:
+                total += _safe_num(tree_estimation.set(child, 'Quantité'))
+        return total
+
+    # 1‑ On traite d’abord les subcatrows (niveau le plus bas)
+    for sub_iid in list(tree_estimation.tag_has('subcatrow')):
+        qty = _sum_children(sub_iid)
+        tree_estimation.set(sub_iid, 'Quantité', round(qty, 2))
+
+    # 2‑ Puis les catrows (niveau supérieur)
+    for cat_iid in list(tree_estimation.tag_has('catrow')):
+        qty = _sum_children(cat_iid)
+        tree_estimation.set(cat_iid, 'Quantité', round(qty, 2))
+
+# -- On force un refresh juste après remplissage du tableau --------------------
+if 'remplir_tableau_estimation' in globals() and not getattr(remplir_tableau_estimation, '_qtypatched_v19', False):
+    _old_rte_v19 = remplir_tableau_estimation
+    def remplir_tableau_estimation(*args, **kwargs):
+        res = _old_rte_v19(*args, **kwargs)
+        try:
+            _o3_refresh_group_quantities()
+        except Exception as exc:
+            print('[DEBUG v19] refresh_group_quantities:', exc)
+        return res
+    remplir_tableau_estimation._qtypatched_v19 = True
+
+# -- Injection après édition directe d’une cellule Qté / PU --------------------
+def _o3__wrap_cb(fn_name):
+    if fn_name in globals():
+        _orig = globals()[fn_name]
+        def _wrap(*a, **kw):
+            out = _orig(*a, **kw)
+            try:
+                _o3_refresh_group_quantities()
+            except Exception:
+                pass
+            return out
+        globals()[fn_name] = _wrap
+
+for _cb in ('_o3_update_pt', '_update_pt', '_update_pu'):
+    _o3__wrap_cb(_cb)
+
+# Refresh immédiat si le tableau existe déjà
+try:
+    _o3_refresh_group_quantities()
+except Exception:
+    pass
+# ==================== FIN PATCH v19 ===========================================
