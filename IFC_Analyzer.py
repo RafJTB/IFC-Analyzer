@@ -6455,41 +6455,11 @@ except Exception:
 
 # ==================== PATCH: Catrow cumulative quantities (v18) ====================
 def _o3_refresh_group_quantities():
-    """Recalcule les quantités cumulées pour chaque ligne de groupe (catrow / subcatrow)."""
-    if 'tree_estimation' not in globals():
-        return
-    factor_map = {"m²": 1, "m": 3, "m³": 0.1}
-
-    def _sum_children(iid):
-        total = 0.0
-        for child in tree_estimation.get_children(iid):
-            child_tags = tree_estimation.item(child, 'tags')
-            # Si l'enfant est lui‑même un groupe → on descend
-            if 'catrow' in child_tags or 'subcatrow' in child_tags:
-                total += _sum_children(child)
-            else:
-                try:
-                    total += float(tree_estimation.set(child, 'Quantité') or 0)
-                except ValueError:
-                    pass
-        return total
-
-    # Collecte de tous les groupes
-    group_iids = []
+    """Appel intermédiaire conservé pour compatibilité."""
     try:
-        group_iids.extend(list(tree_estimation.tag_has('catrow')))
+        refresh_group_quantities()
     except Exception:
         pass
-    try:
-        group_iids.extend(list(tree_estimation.tag_has('subcatrow')))
-    except Exception:
-        pass
-
-    for gid in group_iids:
-        unit = tree_estimation.set(gid, 'Unité') or 'm²'
-        factor = factor_map.get(unit, 1)
-        qty = _sum_children(gid) * factor
-        tree_estimation.set(gid, 'Quantité', round(qty, 2))
 
 # -- Hook dans les constructions / éditions ----------------------------------
 if 'remplir_tableau_estimation' in globals() and not getattr(remplir_tableau_estimation, '_qtypatched_v18', False):
@@ -6497,7 +6467,7 @@ if 'remplir_tableau_estimation' in globals() and not getattr(remplir_tableau_est
     def remplir_tableau_estimation(*args, **kwargs):
         res = _old_fill_v18(*args, **kwargs)
         try:
-            _o3_refresh_group_quantities()
+            refresh_group_quantities()
         except Exception as e:
             print('[DEBUG] refresh_group_quantities error:', e)
         return res
@@ -6510,7 +6480,7 @@ def _o3_wrap_refresh(func_name):
         def _wrapped(*args, **kwargs):
             res = _orig(*args, **kwargs)
             try:
-                _o3_refresh_group_quantities()
+                refresh_group_quantities()
             except Exception:
                 pass
             return res
@@ -6521,43 +6491,18 @@ for fn in ('_update_pt', '_update_pu'):
 
 # Calcul immédiat si l'appli est déjà lancée
 try:
-    _o3_refresh_group_quantities()
+    refresh_group_quantities()
 except Exception:
     pass
 # ==================== FIN PATCH v18 ==========================================
 
 # ==================== PATCH: Cumul Quantités robuste (v19) ====================
 def _o3_refresh_group_quantities():
-    """Parcourt toutes les lignes catrow / subcatrow et cumule les quantités
-    de leurs descendants (lignes « simples », c.-à-d. sans tag cat‑/subcatrow)."""
-    if 'tree_estimation' not in globals():
-        return
-
-    def _safe_num(val):
-        try:
-            return float(str(val).replace(',', '.'))
-        except ValueError:
-            return 0.0
-
-    def _sum_children(iid):
-        total = 0.0
-        for child in tree_estimation.get_children(iid):
-            tags = tree_estimation.item(child, 'tags')
-            if 'catrow' in tags or 'subcatrow' in tags:
-                total += _sum_children(child)
-            else:
-                total += _safe_num(tree_estimation.set(child, 'Quantité'))
-        return total
-
-    # 1‑ On traite d’abord les subcatrows (niveau le plus bas)
-    for sub_iid in list(tree_estimation.tag_has('subcatrow')):
-        qty = _sum_children(sub_iid)
-        tree_estimation.set(sub_iid, 'Quantité', round(qty, 2))
-
-    # 2‑ Puis les catrows (niveau supérieur)
-    for cat_iid in list(tree_estimation.tag_has('catrow')):
-        qty = _sum_children(cat_iid)
-        tree_estimation.set(cat_iid, 'Quantité', round(qty, 2))
+    """Appel intermédiaire conservé pour compatibilité."""
+    try:
+        refresh_group_quantities()
+    except Exception:
+        pass
 
 # -- On force un refresh juste après remplissage du tableau --------------------
 if 'remplir_tableau_estimation' in globals() and not getattr(remplir_tableau_estimation, '_qtypatched_v19', False):
@@ -6565,9 +6510,13 @@ if 'remplir_tableau_estimation' in globals() and not getattr(remplir_tableau_est
     def remplir_tableau_estimation(*args, **kwargs):
         res = _old_rte_v19(*args, **kwargs)
         try:
-            _o3_refresh_group_quantities()
+            refresh_group_quantities()
         except Exception as exc:
             print('[DEBUG v19] refresh_group_quantities:', exc)
+        try:
+            collapse_all()
+        except Exception:
+            pass
         return res
     remplir_tableau_estimation._qtypatched_v19 = True
 
@@ -6578,7 +6527,7 @@ def _o3__wrap_cb(fn_name):
         def _wrap(*a, **kw):
             out = _orig(*a, **kw)
             try:
-                _o3_refresh_group_quantities()
+                refresh_group_quantities()
             except Exception:
                 pass
             return out
@@ -6589,7 +6538,77 @@ for _cb in ('_o3_update_pt', '_update_pt', '_update_pu'):
 
 # Refresh immédiat si le tableau existe déjà
 try:
-    _o3_refresh_group_quantities()
+    refresh_group_quantities()
 except Exception:
     pass
 # ==================== FIN PATCH v19 ===========================================
+
+# === PATCH quantités + collapse ===
+def refresh_group_quantities():
+    """Calcule les totaux pour chaque sous‑chapitre et chapitre."""
+    if 'tree_estimation' not in globals():
+        return
+
+    def _safe(val):
+        try:
+            return float(str(val).replace(',', '.'))
+        except (TypeError, ValueError):
+            return 0.0
+
+    # Totaux pour chaque subcatrow
+    sub_totals = {}
+    for sub in list(tree_estimation.tag_has('subcatrow')):
+        parent = tree_estimation.parent(sub)
+        qty = 0.0
+        if _subcat_states.get(sub, True):
+            siblings = list(tree_estimation.get_children(parent))
+            idx = siblings.index(sub) + 1
+            while idx < len(siblings):
+                iid = siblings[idx]
+                if 'subcatrow' in tree_estimation.item(iid, 'tags'):
+                    break
+                qty += _safe(tree_estimation.set(iid, 'Quantité'))
+                idx += 1
+        else:
+            for iid in _subcat_cache.get(sub, []):
+                qty += _safe(tree_estimation.set(iid, 'Quantité'))
+        tree_estimation.set(sub, 'Quantité', round(qty, 2))
+        sub_totals[sub] = qty
+
+    # Totaux pour chaque catrow
+    for cat in list(tree_estimation.tag_has('catrow')):
+        total = 0.0
+        children = list(tree_estimation.get_children(cat))
+        for child in children:
+            tags = tree_estimation.item(child, 'tags')
+            if 'subcatrow' in tags:
+                total += sub_totals.get(child, _safe(tree_estimation.set(child, 'Quantité')))
+            elif not any(t.startswith('belongs_') for t in tags):
+                total += _safe(tree_estimation.set(child, 'Quantité'))
+        tree_estimation.set(cat, 'Quantité', round(total, 2))
+
+
+def collapse_all():
+    """Referme toutes les catégories et sous‑catégories."""
+    if 'tree_estimation' not in globals():
+        return
+
+    # Sous‑chapitres
+    for sub in list(tree_estimation.tag_has('subcatrow')):
+        if _subcat_states.get(sub, True):
+            tag_key = f"belongs_{sub}"
+            parent = tree_estimation.parent(sub)
+            current = tree_estimation.set(sub, 'Nom IFC (base)')[2:].lstrip()
+            detached = []
+            for child in list(tree_estimation.get_children(parent)):
+                if tag_key in tree_estimation.item(child, 'tags'):
+                    tree_estimation.detach(child)
+                    detached.append(child)
+            _subcat_cache[sub] = detached
+            _subcat_states[sub] = False
+            tree_estimation.set(sub, 'Nom IFC (base)', f"▶ {current}")
+
+    # Chapitres
+    for cat in list(tree_estimation.tag_has('catrow')):
+        tree_estimation.item(cat, open=False)
+
