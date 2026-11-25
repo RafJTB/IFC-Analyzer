@@ -1,0 +1,290 @@
+{
+ "schema": "IFC4",
+ "niveaux": [
+  "RDC",
+  "R+1",
+  "R+2",
+  "R+3"
+ ],
+ "avec_quantites": false,
+ "familles": {
+  "menuiseries": {
+   "PF2 90x215": {
+    "nombre": 12.0,
+    "surface": 23.22,
+    "largeur": 10.8,
+    "hauteur": 25.8,
+    "exterieur": 12.0,
+    "niveau:RDC": 3.0,
+    "niveau:R+1": 3.0,
+    "niveau:R+2": 3.0,
+    "niveau:R+3": 3.0
+   },
+   "F1 120x135": {
+    "nombre": 31.0,
+    "surface": 50.22,
+    "largeur": 37.2,
+    "hauteur": 41.85,
+    "exterieur": 31.0,
+    "niveau:RDC": 4.0,
+    "niveau:R+1": 9.0,
+    "niveau:R+2": 9.0,
+    "niveau:R+3": 9.0
+   },
+   "Porte d'entrée 140x220": {
+    "nombre": 1.0,
+    "surface": 3.08,
+    "largeur": 1.4,
+    "hauteur": 2.2,
+    "exterieur": 1.0,
+    "niveau:RDC": 1.0
+   },
+   "Porte 83x204": {
+    "nombre": 32.0,
+    "surface": 54.1824,
+    "largeur": 26.56,
+    "hauteur": 65.28,
+    "exterieur": 0.0,
+    "niveau:RDC": 8.0,
+    "niveau:R+1": 8.0,
+    "niveau:R+2": 8.0,
+    "niveau:R+3": 8.0
+   }
+  },
+  "murs": {
+   "Voile BA 20 cm": {
+    "nombre": 30.0,
+    "longueur": 312.0,
+    "brute": 842.4,
+    "nette": 765.88,
+    "volume": 153.176,
+    "baies": 76.52,
+    "exterieur": 30.0,
+    "niveau:RDC": 6.0,
+    "niveau:R+1": 8.0,
+    "niveau:R+2": 8.0,
+    "niveau:R+3": 8.0
+   },
+   "Doublage 10+80": {
+    "nombre": 30.0,
+    "longueur": 312.0,
+    "brute": 842.4,
+    "nette": 765.88,
+    "volume": 68.9292,
+    "baies": 76.52,
+    "exterieur": 30.0,
+    "niveau:RDC": 6.0,
+    "niveau:R+1": 8.0,
+    "niveau:R+2": 8.0,
+    "niveau:R+3": 8.0
+   },
+   "Maçonnerie bloc 20 cm": {
+    "nombre": 2.0,
+    "longueur": 24.0,
+    "brute": 64.8,
+    "nette": 64.8,
+    "volume": 12.96,
+    "baies": 0.0,
+    "exterieur": 2.0,
+    "niveau:RDC": 2.0
+   },
+   "Voile BA 18 cm": {
+    "nombre": 8.0,
+    "longueur": 96.0,
+    "brute": 259.2,
+    "nette": 245.6544,
+    "volume": 44.217792,
+    "baies": 13.5456,
+    "exterieur": 0.0,
+    "niveau:RDC": 2.0,
+    "niveau:R+1": 2.0,
+    "niveau:R+2": 2.0,
+    "niveau:R+3": 2.0
+   },
+   "Cloison 72/48": {
+    "nombre": 24.0,
+    "longueur": 85.2,
+    "brute": 230.04,
+    "nette": 189.4032,
+    "volume": 13.63703,
+    "baies": 40.6368,
+    "exterieur": 0.0,
+    "niveau:RDC": 6.0,
+    "niveau:R+1": 6.0,
+    "niveau:R+2": 6.0,
+    "niveau:R+3": 6.0
+   },
+   "Cloison 98/48": {
+    "nombre": 9.0,
+    "longueur": 38.4,
+    "brute": 103.68,
+    "nette": 103.68,
+    "volume": 10.16064,
+    "baies": 0.0,
+    "exterieur": 0.0,
+    "niveau:R+1": 3.0,
+    "niveau:R+2": 3.0,
+    "niveau:R+3": 3.0
+   }
+  },
+  "dalles": {
+   "Dallage BA 15 cm": {
+    "nombre": 1.0,
+    "surface": 360.0,
+    "perimetre": 84.0,
+    "volume": 54.0,
+    "niveau:RDC": 1.0
+   },
+   "Plancher BA 20 cm": {
+    "nombre": 3.0,
+    "surface": 1042.5,
+    "perimetre": 252.0,
+    "volume": 208.5,
+    "niveau:R+1": 1.0,
+    "niveau:R+2": 1.0,
+    "niveau:R+3": 1.0
+   },
+   "Dalle toiture BA 22 cm": {
+    "nombre": 1.0,
+    "surface": 360.0,
+    "perimetre": 84.0,
+    "volume": 79.2,
+    "niveau:R+3": 1.0
+   }
+  },
+  "revetements_sol": {
+   "Résine hall": {
+    "nombre": 1.0,
+    "surface": 64.0,
+    "perimetre": 34.0,
+    "niveau:RDC": 1.0
+   },
+   "Carrelage 30x30 local vélos": {
+    "nombre": 1.0,
+    "surface": 72.0,
+    "perimetre": 36.0,
+    "niveau:RDC": 1.0
+   },
+   "Carrelage 45x45": {
+    "nombre": 3.0,
+    "surface": 415.5,
+    "perimetre": 288.0,
+    "niveau:R+1": 1.0,
+    "niveau:R+2": 1.0,
+    "niveau:R+3": 1.0
+   },
+   "Parquet stratifié": {
+    "nombre": 3.0,
+    "surface": 528.0,
+    "perimetre": 336.0,
+    "niveau:R+1": 1.0,
+    "niveau:R+2": 1.0,
+    "niveau:R+3": 1.0
+   }
+  },
+  "plafonds": {
+   "Faux plafond BA13": {
+    "nombre": 4.0,
+    "surface": 864.0,
+    "perimetre": 360.0,
+    "niveau:RDC": 1.0,
+    "niveau:R+1": 1.0,
+    "niveau:R+2": 1.0,
+    "niveau:R+3": 1.0
+   },
+   "Plafond plâtre lissé": {
+    "nombre": 3.0,
+    "surface": 193.5,
+    "perimetre": 114.0,
+    "niveau:R+1": 1.0,
+    "niveau:R+2": 1.0,
+    "niveau:R+3": 1.0
+   }
+  },
+  "poteaux": {
+   "Poteau BA 30x30": {
+    "nombre": 6.0,
+    "longueur": 16.2,
+    "volume": 1.458,
+    "niveau:RDC": 6.0
+   },
+   "Poteau BA Ø40": {
+    "nombre": 2.0,
+    "longueur": 5.4,
+    "volume": 0.67878,
+    "niveau:RDC": 2.0
+   }
+  },
+  "poutres": {
+   "Poutre BA 20x50": {
+    "nombre": 12.0,
+    "longueur": 72.0,
+    "volume": 7.2,
+    "niveau:RDC": 3.0,
+    "niveau:R+1": 3.0,
+    "niveau:R+2": 3.0,
+    "niveau:R+3": 3.0
+   },
+   "Linteau BA 20x30": {
+    "nombre": 8.0,
+    "longueur": 19.2,
+    "volume": 1.152,
+    "niveau:RDC": 2.0,
+    "niveau:R+1": 2.0,
+    "niveau:R+2": 2.0,
+    "niveau:R+3": 2.0
+   }
+  },
+  "reseaux_ep": {
+   "Descente EP Ø100": {
+    "nombre": 16.0,
+    "longueur": 46.4,
+    "niveau:RDC": 4.0,
+    "niveau:R+1": 4.0,
+    "niveau:R+2": 4.0,
+    "niveau:R+3": 4.0
+   },
+   "Collecteur EP Ø125": {
+    "nombre": 2.0,
+    "longueur": 30.0,
+    "niveau:RDC": 2.0
+   }
+  },
+  "escaliers": {
+   "Volée béton": {
+    "nombre": 6.0,
+    "contremarches": 51.0,
+    "marches": 45.0,
+    "longueur": 12.6,
+    "niveau:RDC": 2.0,
+    "niveau:R+1": 2.0,
+    "niveau:R+2": 2.0
+   }
+  },
+  "bords_dalle": {
+   "Rive de dalle 20 cm": {
+    "nombre": 3.0,
+    "longueur": 252.0,
+    "niveau:R+1": 1.0,
+    "niveau:R+2": 1.0,
+    "niveau:R+3": 1.0
+   }
+  },
+  "garde_corps": {
+   "Garde-corps vitré": {
+    "nombre": 9.0,
+    "longueur": 28.8,
+    "niveau:R+1": 3.0,
+    "niveau:R+2": 3.0,
+    "niveau:R+3": 3.0
+   },
+   "Garde-corps métallique": {
+    "nombre": 3.0,
+    "longueur": 16.8,
+    "niveau:R+1": 1.0,
+    "niveau:R+2": 1.0,
+    "niveau:R+3": 1.0
+   }
+  }
+ }
+}
