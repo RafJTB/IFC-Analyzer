@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <!-- Sécurité : aucun script intégré, aucune ressource extérieure, aucun envoi : le fichier IFC reste sur le PC -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>IFC Analyzer by RJB</title>
+  <meta name="description" content="Métré d'une maquette IFC (murs, menuiseries, sols, structure…) 100 % dans le navigateur. Le fichier ne quitte jamais ton PC." />
+  <meta name="theme-color" content="#11153a" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="app-version" content="0.1.0" />
+  <link rel="stylesheet" href="styles.css?v=0.1.0" />
+  <script src="js/boot.js?v=0.1.0"></script>
+  <script type="module" src="js/app.js?v=0.1.0"></script>
+</head>
+<body>
+  <div class="bg-photo" aria-hidden="true"></div>
+  <!-- Verre liquide : légère déformation de ce qu'il y a derrière les onglets sélectionnés -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="lg-refract" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.011 0.02" numOctaves="2" seed="4" result="n"/><feGaussianBlur in="n" stdDeviation="1.5" result="nb"/><feDisplacementMap in="SourceGraphic" in2="nb" scale="14" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
+  <a class="skip" href="#vue">Aller au contenu</a>
+
+  <div class="app">
+    <aside class="sidebar card" aria-label="Navigation">
+      <div class="brand">
+        <span class="logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg></span>
+        <div><h1>IFC Analyzer</h1><small>by RJB</small></div>
+      </div>
+      <nav class="nav" id="nav" aria-label="Pages"></nav>
+      <div class="side-fill"></div>
+      <button type="button" class="model-card vide" id="carte-modele"></button>
+    </aside>
+
+    <main class="main">
+      <header class="topbar card">
+        <div class="files" id="fichiers" role="group" aria-label="Fichiers ouverts"></div>
+        <button type="button" class="search-btn" id="btn-recherche" aria-keyshortcuts="Control+K">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <span>Rechercher un type, une page…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button type="button" class="icon-btn" id="btn-theme" aria-label="Passer en thème clair"></button>
+      </header>
+      <div class="view" id="vue" tabindex="-1"></div>
+    </main>
+  </div>
+
+  <input type="file" id="choix-fichier" accept=".ifc,.IFC" multiple hidden />
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+  <dialog class="palette" id="palette" aria-label="Recherche">
+    <div class="pal-in">
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="pal-saisie" type="text" placeholder="Rechercher un type, une page, une action…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="pal-liste" aria-label="Rechercher" />
+    </div>
+    <ul class="pal-list" id="pal-liste" role="listbox" aria-label="Résultats"></ul>
+    <div class="pal-foot"><span><kbd>↑</kbd><kbd>↓</kbd>naviguer</span><span><kbd>Entrée</kbd>ouvrir</span><span><kbd>Échap</kbd>fermer</span></div>
+  </dialog>
+
+  <div class="drop-overlay" id="depot" hidden>
+    <div><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>Dépose ton fichier IFC</div>
+  </div>
+</body>
+</html>

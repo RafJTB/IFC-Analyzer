@@ -1,0 +1,19 @@
+{
+  "name": "ifc-analyzer",
+  "private": true,
+  "type": "module",
+  "description": "IFC Analyzer by RJB : métré d'une maquette IFC, 100 % dans le navigateur (pas de compilation). Ce fichier ne sert qu'aux tests et à la mise à jour de web-ifc.",
+  "scripts": {
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:e2e": "playwright test",
+    "serve": "python3 -m http.server 8094 --bind 127.0.0.1",
+    "vendor": "node tools/copier-web-ifc.js",
+    "exemple": "python3 tools/generer_ifc_exemple.py"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "axe-core": "4.10.2",
+    "web-ifc": "0.0.78"
+  }
+}
