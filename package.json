@@ -8,12 +8,13 @@
     "test:unit": "node --test tests/unit/*.test.js",
     "test:e2e": "playwright test",
     "serve": "python3 -m http.server 8094 --bind 127.0.0.1",
-    "vendor": "node tools/copier-web-ifc.js",
+    "vendor": "node tools/copier-vendor.js",
     "exemple": "python3 tools/generer_ifc_exemple.py"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
     "axe-core": "4.10.2",
+    "three": "0.187.0",
     "web-ifc": "0.0.78"
   }
 }

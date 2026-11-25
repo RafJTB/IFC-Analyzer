@@ -28,6 +28,13 @@ for (const theme of ['dark', 'light']) {
         await page.locator(`#nav button[data-page="${p}"]`).click();
         await verifier(page, `page ${p}`);
       }
+      await page.locator('#nav button[data-page="3d"]').click();
+      await expect(page.locator('.v3d-canvas canvas')).toBeVisible();
+      await verifier(page, 'maquette 3D');
+      await page.locator('#nav button[data-page="murs"]').click();
+      await page.getByRole('button', { name: 'Voir en 3D' }).click();
+      await expect(page.locator('.side-panel .mini')).toBeVisible();
+      await verifier(page, 'maquette 3D avec sélection');
       await page.keyboard.press('Control+k');
       await page.keyboard.type('voile');
       await verifier(page, 'recherche Ctrl K');

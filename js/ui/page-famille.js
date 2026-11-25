@@ -177,7 +177,10 @@ function panneau(config, d) {
       <div class="levels"><span class="label">${titrePrincipal.charAt(0).toUpperCase() + titrePrincipal.slice(1)} par niveau</span>${niveaux}</div>
       <div>${details(config, l)}</div>
       ${noteSource(l, config)}
-      <div class="panel-actions"><button type="button" class="btn" data-action="copier">${ic('copie')}Copier la ligne pour Excel</button></div>
+      <div class="panel-actions">
+        <button type="button" class="btn primary" data-action="voir-3d">${ic('cube')}Voir en 3D</button>
+        <button type="button" class="btn" data-action="copier">${ic('copie')}Copier la ligne pour Excel</button>
+      </div>
     </aside>`;
 }
 

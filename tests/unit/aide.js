@@ -6,18 +6,21 @@ import { preparerModele } from '../../js/metre/quantites.js';
 
 let api = null;
 
-export async function analyser(chemin) {
+/** Ouvre un IFC, appelle *fn(api, W, id)* puis referme le modèle. */
+export async function avecModele(chemin, fn) {
   if (!api) {
     api = new W.IfcAPI();
     await api.Init();
   }
   const id = api.OpenModel(new Uint8Array(readFileSync(new URL(`../../${chemin}`, import.meta.url))));
   try {
-    return preparerModele(extraireModele(api, W, id));
+    return fn(api, W, id);
   } finally {
     api.CloseModel(id);
   }
 }
+
+export const analyser = (chemin) => avecModele(chemin, (a, w, id) => preparerModele(extraireModele(a, w, id)));
 
 export const attendu = (nom) => JSON.parse(readFileSync(new URL(`../fixtures/${nom}`, import.meta.url), 'utf8'));
 
