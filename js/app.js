@@ -4,12 +4,16 @@ import { versCsv } from './metre/export.js';
 import { vueAccueil } from './ui/accueil.js';
 import { couleurDe, donneesPage, filtresDe, ligneTexte, vueFamille } from './ui/page-famille.js';
 import { vue3D } from './ui/page-3d.js';
+import { textesEffets, vuePerso } from './ui/page-perso.js';
+import { ONGLETS, vueReglages } from './ui/page-reglages.js';
+import { ACCENTS, DEFAUTS as PERSO_DEFAUTS, appliquerPerso, enregistrerPerso, garderImage, imagePerso, lirePerso, reduireImage } from './ui/perso.js';
+import { appliquerReglages, changerReglage, lireReglages, memoriserOnglet, ongletReglages } from './ui/reglages.js';
 import { initPalette } from './ui/palette.js';
 import { ic } from './ui/icones.js';
-import { echapper, nombre, pluriel } from './ui/format.js';
+import { echapper, nombre, pluriel, taille } from './ui/format.js';
 import { toast } from './ui/toast.js';
 import * as stockage from './ui/stockage.js';
-import { initHoverGlow } from './ui/hover-glow.js';
+import { initHoverGlow, refreshHoverGlow } from './ui/hover-glow.js';
 import { initLiquidTabs } from './ui/liquid-tabs.js';
 
 const EXEMPLE = 'assets/exemple/residence-les-tilleuls.ifc';
@@ -24,10 +28,13 @@ const etat = {
   preparation3d: new Map(), //  clé → avancement de la préparation de la 3D (0 à 1)
   sans3d: new Set(), //         clés dont la 3D n'existe pas (analyse ancienne) ou a échoué
   v3d: { selection: null, niveaux: [], masquees: [], coupe: 1, cadrerSelection: false },
+  famillesFonds: 'tous', //    page Personnalisation : famille de fonds affichée
+  ongletReglages: ((o) => (ONGLETS.some(([k]) => k === o) ? o : 'analyse'))(ongletReglages('analyse')), // page Paramètres
 };
 const $ = (id) => document.getElementById(id);
 const vue = $('vue');
-const PAGES_SPECIALES = ['accueil', '3d'];
+const PAGES_SPECIALES = ['accueil', '3d', 'personnalisation', 'parametres'];
+const TITRES = { '3d': 'Maquette 3D', personnalisation: 'Personnalisation', parametres: 'Paramètres' };
 const pageCourante = () => PAGES.find((p) => p.id === etat.page);
 const pageValide = (p) => PAGES_SPECIALES.includes(p) || PAGES.some((x) => x.id === p);
 
@@ -40,7 +47,8 @@ function rendreNav() {
       ${ic(icone)}<span>${titre}</span>${n != null ? `<span class="cnt">${nombre(n, 0)}</span>` : ''}</button>`;
   $('nav').innerHTML = `${bouton('accueil', 'Accueil', 'home')}
     <span class="nav-head" aria-hidden="true">Visualisation</span>${bouton('3d', 'Maquette 3D', 'cube')}
-    <span class="nav-head" aria-hidden="true">Métré</span>${PAGES.map((p) => bouton(p.id, p.titre, p.icone, compte(p))).join('')}`;
+    <span class="nav-head" aria-hidden="true">Métré</span>${PAGES.map((p) => bouton(p.id, p.titre, p.icone, compte(p))).join('')}
+    <span class="nav-head" aria-hidden="true">Personnalisation</span>${bouton('personnalisation', 'Personnalisation', 'palette')}${bouton('parametres', 'Paramètres', 'reglages')}`;
 }
 
 function rendreFichiers() {
@@ -71,8 +79,11 @@ function rendre({ anim = false, focus = null } = {}) {
   const defil = [...document.querySelectorAll('.view, .table-scroll, .side-panel')].map((e) => [e.className, e.scrollTop]);
   const page = pageCourante();
   if (etat.page === '3d') vue.innerHTML = vue3D(etat, statut3d());
+  else if (etat.page === 'personnalisation') vue.innerHTML = vuePerso(etat.famillesFonds, imagePerso());
+  else if (etat.page === 'parametres') vue.innerHTML = vueReglages(etat.ongletReglages, lireReglages(), infosReglages());
   else vue.innerHTML = page ? vueFamille(page, etat) : vueAccueil(etat);
-  document.title = `${page ? `${page.titre} · ` : etat.page === '3d' ? 'Maquette 3D · ' : ''}IFC Analyzer by RJB`;
+  const titre = page?.titre ?? TITRES[etat.page];
+  document.title = `${titre ? `${titre} · ` : ''}IFC Analyzer by RJB`;
   if (anim) {
     vue.classList.remove('anim');
     void vue.offsetWidth; // relance l'animation
@@ -85,9 +96,10 @@ function rendre({ anim = false, focus = null } = {}) {
   rendreFichiers();
   initLiquidTabs();
   if (etat.page === '3d') monterVisionneuse();
+  if (etat.page === 'parametres') majPlace();
   if (focus) {
     const champ = $(focus);
-    if (champ) { champ.focus(); const n = champ.value.length; champ.setSelectionRange?.(n, n); }
+    if (champ) { champ.focus(); if (champ.type === 'text') { const n = champ.value.length; champ.setSelectionRange(n, n); } }
   }
 }
 
@@ -111,7 +123,7 @@ function statut3d() {
   if (module3d && !module3d.webglDisponible()) return 'sans-webgl';
   if (etat.geometries.has(cle)) return 'pret';
   if (etat.preparation3d.has(cle)) return 'preparation';
-  if (etat.sans3d.has(cle)) return 'absente';
+  if (etat.sans3d.has(cle)) return lireReglages().prepa3d ? 'absente' : 'desactivee';
   chargerGeometrie(cle);
   return 'chargement';
 }
@@ -138,6 +150,7 @@ function idsSelection() {
 function appliquer3d() {
   if (!visionneuse) return;
   const { niveaux, masquees, coupe } = etat.v3d;
+  visionneuse.couleurSelection(lirePerso().accent);
   visionneuse.appliquer({ niveaux, masquees, selection: idsSelection(), coupe: coupe >= 1 ? null : coupe });
 }
 
@@ -211,12 +224,12 @@ async function analyserFichier(fichier) {
   }
   const cle = `${fichier.name}|${fichier.size}|${fichier.lastModified}`;
   if (etat.modeles.has(cle) && !etat.sans3d.has(cle)) { activer(etat.modeles.get(cle)); rendre(); toast(`${fichier.name} est déjà ouvert.`); return; }
-  // Déjà analysé, 3D comprise : rien à recalculer
+  // Déjà analysé, 3D comprise (ou 3D désactivée dans les paramètres) : rien à recalculer
+  const prepa3d = lireReglages().prepa3d;
   const deja = await stockage.lire(cle);
   const geo = deja?.modele ? await stockage.lireGeometrie(cle) : null;
-  if (deja?.modele && geo) {
-    etat.geometries.set(cle, geo);
-    etat.sans3d.delete(cle);
+  if (deja?.modele && (geo || !prepa3d)) {
+    if (geo) { etat.geometries.set(cle, geo); etat.sans3d.delete(cle); } else etat.sans3d.add(cle);
     activer(deja);
     rendre();
     toast(`${fichier.name} : analyse retrouvée, sans recalcul.`);
@@ -229,16 +242,16 @@ async function analyserFichier(fichier) {
   const debut = Date.now();
   try {
     const octets = await fichier.arrayBuffer();
-    const { modele, duree } = await analyserDansWorker(octets, cle);
+    const { modele, duree } = await analyserDansWorker(octets, cle, prepa3d);
     const entree = { cle, nom: fichier.name, taille: fichier.size, date: Date.now(), duree: duree ?? Date.now() - debut,
       schema: modele.schema, nbElements: modele.elements.length, nbNiveaux: modele.niveaux.length, modele };
     etat.analyse = null;
-    etat.sans3d.delete(cle);
+    if (prepa3d) etat.sans3d.delete(cle); else etat.sans3d.add(cle);
     activer(entree);
     await stockage.enregistrer(entree);
     await rafraichirRecents();
     rendre();
-    toast(`${fichier.name} analysé : ${pluriel(entree.nbElements, 'élément métré', 'éléments métrés')}. La 3D se prépare.`);
+    toast(`${fichier.name} analysé : ${pluriel(entree.nbElements, 'élément métré', 'éléments métrés')}.${prepa3d ? ' La 3D se prépare.' : ''}`);
   } catch (e) {
     etat.analyse = null;
     rendre();
@@ -246,8 +259,8 @@ async function analyserFichier(fichier) {
   }
 }
 
-/** Le métré arrive d'abord (promesse résolue), la géométrie 3D ensuite (mise en mémoire et enregistrée). */
-function analyserDansWorker(octets, cle) {
+/** Le métré arrive d'abord (promesse résolue), la géométrie 3D ensuite (mise en mémoire et enregistrée), si elle est demandée. */
+function analyserDansWorker(octets, cle, avec3d = true) {
   return new Promise((ok, ko) => {
     const w = new Worker(new URL('./ifc/worker.js', import.meta.url), { type: 'module' });
     let metre = false;
@@ -257,7 +270,7 @@ function analyserDansWorker(octets, cle) {
         case 'progression': return progression(data);
         case 'resultat':
           metre = true;
-          etat.preparation3d.set(cle, 0);
+          if (!avec3d) fin(); else etat.preparation3d.set(cle, 0);
           return ok(data);
         case 'progression-3d':
           etat.preparation3d.set(cle, data.part);
@@ -283,7 +296,7 @@ function analyserDansWorker(octets, cle) {
       if (metre) { etat.sans3d.add(cle); toast('La 3D n’a pas pu être préparée.', { erreur: true }); }
       else ko(new Error(e.message || 'le moteur IFC n’a pas pu démarrer'));
     };
-    w.postMessage({ octets }, [octets]);
+    w.postMessage({ octets, geometrie: avec3d }, [octets]);
   });
 }
 
@@ -351,11 +364,85 @@ function fermer(cle) {
   if (m) toast(`${m.nom} fermé (il reste dans les analyses récentes).`, { action: 'Rouvrir', surAction: () => { activer(m); rendre(); } });
 }
 
+// ---------------------------------------------------------------- Personnalisation et Paramètres
+/** Change la présentation : gardée et appliquée tout de suite (la page est redessinée par l'appelant). */
+function changerPerso(patch) {
+  const p = enregistrerPerso({ ...lirePerso(), ...patch });
+  appliquerPerso(p);
+  refreshHoverGlow();
+  appliquer3d(); // la sélection 3D suit la couleur d'accent
+  return p;
+}
+
+async function importerFond(fichier) {
+  try {
+    const url = await reduireImage(fichier);
+    if (!garderImage(url)) { toast('Stockage du navigateur plein : impossible de garder cette image.', { erreur: true, duree: 6000 }); return; }
+    changerPerso({ fond: 'perso' });
+    if (etat.page === 'personnalisation') { etat.famillesFonds = 'mien'; rendre(); }
+    toast('Fond d’écran mis à jour.');
+  } catch (e) {
+    toast(e.message || 'Image illisible.', { erreur: true, duree: 6000 });
+  }
+}
+
+let installation = null; // proposition d'installation du navigateur (Chrome, Edge), gardée pour le bouton « Installer »
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installation = e; if (etat.page === 'parametres') rendre(); });
+window.addEventListener('appinstalled', () => { installation = null; if (etat.page === 'parametres') rendre(); });
+async function installer() {
+  if (!installation) return;
+  installation.prompt();
+  await installation.userChoice.catch(() => null);
+  installation = null;
+  if (etat.page === 'parametres') rendre();
+}
+
+function infosReglages() {
+  return { nbAnalyses: etat.recents.length, version: document.querySelector('meta[name="app-version"]')?.content ?? '', installable: !!installation };
+}
+
+/** Place utilisée par l'appli dans ce navigateur (mesurée par le navigateur, après l'affichage de la page). */
+async function majPlace() {
+  let usage = null;
+  try { usage = (await navigator.storage?.estimate?.())?.usage ?? null; } catch { /* mesure non disponible */ }
+  const el = $('reg-place');
+  if (el && usage) el.textContent = `${pluriel(etat.recents.length, 'analyse gardée', 'analyses gardées')} · ${taille(usage)} utilisés par l’appli, fichiers hors connexion compris`;
+}
+
+async function toutEffacer() {
+  const liste = await stockage.lister();
+  if (!liste.length) return;
+  const copies = [];
+  for (const r of liste) copies.push([await stockage.lire(r.cle), await stockage.lireGeometrie(r.cle)]);
+  for (const r of liste) await stockage.supprimer(r.cle);
+  await rafraichirRecents();
+  rendre();
+  toast(`${pluriel(liste.length, 'analyse effacée', 'analyses effacées')} de ce navigateur.`, {
+    action: 'Annuler',
+    duree: 8000,
+    surAction: async () => {
+      for (const [a, g] of copies) {
+        if (!a) continue;
+        await stockage.enregistrer(a);
+        if (g) await stockage.enregistrerGeometrie(a.cle, g);
+      }
+      await rafraichirRecents();
+      rendre();
+    },
+  });
+}
+
+/** Catégorie de la page Paramètres (sommaire de gauche). */
+function choisirOnglet(cle) {
+  etat.ongletReglages = cle;
+  memoriserOnglet(cle);
+}
+
 // ---------------------------------------------------------------- Actions des pages de métré
 function exporter() {
   const page = pageCourante();
   const { config, groupe, actif } = donneesPage(etat, page);
-  const blob = new Blob([versCsv(config, groupe)], { type: 'text/csv;charset=utf-8' });
+  const blob = new Blob([versCsv(config, groupe, lireReglages().csv)], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `${actif.nom.replace(/\.ifc$/i, '')} - ${config.libelle}.csv`;
@@ -372,7 +459,7 @@ async function copier() {
   const l = groupe.lignes.find((x) => x.type === f.selection);
   if (!l) return;
   try {
-    await navigator.clipboard.writeText(ligneTexte(config, l));
+    await navigator.clipboard.writeText(ligneTexte(config, l, lireReglages().csv));
     toast(`« ${l.type} » copié : colle-le dans Excel.`);
   } catch {
     toast('Copie refusée par le navigateur.', { erreur: true });
@@ -384,6 +471,8 @@ function basculerTheme() {
   document.documentElement.dataset.theme = t;
   try { localStorage.setItem('ifc-analyzer.theme', t); } catch { /* ignore */ }
   rendreTheme();
+  appliquerPerso(); // la couleur d'accent a une variante par thème
+  if (etat.page === 'personnalisation') rendre(); // « Assombrissement » devient « Éclaircissement »
 }
 
 /** Ouvre la page de métré d'un type, filtres effacés, type sélectionné. */
@@ -424,6 +513,23 @@ function executer(faire, cible = null) {
     case 'famille-3d':
       v.masquees = v.masquees.includes(faire.famille) ? v.masquees.filter((x) => x !== faire.famille) : [...v.masquees, faire.famille];
       break;
+    // --- Personnalisation
+    case 'fond-famille': etat.famillesFonds = faire.valeur; break;
+    case 'fond': changerPerso({ fond: faire.valeur }); break;
+    case 'fond-importer': return $('choix-fond').click();
+    case 'accent': changerPerso({ accent: faire.valeur === ACCENTS[0].hex ? null : faire.valeur }); break;
+    case 'survol': changerPerso({ survol: faire.valeur }); break;
+    case 'couleur-survol': changerPerso({ couleurSurvol: faire.valeur || null }); break;
+    case 'perso-reinit': {
+      const avant = lirePerso();
+      changerPerso({ flou: PERSO_DEFAUTS.flou, voile: PERSO_DEFAUTS.voile, panneaux: PERSO_DEFAUTS.panneaux });
+      toast('Effets d’origine rétablis.', { action: 'Annuler', surAction: () => { changerPerso(avant); rendre(); } });
+      break;
+    }
+    // --- Paramètres
+    case 'reglages-onglet': choisirOnglet(faire.valeur); break;
+    case 'tout-effacer': return toutEffacer();
+    case 'installer': return installer();
     default:
       if (!f) return;
       switch (faire.action) {
@@ -467,8 +573,29 @@ document.addEventListener('keydown', (e) => {
   else if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); $('choix-fichier').click(); }
   else if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.dropzone')) { e.preventDefault(); $('choix-fichier').click(); }
   else if (e.key === 'Escape' && etat.page === '3d' && etat.v3d.selection && !$('palette').open) { etat.v3d.selection = null; rendre(); }
+  else if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) && e.target.closest?.('#set-nav')) {
+    // Sommaire des paramètres : flèches, Début et Fin (comme des onglets)
+    e.preventDefault();
+    const cles = ONGLETS.map(([k]) => k);
+    const i = { Home: 0, End: cles.length - 1 }[e.key] ?? cles.indexOf(etat.ongletReglages) + (e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1);
+    choisirOnglet(cles[(i + cles.length) % cles.length]);
+    rendre();
+    $(`onglet-${etat.ongletReglages}`)?.focus();
+  }
 });
+const EFFETS = { 'perso-flou': 'flou', 'perso-voile': 'voile', 'perso-panneaux': 'panneaux' };
 vue.addEventListener('input', (e) => {
+  // Effets de la page Personnalisation : appliqués pendant qu'on fait glisser, sans redessiner la page
+  const effet = EFFETS[e.target.id];
+  if (effet) {
+    const p = enregistrerPerso({ ...lirePerso(), [effet]: Number(e.target.value) });
+    appliquerPerso(p);
+    $(`${e.target.id}-v`).textContent = textesEffets(p, document.documentElement.dataset.theme === 'light')[effet];
+    return undefined;
+  }
+  // Couleurs libres : aperçu en direct, gardées à la fermeture du sélecteur (événement « change »)
+  if (e.target.id === 'accent-perso') return appliquerPerso({ ...lirePerso(), accent: e.target.value });
+  if (e.target.id === 'survol-perso') return appliquerPerso({ ...lirePerso(), couleurSurvol: e.target.value });
   if (e.target.id === 'coupe-3d') { // coupe : la vue suit le curseur sans redessiner la page
     etat.v3d.coupe = Number(e.target.value);
     $('coupe-valeur').textContent = etat.v3d.coupe >= 1 ? 'aucune' : `${Math.round(etat.v3d.coupe * 100)} %`;
@@ -479,6 +606,18 @@ vue.addEventListener('input', (e) => {
   if (!page) return;
   filtresDe(etat, page).texte = e.target.value;
   rendre({ focus: 'filtre-texte' });
+});
+vue.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.id === 'accent-perso') { changerPerso({ accent: t.value.toLowerCase() }); return rendre({ focus: t.id }); }
+  if (t.id === 'survol-perso') { changerPerso({ couleurSurvol: t.value.toLowerCase() }); return rendre({ focus: t.id }); }
+  if (t.dataset.reglage) changerReglage(t.dataset.reglage, t.type === 'checkbox' ? t.checked : t.value);
+  return undefined;
+});
+$('choix-fond').addEventListener('change', (e) => {
+  const f = e.target.files?.[0];
+  e.target.value = '';
+  if (f) importerFond(f);
 });
 $('choix-fichier').addEventListener('change', (e) => {
   const fichiers = [...e.target.files];
@@ -508,11 +647,13 @@ window.addEventListener('drop', (e) => {
 const palette = initPalette(etat, (faire) => executer(faire));
 
 async function demarrer() {
+  appliquerPerso();
+  appliquerReglages();
   rendreTheme();
   etat.page = location.hash.replace(/^#\/?/, '') || 'accueil';
   if (!pageValide(etat.page)) etat.page = 'accueil';
   // Fichiers ouverts lors de la dernière visite : retrouvés depuis la mémoire du navigateur
-  const session = stockage.sessionMemorisee();
+  const session = lireReglages().session ? stockage.sessionMemorisee() : { cles: [], actif: null };
   for (const cle of session.cles ?? []) {
     const a = await stockage.lire(cle);
     if (a?.modele) etat.modeles.set(cle, a);

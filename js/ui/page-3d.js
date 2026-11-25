@@ -67,7 +67,7 @@ function panneauFamilles(etat, actif) {
 
 /**
  * @param {object} etat
- * @param {'pret'|'chargement'|'preparation'|'absente'|'sans-webgl'} statut  état de la géométrie du fichier actif
+ * @param {'pret'|'chargement'|'preparation'|'absente'|'desactivee'|'sans-webgl'} statut  état de la géométrie du fichier actif
  */
 export function vue3D(etat, statut) {
   const actif = etat.modeles.get(etat.actif);
@@ -79,6 +79,11 @@ export function vue3D(etat, statut) {
   const sous = `${echapper(actif.nom)} · ${pluriel(actif.nbElements, 'élément métré', 'éléments métrés')}`;
   if (statut === 'sans-webgl') {
     return `${entete(sous)}<section class="card empty">${vide('La 3D n’est pas disponible dans ce navigateur', 'L’accélération graphique (WebGL) est désactivée. Le métré reste utilisable normalement.')}</section>`;
+  }
+  if (statut === 'desactivee') {
+    return `${entete(sous)}<section class="card empty">${vide('La préparation de la 3D est désactivée',
+      'Elle a été coupée dans les paramètres. Réactive-la, puis ouvre à nouveau le fichier IFC : la 3D sera préparée, tes quantités ne changent pas.',
+      `<button type="button" class="btn primary" data-action="page" data-page="parametres">${ic('reglages')}Ouvrir les paramètres</button>`)}</section>`;
   }
   if (statut === 'absente') {
     return `${entete(sous)}<section class="card empty">${vide('La 3D de ce fichier n’est pas encore prête',

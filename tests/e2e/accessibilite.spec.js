@@ -39,6 +39,21 @@ for (const theme of ['dark', 'light']) {
       await page.keyboard.type('voile');
       await verifier(page, 'recherche Ctrl K');
     });
+
+    test('Personnalisation et Paramètres (chaque catégorie) : 0 violation', async ({ page }) => {
+      await ouvrir(page);
+      await ouvrirExemple(page);
+      await page.locator('#nav button[data-page="personnalisation"]').click();
+      await verifier(page, 'personnalisation');
+      await page.getByRole('button', { name: 'Ton image', exact: true }).click();
+      await verifier(page, 'personnalisation, famille « Ton image »');
+      await page.locator('#nav button[data-page="parametres"]').click();
+      for (const nom of ['Analyse IFC', 'Export', 'Affichage', 'Stockage et confidentialité', 'À propos']) {
+        await page.getByRole('tab', { name: nom }).click();
+        await expect(page.getByRole('tabpanel')).toContainText(nom === 'Analyse IFC' ? 'Préparer' : '');
+        await verifier(page, `paramètres : ${nom}`);
+      }
+    });
   });
 }
 
@@ -75,5 +90,14 @@ test.describe('téléphone', () => {
     await expect(page.locator('.tbl')).toBeVisible();
     const [page_, ecran] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
     expect(page_).toBeLessThanOrEqual(ecran);
+  });
+  test('Personnalisation et Paramètres : aucun défilement horizontal', async ({ page }) => {
+    await ouvrir(page);
+    for (const p of ['personnalisation', 'parametres']) {
+      await page.locator(`#nav button[data-page="${p}"]`).click();
+      await expect(page.locator('.home-head h2')).toBeVisible();
+      const [page_, ecran] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
+      expect(page_, p).toBeLessThanOrEqual(ecran);
+    }
   });
 });

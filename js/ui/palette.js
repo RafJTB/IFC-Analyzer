@@ -27,8 +27,13 @@ export function resultats(saisie, etat) {
       if (res.length >= 30) break;
     }
   }
-  for (const p of [{ id: 'accueil', titre: 'Accueil', icone: 'home', couleur: 'violet' }, { id: '3d', titre: 'Maquette 3D', icone: 'cube', couleur: 'cyan' }, ...PAGES]) {
-    if (ok(p.titre)) res.push({ titre: p.titre, meta: 'Page', icone: p.icone, couleur: p.couleur, faire: { action: 'page', page: p.id } });
+  const speciales = [{ id: 'accueil', titre: 'Accueil', icone: 'home', couleur: 'violet' }, { id: '3d', titre: 'Maquette 3D', icone: 'cube', couleur: 'cyan' }];
+  const reglages = [
+    { id: 'personnalisation', titre: 'Personnalisation', icone: 'palette', couleur: 'rose', mots: 'fond écran couleur accent flou thème image' },
+    { id: 'parametres', titre: 'Paramètres', icone: 'reglages', couleur: 'gris', mots: 'réglages 3D export csv stockage effacer installer raccourcis' },
+  ];
+  for (const p of [...speciales, ...PAGES, ...reglages]) {
+    if (ok(p.titre) || (p.mots && q && cle(p.mots).includes(q))) res.push({ titre: p.titre, meta: 'Page', icone: p.icone, couleur: p.couleur, faire: { action: 'page', page: p.id } });
   }
   const actions = [
     { titre: 'Ouvrir un fichier IFC', meta: 'Ctrl O', icone: 'ouvrir', couleur: 'bleu', faire: { action: 'ouvrir-fichier' } },

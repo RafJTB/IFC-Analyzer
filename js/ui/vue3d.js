@@ -166,6 +166,17 @@ export class Visionneuse {
    * Affiche ce qui doit l'être.
    * @param {{ niveaux?: string[], masquees?: string[], selection?: Set<number>|null, coupe?: number|null }} e
    */
+  /** Sélection à la couleur d'accent choisie dans Personnalisation (rien : la couleur d'origine). */
+  couleurSelection(hex) {
+    if (!this.matSelection) return;
+    const c = new THREE.Color(hex || ACCENT);
+    if (hex) c.lerp(new THREE.Color(0xffffff), 0.3); // un peu plus clair, comme l'accent du thème sombre
+    if (c.equals(this.matSelection.color)) return;
+    this.matSelection.color.copy(c);
+    this.matSelection.emissive.copy(hex ? new THREE.Color(hex).multiplyScalar(0.55) : new THREE.Color(0x3d3fb8));
+    this.rendre();
+  }
+
   appliquer({ niveaux = [], masquees = [], selection = null, coupe = null }) {
     if (!this.g) return;
     const { g, infos } = this;
