@@ -207,10 +207,10 @@ export function vueFamille(page, etat) {
   return `${entete(page, etat, d)}${tuiles(config, groupe)}${alerte}<div class="split">${tableau(config, d)}${panneau(config, d)}</div>`;
 }
 
-/** Texte d'une ligne pour le presse-papiers (colonnes séparées par des tabulations, collables dans Excel). */
-export function ligneTexte(config, l) {
+/** Texte d'une ligne pour le presse-papiers (colonnes séparées par des tabulations, collables dans Excel). « en » : point décimal. */
+export function ligneTexte(config, l, format = 'fr') {
   const cols = config.colonnes.filter((c) => !c.genre);
   const entetes = ['Type', ...cols.map((c) => `${c.titre}${c.unite ? ` (${c.unite})` : ''}`)];
-  const valeurs = [l.type, ...cols.map((c) => { const v = valeurCol(l, c); return v == null ? '' : nombre(v * (c.facteur ?? 1), c.decimales ?? 2).replace(/ | /g, ''); })];
+  const valeurs = [l.type, ...cols.map((c) => { const v = valeurCol(l, c); return v == null ? '' : nombre(v * (c.facteur ?? 1), c.decimales ?? 2).replace(/ | /g, '').replace(',', format === 'en' ? '.' : ','); })];
   return `${entetes.join('\t')}\n${valeurs.join('\t')}`;
 }

@@ -13,10 +13,10 @@
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-  <meta name="app-version" content="0.3.0" />
-  <link rel="stylesheet" href="styles.css?v=0.3.0" />
-  <script src="js/boot.js?v=0.3.0"></script>
-  <script type="module" src="js/app.js?v=0.3.0"></script>
+  <meta name="app-version" content="0.4.0" />
+  <link rel="stylesheet" href="styles.css?v=0.4.0" />
+  <script src="js/boot.js?v=0.4.0"></script>
+  <script type="module" src="js/app.js?v=0.4.0"></script>
 </head>
 <body>
   <div class="bg-photo" aria-hidden="true"></div>
@@ -29,7 +29,7 @@
     <aside class="sidebar" aria-label="Navigation">
       <div class="side-brand">
         <span class="side-logo"><svg viewBox="0 0 40 40" aria-hidden="true"><path fill="#fff" d="M20 3 35.5 11.5 20 20 4.5 11.5z"/><path fill="#fff" fill-opacity=".74" d="M4.5 13.6 19 21.6V37L4.5 29z"/><path fill="#fff" fill-opacity=".5" d="M35.5 13.6 21 21.6V37l14.5-8z"/></svg></span>
-        <div class="side-name"><h1>IFC Analyzer</h1><span class="ver">v0.3</span></div>
+        <div class="side-name"><h1>IFC Analyzer</h1><span class="ver">v0.4</span></div>
       </div>
       <nav class="nav" id="nav" aria-label="Pages"></nav>
       <div class="side-fill"></div>
@@ -54,6 +54,7 @@
   </div>
 
   <input type="file" id="choix-fichier" accept=".ifc,.IFC" multiple hidden />
+  <input type="file" id="choix-fond" accept="image/*" hidden />
   <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 
   <dialog class="palette" id="palette" aria-label="Recherche">

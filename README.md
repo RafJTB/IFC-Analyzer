@@ -22,7 +22,13 @@ garde-corps, réseaux EP et escaliers. Aucun serveur, aucune installation, et **
 - **Recherche rapide** `Ctrl K` (un type, une page, une action) ; `Ctrl O` pour ouvrir un fichier.
 - **Analyses récentes** gardées dans le navigateur (quantités et 3D calculée, jamais le fichier IFC).
 - **Même interface que Transcripteur IA** : barre latérale, onglets, barre du haut, boutons et cartes aux mêmes dimensions.
+- **Personnalisation**, comme dans Transcripteur IA : 19 fonds d'écran ou ton image, couleur d'accent (jusqu'à la sélection en 3D),
+  lueur au survol des blocs, flou du fond, assombrissement et opacité des panneaux. Appliqué tout de suite, gardé dans le navigateur.
+- **Paramètres** : préparer ou non la 3D (très grosses maquettes), rouvrir les fichiers à la visite suivante,
+  format du tableur (Excel en français ou en anglais / Google Sheets), animations, place utilisée et effacement des analyses (avec Annuler).
 - Thèmes sombre et clair, appli installable, utilisable hors connexion.
+
+![Personnalisation : fonds d'écran, couleur d'accent, survol, effets](docs/captures/personnalisation.webp)
 
 ## Règles de métré
 
@@ -65,10 +71,13 @@ js/metre/quantites.js  Règles de métré et regroupement par type — fonctions
 js/metre/familles.js   Pages, familles, colonnes et tuiles
 js/metre/export.js     Export CSV
 js/ui/vue3d.js         Visionneuse 3D (three.js) : un seul maillage, sélection, niveaux, familles, coupe, clic
-js/ui/*.js             Accueil, page de métré, page 3D, recherche Ctrl K, effets (lueur, verre liquide), stockage local
+js/ui/perso.js         Personnalisation (fonds, accent, survol, effets), appliquée aussi par js/boot.js avant l'affichage
+js/ui/reglages.js      Paramètres de l'appli (3D, session, format du tableur, animations)
+js/ui/*.js             Accueil, pages de métré, 3D, Personnalisation, Paramètres, recherche Ctrl K, effets, stockage local
 vendor/web-ifc/        Moteur de lecture IFC (web-ifc 0.0.78, licence MPL-2.0), servi par le site lui-même
 vendor/three/          Moteur 3D (three.js 0.187.0, licence MIT), chargé seulement à l'ouverture de la page 3D
 assets/exemple/        IFC d'exemple (« Résidence Les Tilleuls », fictive)
+assets/fonds/          Fonds d'écran (les mêmes que Transcripteur IA) et leurs miniatures
 tools/                 Générateur de l'IFC d'exemple (Python, ifcopenshell) et copie de web-ifc
 legacy/                Ancienne version Python / Tkinter, pour référence
 ```
@@ -84,11 +93,12 @@ npm test            # tests unitaires puis tests dans le navigateur
   en IFC4 et en IFC2x3. Ces valeurs (`tests/fixtures/attendu.json`) sont calculées par le générateur, indépendamment de l'appli.
   La géométrie 3D est vérifiée aussi : un bloc par élément, dimensions en mètres, murs percés par leurs réservations.
 - **Navigateur** (Playwright) : parcours complet, filtres, export, recherche, rechargement, téléphone, maquette 3D
-  (affichage, clic, aller-retour avec le métré, coupe), et **0 violation d'accessibilité** (axe-core) en thème clair et en thème sombre.
+  (affichage, clic, aller-retour avec le métré, coupe), Personnalisation et Paramètres (chaque réglage réellement appliqué et retrouvé
+  au rechargement), et **0 violation d'accessibilité** (axe-core) en thème clair et en thème sombre, sur chaque page.
 
 Régénérer l'IFC d'exemple, géométrie 3D comprise (le résultat est identique à chaque fois) : `pip install ifcopenshell` puis `npm run exemple`.
 
 ## Suite prévue
 
 1. **Estimation** : DPGF par lots, prix unitaires, HT / TVA / TTC, export Excel.
-2. **Versions** : comparaison de deux exports d'une même maquette (mise en évidence en 3D), et personnalisation (fonds, couleurs).
+2. **Versions** : comparaison de deux exports d'une même maquette (mise en évidence en 3D).

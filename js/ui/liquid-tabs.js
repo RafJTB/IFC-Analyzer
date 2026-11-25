@@ -5,9 +5,12 @@ const GROUPS = [
   // [conteneur, onglets, est sélectionné ?]
   ['#nav', 'button[data-page]', (b) => b.classList.contains('active')],
   ['.seg', 'button', (b) => b.getAttribute('aria-pressed') === 'true'],
+  ['#set-nav', 'button', (b) => b.classList.contains('on')],
+  ['#bg-cats', '.bg-cat', (b) => b.classList.contains('on')],
 ];
 
-const reduce = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+// Moins d'animations : demandé par le système, ou coupé dans les paramètres de l'appli
+const reduce = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.anim === 'off';
 const hosts = new WeakMap(); // conteneur → { item, isOn, pill, last } (oublié quand le conteneur disparaît)
 
 function place(host, st, animate) {

@@ -1,5 +1,6 @@
 // Analyse d'un fichier IFC hors de la page (Web Worker) : l'interface reste fluide, même sur une grosse maquette.
-// Message reçu : { octets: ArrayBuffer }. Messages envoyés, dans l'ordre :
+// Message reçu : { octets: ArrayBuffer, geometrie: false si la 3D est désactivée dans les paramètres }.
+// Messages envoyés, dans l'ordre :
 //   progression…, resultat (le métré, affiché tout de suite), progression-3d…, geometrie (la 3D) — ou erreur / erreur-3d.
 import * as W from '../../vendor/web-ifc/web-ifc-api.js';
 import { extraireModele } from './extract.js';
@@ -32,6 +33,7 @@ self.onmessage = async ({ data }) => {
     const modele = preparerModele(extraireModele(a, W, id, (etape, part) => envoyer({ type: 'progression', etape, part })));
     envoyer({ type: 'resultat', modele, duree: Math.round(performance.now() - debut) });
     metreEnvoye = true;
+    if (data.geometrie === false) return;
 
     // 2e temps : la géométrie 3D (le métré est déjà affiché)
     const estimation = modele.elements.length + Object.values(modele.ignores).reduce((s, n) => s + n, 0);
