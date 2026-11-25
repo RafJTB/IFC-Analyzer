@@ -27,7 +27,7 @@ export function resultats(saisie, etat) {
       if (res.length >= 30) break;
     }
   }
-  for (const p of [{ id: 'accueil', titre: 'Accueil', icone: 'home', couleur: 'violet' }, ...PAGES]) {
+  for (const p of [{ id: 'accueil', titre: 'Accueil', icone: 'home', couleur: 'violet' }, { id: '3d', titre: 'Maquette 3D', icone: 'cube', couleur: 'cyan' }, ...PAGES]) {
     if (ok(p.titre)) res.push({ titre: p.titre, meta: 'Page', icone: p.icone, couleur: p.couleur, faire: { action: 'page', page: p.id } });
   }
   const actions = [

@@ -1,15 +1,16 @@
 // Service worker : l'appli s'installe et s'ouvre hors connexion.
 // Réseau d'abord (fichiers toujours revérifiés : jamais de vieille version coincée), copie locale si pas de réseau.
 // Sécurité : en-têtes que GitHub Pages ne permet pas d'envoyer.
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 const CACHE = `ifc-analyzer-${VERSION}`;
 const SOCLE = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest', 'assets/fond.webp', 'icons/icon.svg', 'icons/icon-192.png',
-  'js/boot.js', 'js/app.js', 'js/ifc/worker.js', 'js/ifc/extract.js', 'js/ifc/noms.js',
+  'js/boot.js', 'js/app.js', 'js/ifc/worker.js', 'js/ifc/extract.js', 'js/ifc/noms.js', 'js/ifc/geometrie.js',
   'js/metre/familles.js', 'js/metre/quantites.js', 'js/metre/export.js',
   'js/ui/accueil.js', 'js/ui/page-famille.js', 'js/ui/palette.js', 'js/ui/icones.js', 'js/ui/format.js', 'js/ui/toast.js',
-  'js/ui/stockage.js', 'js/ui/hover-glow.js', 'js/ui/liquid-tabs.js',
+  'js/ui/stockage.js', 'js/ui/hover-glow.js', 'js/ui/liquid-tabs.js', 'js/ui/page-3d.js', 'js/ui/vue3d.js',
   'vendor/web-ifc/web-ifc-api.js', 'vendor/web-ifc/web-ifc.wasm',
+  'vendor/three/three.core.js', 'vendor/three/three.module.js', 'vendor/three/OrbitControls.js',
 ];
 
 self.addEventListener('install', (e) => {

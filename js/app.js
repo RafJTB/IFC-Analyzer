@@ -1,8 +1,9 @@
 // Point d'entrée : état de l'appli, navigation, ouverture et analyse des fichiers, actions de l'interface.
-import { PAGES } from './metre/familles.js';
+import { PAGES, pageDeFamille } from './metre/familles.js';
 import { versCsv } from './metre/export.js';
 import { vueAccueil } from './ui/accueil.js';
 import { couleurDe, donneesPage, filtresDe, ligneTexte, vueFamille } from './ui/page-famille.js';
+import { vue3D } from './ui/page-3d.js';
 import { initPalette } from './ui/palette.js';
 import { ic } from './ui/icones.js';
 import { echapper, nombre, pluriel } from './ui/format.js';
@@ -13,16 +14,22 @@ import { initLiquidTabs } from './ui/liquid-tabs.js';
 
 const EXEMPLE = 'assets/exemple/residence-les-tilleuls.ifc';
 const etat = {
-  modeles: new Map(), // fichiers ouverts : clé → { cle, nom, taille, date, duree, schema, nbElements, nbNiveaux, modele }
+  modeles: new Map(), //        fichiers ouverts : clé → { cle, nom, taille, date, duree, schema, nbElements, nbNiveaux, modele }
   actif: null,
   recents: [],
-  analyse: null, //     analyse en cours : { nom, etape, part }
+  analyse: null, //             analyse en cours : { nom, etape, part }
   page: 'accueil',
-  filtres: {}, //       par page : onglet, statut, niveaux, texte, tri, sélection
+  filtres: {}, //               par page de métré : onglet, statut, niveaux, texte, tri, sélection
+  geometries: new Map(), //     clé → géométrie 3D (chargée à la demande)
+  preparation3d: new Map(), //  clé → avancement de la préparation de la 3D (0 à 1)
+  sans3d: new Set(), //         clés dont la 3D n'existe pas (analyse ancienne) ou a échoué
+  v3d: { selection: null, niveaux: [], masquees: [], coupe: 1, cadrerSelection: false },
 };
 const $ = (id) => document.getElementById(id);
 const vue = $('vue');
+const PAGES_SPECIALES = ['accueil', '3d'];
 const pageCourante = () => PAGES.find((p) => p.id === etat.page);
+const pageValide = (p) => PAGES_SPECIALES.includes(p) || PAGES.some((x) => x.id === p);
 
 // ---------------------------------------------------------------- Rendu
 function rendreNav() {
@@ -31,7 +38,8 @@ function rendreNav() {
   const bouton = (id, titre, icone, couleur, n = null) => `
     <button type="button" data-action="page" data-page="${id}" class="${etat.page === id ? 'active' : ''}" ${etat.page === id ? 'aria-current="page"' : ''} style="--c: var(--${couleur})">
       <span class="dot">${ic(icone)}</span>${titre}${n != null ? `<span class="cnt">${nombre(n, 0)}</span>` : ''}</button>`;
-  $('nav').innerHTML = `${bouton('accueil', 'Accueil', 'home', 'violet')}<span class="nav-head" aria-hidden="true">Métré</span>${PAGES.map((p) => bouton(p.id, p.titre, p.icone, p.couleur, compte(p))).join('')}`;
+  $('nav').innerHTML = `${bouton('accueil', 'Accueil', 'home', 'violet')}${bouton('3d', 'Maquette 3D', 'cube', 'cyan')}
+    <span class="nav-head" aria-hidden="true">Métré</span>${PAGES.map((p) => bouton(p.id, p.titre, p.icone, p.couleur, compte(p))).join('')}`;
 }
 
 function rendreFichiers() {
@@ -64,8 +72,9 @@ function rendreTheme() {
 function rendre({ anim = false, focus = null } = {}) {
   const defil = [...document.querySelectorAll('.view, .table-scroll, .side-panel')].map((e) => [e.className, e.scrollTop]);
   const page = pageCourante();
-  vue.innerHTML = page ? vueFamille(page, etat) : vueAccueil(etat);
-  document.title = `${page ? `${page.titre} · ` : ''}IFC Analyzer by RJB`;
+  if (etat.page === '3d') vue.innerHTML = vue3D(etat, statut3d());
+  else vue.innerHTML = page ? vueFamille(page, etat) : vueAccueil(etat);
+  document.title = `${page ? `${page.titre} · ` : etat.page === '3d' ? 'Maquette 3D · ' : ''}IFC Analyzer by RJB`;
   if (anim) {
     vue.classList.remove('anim');
     void vue.offsetWidth; // relance l'animation
@@ -77,6 +86,7 @@ function rendre({ anim = false, focus = null } = {}) {
   rendreNav();
   rendreFichiers();
   initLiquidTabs();
+  if (etat.page === '3d') monterVisionneuse();
   if (focus) {
     const champ = $(focus);
     if (champ) { champ.focus(); const n = champ.value.length; champ.setSelectionRange?.(n, n); }
@@ -84,7 +94,7 @@ function rendre({ anim = false, focus = null } = {}) {
 }
 
 function aller(page, { historique = true } = {}) {
-  etat.page = PAGES.some((p) => p.id === page) ? page : 'accueil';
+  etat.page = pageValide(page) ? page : 'accueil';
   if (historique) {
     const h = etat.page === 'accueil' ? '#/' : `#/${etat.page}`;
     if (location.hash !== h) history.pushState(null, '', h);
@@ -93,8 +103,97 @@ function aller(page, { historique = true } = {}) {
   vue.focus({ preventScroll: true });
 }
 
+// ---------------------------------------------------------------- Maquette 3D
+let visionneuse = null; //  créée à la première visite de la page 3D (three.js n'est chargé qu'à ce moment)
+let module3d = null;
+
+function statut3d() {
+  const cle = etat.actif;
+  if (!cle) return 'pret';
+  if (module3d && !module3d.webglDisponible()) return 'sans-webgl';
+  if (etat.geometries.has(cle)) return 'pret';
+  if (etat.preparation3d.has(cle)) return 'preparation';
+  if (etat.sans3d.has(cle)) return 'absente';
+  chargerGeometrie(cle);
+  return 'chargement';
+}
+
+const chargements = new Set();
+async function chargerGeometrie(cle) {
+  if (chargements.has(cle)) return;
+  chargements.add(cle);
+  const g = await stockage.lireGeometrie(cle);
+  chargements.delete(cle);
+  if (g) etat.geometries.set(cle, g);
+  else if (!etat.preparation3d.has(cle)) etat.sans3d.add(cle);
+  if (etat.page === '3d' && etat.actif === cle) rendre();
+}
+
+/** Éléments sélectionnés en 3D : tous ceux du type choisi. */
+function idsSelection() {
+  const sel = etat.v3d.selection;
+  const actif = etat.modeles.get(etat.actif);
+  if (!sel || !actif) return null;
+  return new Set(actif.modele.elements.filter((e) => e.famille === sel.famille && e.type === sel.type).map((e) => e.id));
+}
+
+function appliquer3d() {
+  if (!visionneuse) return;
+  const { niveaux, masquees, coupe } = etat.v3d;
+  visionneuse.appliquer({ niveaux, masquees, selection: idsSelection(), coupe: coupe >= 1 ? null : coupe });
+}
+
+async function monterVisionneuse() {
+  const cle = etat.actif;
+  if (!cle || !etat.geometries.has(cle)) {
+    if (!module3d && cle) { module3d = await import('./ui/vue3d.js'); if (!module3d.webglDisponible() && etat.page === '3d') rendre(); }
+    return;
+  }
+  if (!visionneuse) {
+    try {
+      module3d ??= await import('./ui/vue3d.js');
+      if (!module3d.webglDisponible()) { if (etat.page === '3d') rendre(); return; }
+      visionneuse = new module3d.Visionneuse();
+      visionneuse.surClic = clic3d;
+    } catch (e) {
+      toast(`La 3D n’a pas pu démarrer : ${e.message}`, { erreur: true });
+      return;
+    }
+  }
+  const hote = $('v3d-hote');
+  if (!hote || etat.page !== '3d' || etat.actif !== cle) return;
+  hote.appendChild(visionneuse.el);
+  if (visionneuse.cle !== cle) {
+    const infos = new Map(etat.modeles.get(cle).modele.elements.map((e) => [e.id, { famille: e.famille, niveau: e.niveau, type: e.type, genre: e.m?.genre }]));
+    visionneuse.charger(etat.geometries.get(cle), infos);
+    visionneuse.cle = cle;
+  }
+  visionneuse.redimensionner();
+  appliquer3d();
+  if (etat.v3d.cadrerSelection) { etat.v3d.cadrerSelection = false; visionneuse.cadrer(idsSelection()); }
+}
+
+function clic3d(id) {
+  const el = id == null ? null : etat.modeles.get(etat.actif)?.modele.elements.find((e) => e.id === id);
+  if (id != null && !el) toast('Cet objet n’entre dans aucune famille du métré.');
+  etat.v3d.selection = el ? { famille: el.famille, type: el.type, element: el.id } : null;
+  rendre();
+}
+
+function majProgression3d(cle) {
+  if (etat.page !== '3d' || etat.actif !== cle) return;
+  const pct = Math.round((etat.preparation3d.get(cle) ?? 0) * 100);
+  const barre = vue.querySelector('.v3d-attente .progress');
+  if (!barre) return rendre();
+  barre.setAttribute('aria-valuenow', String(pct));
+  barre.firstElementChild.style.width = `${pct}%`;
+  const txt = vue.querySelector('.v3d-attente .muted');
+  if (txt) txt.textContent = `${pct} %`;
+}
+
 // ---------------------------------------------------------------- Fichiers et analyses
 function activer(entree) {
+  if (etat.actif !== entree.cle) etat.v3d.selection = null;
   etat.modeles.set(entree.cle, entree);
   etat.actif = entree.cle;
   stockage.memoriserSession([...etat.modeles.keys()], etat.actif);
@@ -113,24 +212,35 @@ async function analyserFichier(fichier) {
     return;
   }
   const cle = `${fichier.name}|${fichier.size}|${fichier.lastModified}`;
-  if (etat.modeles.has(cle)) { activer(etat.modeles.get(cle)); rendre(); toast(`${fichier.name} est déjà ouvert.`); return; }
+  if (etat.modeles.has(cle) && !etat.sans3d.has(cle)) { activer(etat.modeles.get(cle)); rendre(); toast(`${fichier.name} est déjà ouvert.`); return; }
+  // Déjà analysé, 3D comprise : rien à recalculer
   const deja = await stockage.lire(cle);
-  if (deja?.modele) { activer(deja); rendre(); toast(`${fichier.name} : analyse retrouvée, sans recalcul.`); return; }
+  const geo = deja?.modele ? await stockage.lireGeometrie(cle) : null;
+  if (deja?.modele && geo) {
+    etat.geometries.set(cle, geo);
+    etat.sans3d.delete(cle);
+    activer(deja);
+    rendre();
+    toast(`${fichier.name} : analyse retrouvée, sans recalcul.`);
+    return;
+  }
 
   etat.analyse = { nom: fichier.name, etape: 'Lecture du fichier', part: 0 };
-  if (etat.page !== 'accueil') aller('accueil'); else rendre();
+  const retour3d = etat.page === '3d';
+  if (etat.page !== 'accueil' && !retour3d) aller('accueil'); else rendre();
   const debut = Date.now();
   try {
     const octets = await fichier.arrayBuffer();
-    const { modele, duree } = await analyserDansWorker(octets);
+    const { modele, duree } = await analyserDansWorker(octets, cle);
     const entree = { cle, nom: fichier.name, taille: fichier.size, date: Date.now(), duree: duree ?? Date.now() - debut,
       schema: modele.schema, nbElements: modele.elements.length, nbNiveaux: modele.niveaux.length, modele };
     etat.analyse = null;
+    etat.sans3d.delete(cle);
     activer(entree);
     await stockage.enregistrer(entree);
     await rafraichirRecents();
     rendre();
-    toast(`${fichier.name} analysé : ${pluriel(entree.nbElements, 'élément métré', 'éléments métrés')}.`);
+    toast(`${fichier.name} analysé : ${pluriel(entree.nbElements, 'élément métré', 'éléments métrés')}. La 3D se prépare.`);
   } catch (e) {
     etat.analyse = null;
     rendre();
@@ -138,17 +248,43 @@ async function analyserFichier(fichier) {
   }
 }
 
-function analyserDansWorker(octets) {
+/** Le métré arrive d'abord (promesse résolue), la géométrie 3D ensuite (mise en mémoire et enregistrée). */
+function analyserDansWorker(octets, cle) {
   return new Promise((ok, ko) => {
     const w = new Worker(new URL('./ifc/worker.js', import.meta.url), { type: 'module' });
-    const fin = () => w.terminate();
+    let metre = false;
+    const fin = () => { w.terminate(); etat.preparation3d.delete(cle); };
     w.onmessage = ({ data }) => {
-      if (data.type === 'progression') return progression(data);
-      fin();
-      if (data.type === 'resultat') ok(data);
-      else ko(new Error(data.message));
+      switch (data.type) {
+        case 'progression': return progression(data);
+        case 'resultat':
+          metre = true;
+          etat.preparation3d.set(cle, 0);
+          return ok(data);
+        case 'progression-3d':
+          etat.preparation3d.set(cle, data.part);
+          return majProgression3d(cle);
+        case 'geometrie':
+          fin();
+          etat.geometries.set(cle, data.geometrie);
+          stockage.enregistrerGeometrie(cle, data.geometrie);
+          if (etat.page === '3d' && etat.actif === cle) rendre();
+          return undefined;
+        case 'erreur-3d':
+          fin();
+          etat.sans3d.add(cle);
+          if (etat.page === '3d' && etat.actif === cle) rendre();
+          return toast(`La 3D n’a pas pu être préparée : ${data.message}`, { erreur: true, duree: 9000 });
+        default:
+          fin();
+          return ko(new Error(data.message));
+      }
     };
-    w.onerror = (e) => { fin(); ko(new Error(e.message || 'le moteur IFC n’a pas pu démarrer')); };
+    w.onerror = (e) => {
+      fin();
+      if (metre) { etat.sans3d.add(cle); toast('La 3D n’a pas pu être préparée.', { erreur: true }); }
+      else ko(new Error(e.message || 'le moteur IFC n’a pas pu démarrer'));
+    };
     w.postMessage({ octets }, [octets]);
   });
 }
@@ -192,16 +328,26 @@ async function ouvrirRecent(cle) {
 async function oublier(cle) {
   const a = await stockage.lire(cle);
   if (!a) return;
+  const g = await stockage.lireGeometrie(cle);
   await stockage.supprimer(cle);
   await rafraichirRecents();
   rendre();
-  toast(`« ${a.nom} » retiré des analyses récentes.`, { action: 'Annuler', surAction: async () => { await stockage.enregistrer(a); await rafraichirRecents(); rendre(); } });
+  toast(`« ${a.nom} » retiré des analyses récentes.`, {
+    action: 'Annuler',
+    surAction: async () => {
+      await stockage.enregistrer(a);
+      if (g) await stockage.enregistrerGeometrie(cle, g);
+      await rafraichirRecents();
+      rendre();
+    },
+  });
 }
 
 function fermer(cle) {
   const m = etat.modeles.get(cle);
   etat.modeles.delete(cle);
-  if (etat.actif === cle) etat.actif = [...etat.modeles.keys()].pop() ?? null;
+  etat.geometries.delete(cle);
+  if (etat.actif === cle) { etat.actif = [...etat.modeles.keys()].pop() ?? null; etat.v3d.selection = null; }
   stockage.memoriserSession([...etat.modeles.keys()], etat.actif);
   rendre();
   if (m) toast(`${m.nom} fermé (il reste dans les analyses récentes).`, { action: 'Rouvrir', surAction: () => { activer(m); rendre(); } });
@@ -242,9 +388,17 @@ function basculerTheme() {
   rendreTheme();
 }
 
+/** Ouvre la page de métré d'un type, filtres effacés, type sélectionné. */
+function ouvrirMetre(famille, type) {
+  const page = pageDeFamille(famille);
+  etat.filtres[page.id] = { ...(etat.filtres[page.id] ?? {}), onglet: famille, statut: 'tous', niveaux: [], texte: '', selection: type };
+  aller(page.id);
+}
+
 function executer(faire, cible = null) {
   const page = pageCourante();
   const f = page && etat.modeles.get(etat.actif) ? filtresDe(etat, page) : null;
+  const v = etat.v3d;
   switch (faire.action) {
     case 'page': return aller(faire.page);
     case 'ouvrir-fichier': return $('choix-fichier').click();
@@ -254,25 +408,40 @@ function executer(faire, cible = null) {
     case 'oublier': return oublier(faire.cle);
     case 'fichier': if (etat.modeles.has(faire.cle)) { activer(etat.modeles.get(faire.cle)); rendre(); } return;
     case 'fermer-fichier': return fermer(faire.cle);
-    case 'type': // depuis la recherche : on ouvre la bonne page, filtres effacés, type sélectionné
-      etat.filtres[faire.page] = { ...(etat.filtres[faire.page] ?? {}), onglet: faire.famille, statut: 'tous', niveaux: [], texte: '', selection: faire.type };
-      return aller(faire.page);
-    default: break;
-  }
-  if (!f) return;
-  switch (faire.action) {
-    case 'onglet': f.onglet = faire.famille; f.selection = null; f.tri = null; break;
-    case 'statut': f.statut = faire.valeur; break;
-    case 'niveau':
-      if (!faire.valeur) f.niveaux = [];
-      else f.niveaux = f.niveaux.includes(faire.valeur) ? f.niveaux.filter((n) => n !== faire.valeur) : [...f.niveaux, faire.valeur];
+    case 'type': return ouvrirMetre(faire.famille, faire.type); // depuis la recherche
+    // --- Maquette 3D
+    case 'voir-3d':
+      if (!f?.selection) return;
+      v.selection = { famille: f.onglet, type: f.selection, element: null };
+      v.cadrerSelection = true;
+      return aller('3d');
+    case 'metre-type': return v.selection && ouvrirMetre(v.selection.famille, v.selection.type);
+    case 'effacer-selection': v.selection = null; break;
+    case 'cadrer-selection': return visionneuse?.cadrer(idsSelection());
+    case 'cadrer': return visionneuse?.cadrer();
+    case 'vue-dessus': return visionneuse?.vueDessus();
+    case 'niveau-3d':
+      v.niveaux = !faire.valeur ? [] : v.niveaux.includes(faire.valeur) ? v.niveaux.filter((n) => n !== faire.valeur) : [...v.niveaux, faire.valeur];
       break;
-    case 'selection': f.selection = faire.type; break;
-    case 'tri': f.tri = f.tri?.cle === faire.cle ? (f.tri.sens === -1 ? { cle: faire.cle, sens: 1 } : null) : { cle: faire.cle, sens: faire.cle === 'type' ? 1 : -1 }; break;
-    case 'reinit': Object.assign(f, { statut: 'tous', niveaux: [], texte: '' }); break;
-    case 'exporter': return exporter();
-    case 'copier': return copier();
-    default: return;
+    case 'famille-3d':
+      v.masquees = v.masquees.includes(faire.famille) ? v.masquees.filter((x) => x !== faire.famille) : [...v.masquees, faire.famille];
+      break;
+    default:
+      if (!f) return;
+      switch (faire.action) {
+        case 'onglet': f.onglet = faire.famille; f.selection = null; f.tri = null; break;
+        case 'statut': f.statut = faire.valeur; break;
+        case 'niveau':
+          if (!faire.valeur) f.niveaux = [];
+          else f.niveaux = f.niveaux.includes(faire.valeur) ? f.niveaux.filter((n) => n !== faire.valeur) : [...f.niveaux, faire.valeur];
+          break;
+        case 'selection': f.selection = faire.type; break;
+        case 'tri': f.tri = f.tri?.cle === faire.cle ? (f.tri.sens === -1 ? { cle: faire.cle, sens: 1 } : null) : { cle: faire.cle, sens: faire.cle === 'type' ? 1 : -1 }; break;
+        case 'reinit': Object.assign(f, { statut: 'tous', niveaux: [], texte: '' }); break;
+        case 'exporter': return exporter();
+        case 'copier': return copier();
+        default: return;
+      }
   }
   rendre();
   refocaliser(cible);
@@ -299,8 +468,14 @@ document.addEventListener('keydown', (e) => {
   if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); palette.ouvrir(); }
   else if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); $('choix-fichier').click(); }
   else if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.dropzone')) { e.preventDefault(); $('choix-fichier').click(); }
+  else if (e.key === 'Escape' && etat.page === '3d' && etat.v3d.selection && !$('palette').open) { etat.v3d.selection = null; rendre(); }
 });
 vue.addEventListener('input', (e) => {
+  if (e.target.id === 'coupe-3d') { // coupe : la vue suit le curseur sans redessiner la page
+    etat.v3d.coupe = Number(e.target.value);
+    $('coupe-valeur').textContent = etat.v3d.coupe >= 1 ? 'aucune' : `${Math.round(etat.v3d.coupe * 100)} %`;
+    return appliquer3d();
+  }
   if (e.target.id !== 'filtre-texte') return;
   const page = pageCourante();
   if (!page) return;
@@ -337,7 +512,7 @@ const palette = initPalette(etat, (faire) => executer(faire));
 async function demarrer() {
   rendreTheme();
   etat.page = location.hash.replace(/^#\/?/, '') || 'accueil';
-  if (!PAGES.some((p) => p.id === etat.page)) etat.page = 'accueil';
+  if (!pageValide(etat.page)) etat.page = 'accueil';
   // Fichiers ouverts lors de la dernière visite : retrouvés depuis la mémoire du navigateur
   const session = stockage.sessionMemorisee();
   for (const cle of session.cles ?? []) {

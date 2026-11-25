@@ -98,8 +98,8 @@ export function vueAccueil(etat) {
         <h2>Bonjour !</h2>
         <p><b>${echapper(actif.nom)}</b> est analysée : ${pluriel(els.length, 'élément métré', 'éléments métrés')} sur ${pluriel(modele.niveaux.length, 'niveau', 'niveaux')}, en ${nombre(actif.duree / 1000, 1)} s.</p>
         <div class="actions">
-          <button type="button" class="btn primary big" data-action="page" data-page="murs">${ic('mur')}Voir le métré des murs</button>
-          <button type="button" class="btn big" data-action="ouvrir-fichier">${ic('ouvrir')}Ouvrir un autre fichier</button>
+          <button type="button" class="btn primary big" data-action="page" data-page="3d">${ic('cube')}Voir la maquette en 3D</button>
+          <button type="button" class="btn big" data-action="page" data-page="murs">${ic('mur')}Voir le métré des murs</button>
         </div>
       </div>
       <div class="hero-art">${illustration()}</div>

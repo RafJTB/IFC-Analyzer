@@ -2,7 +2,8 @@
 
 Le fichier imite un export Revit : unités en millimètres, types nommés, noms
 d'occurrences « Famille:Type:Id », quantités de base (BaseQuantities), réservations
-reliées aux fenêtres et portes, Psets *Common avec IsExternal.
+reliées aux fenêtres et portes, Psets *Common avec IsExternal, et une géométrie 3D
+simple mais cohérente (volumes extrudés, murs percés par leurs réservations).
 
 Les totaux attendus sont calculés ici, à la source, puis écrits en JSON : les tests
 vérifient que l'appli retrouve exactement ces valeurs.
@@ -75,7 +76,9 @@ class Generateur:
         m2 = f.create_entity("IfcSIUnit", UnitType="AREAUNIT", Name="SQUARE_METRE")
         m3 = f.create_entity("IfcSIUnit", UnitType="VOLUMEUNIT", Name="CUBIC_METRE")
         api.run("unit.assign_unit", f, units=[mm, m2, m3])
-        api.run("context.add_context", f, context_type="Model")  # contexte 3D (obligatoire en IFC2X3)
+        modele = api.run("context.add_context", f, context_type="Model")  # contexte 3D (obligatoire en IFC2X3)
+        self.corps = api.run("context.add_context", f, context_type="Model", context_identifier="Body",
+                             target_view="MODEL_VIEW", parent=modele)
         site = self.entite("IfcSite", "Terrain")
         bat = self.entite("IfcBuilding", "Bâtiment A")
         api.run("aggregate.assign_object", f, relating_object=self.projet, products=[site])
@@ -137,23 +140,72 @@ class Generateur:
             t[k] += v
         t[f"niveau:{niveau}"] += 1
 
+    # ---------- géométrie (coordonnées absolues, en mm, Z vers le haut) ----------
+    def _pt(self, *c):
+        return self.f.create_entity("IfcCartesianPoint", Coordinates=[float(x) for x in c])
+
+    def _dir(self, *c):
+        return self.f.create_entity("IfcDirection", DirectionRatios=[float(x) for x in c])
+
+    def _repere(self, origine=(0, 0, 0), axe=(0, 0, 1), ref=(1, 0, 0)):
+        return self.f.create_entity("IfcAxis2Placement3D", Location=self._pt(*origine), Axis=self._dir(*axe), RefDirection=self._dir(*ref))
+
+    def boite(self, x0, y0, z0, dx, dy, dz):
+        """Parallélépipède aligné sur les axes, coin bas (x0, y0, z0)."""
+        profil = self.f.create_entity("IfcRectangleProfileDef", ProfileType="AREA", XDim=float(dx), YDim=float(dy),
+                                      Position=self.f.create_entity("IfcAxis2Placement2D", Location=self._pt(x0 + dx / 2, y0 + dy / 2)))
+        return self.f.create_entity("IfcExtrudedAreaSolid", SweptArea=profil, Position=self._repere((0, 0, z0)),
+                                    ExtrudedDirection=self._dir(0, 0, 1), Depth=float(dz))
+
+    def cylindre(self, origine, rayon, longueur, axe=(0, 0, 1), ref=(1, 0, 0)):
+        profil = self.f.create_entity("IfcCircleProfileDef", ProfileType="AREA", Radius=float(rayon),
+                                      Position=self.f.create_entity("IfcAxis2Placement2D", Location=self._pt(0, 0)))
+        return self.f.create_entity("IfcExtrudedAreaSolid", SweptArea=profil, Position=self._repere(origine, axe, ref),
+                                    ExtrudedDirection=self._dir(0, 0, 1), Depth=float(longueur))
+
+    def profil_extrude(self, points, origine, axe, ref, profondeur):
+        """Profil 2D quelconque (ex. marches d'une volée) extrudé selon *axe*."""
+        poly = self.f.create_entity("IfcPolyline", Points=[self._pt(*pt) for pt in points + [points[0]]])
+        profil = self.f.create_entity("IfcArbitraryClosedProfileDef", ProfileType="AREA", OuterCurve=poly)
+        return self.f.create_entity("IfcExtrudedAreaSolid", SweptArea=profil, Position=self._repere(origine, axe, ref),
+                                    ExtrudedDirection=self._dir(0, 0, 1), Depth=float(profondeur))
+
+    def forme(self, produit, solides):
+        """Représentation « Body » de l'élément, placé à l'origine (les solides sont en coordonnées absolues)."""
+        if not solides:
+            return
+        rep = self.f.create_entity("IfcShapeRepresentation", ContextOfItems=self.corps, RepresentationIdentifier="Body",
+                                   RepresentationType="SweptSolid", Items=list(solides))
+        produit.Representation = self.f.create_entity("IfcProductDefinitionShape", Representations=[rep])
+        produit.ObjectPlacement = self.f.create_entity("IfcLocalPlacement", RelativePlacement=self._repere())
+
     # ---------- éléments ----------
-    def mur(self, type_nom, famille_revit, niveau, longueur, ep, exterieur, baies=()):
-        """Mur + réservations. *baies* : liste de (classe, type, largeur, hauteur, statut) ou (None, ..) = trou sans menuiserie."""
+    def mur(self, type_nom, famille_revit, niveau, longueur, ep, exterieur, baies=(), pos=(0, 0, "x")):
+        """Mur + réservations. *baies* : liste de (classe, type, largeur, hauteur, statut) ou (None, ..) = trou sans menuiserie.
+        *pos* : (x0, y0, axe) — le mur part de (x0, y0) le long de l'axe « x » ou « y », son épaisseur du côté positif."""
         classe = "IfcWallStandardCase" if self.schema == "IFC2X3" else "IfcWall"
         m = self.entite(classe, f"{famille_revit}:{type_nom}:{self.nouvel_id()}")
         self.placer(m, niveau, "IfcWallType", type_nom)
+        x0, y0, axe = pos
+        z0 = NIVEAUX.index(niveau) * H_ETAGE
+        boite_le_long = lambda debut, long_, z, haut, e0, e1: (
+            self.boite(x0 + debut, y0 + e0, z, long_, e1 - e0, haut) if axe == "x" else self.boite(x0 + e0, y0 + debut, z, e1 - e0, long_, haut))
+        self.forme(m, [boite_le_long(0, longueur, z0, H_MUR, 0, ep)])
         brute = longueur * H_MUR / 1e6
         trous = 0.0
-        for classe_m, type_m, larg, haut, ext_m in baies:
+        for k, (classe_m, type_m, larg, haut, ext_m) in enumerate(baies):
             ouv = self.entite("IfcOpeningElement", "Réservation")
             self.f.create_entity("IfcRelVoidsElement", GlobalId=self.guid(), RelatingBuildingElement=m, RelatedOpeningElement=ouv)
+            centre = longueur * (k + 1) / (len(baies) + 1)
+            allege = 900 if classe_m == "IfcWindow" or (classe_m is None and haut < 2000) else 0
+            self.forme(ouv, [boite_le_long(centre - larg / 2, larg, z0 + allege, haut, -60, ep + 60)])
             aire = larg * haut / 1e6
             trous += aire
             if self.avec_quantites:
                 self.quantites(ouv, {"Width": larg, "Height": haut, "Depth": ep})
             if classe_m:
-                self.menuiserie(classe_m, type_m, niveau, larg, haut, ext_m, ouv)
+                men = self.menuiserie(classe_m, type_m, niveau, larg, haut, ext_m, ouv)
+                self.forme(men, [boite_le_long(centre - larg / 2, larg, z0 + allege, haut, ep / 2 - 30, ep / 2 + 30)])
         nette = brute - trous
         self.quantites(m, {"Length": longueur, "Width": ep, "Height": H_MUR, "GrossSideArea": brute,
                            "NetSideArea": nette, "GrossVolume": brute * ep / 1000, "NetVolume": nette * ep / 1000})
@@ -174,26 +226,32 @@ class Generateur:
         self.pset(e, "Pset_DoorCommon" if porte else "Pset_WindowCommon", {"IsExternal": exterieur, "Reference": type_nom})
         self.compter("menuiseries", type_nom, niveau, surface=aire, largeur=larg / 1000, hauteur=haut / 1000,
                      exterieur=1 if exterieur else 0)
+        return e
 
-    def dalle(self, type_nom, niveau, predefini, surface_brute, surface_nette, perimetre, ep):
+    def dalle(self, type_nom, niveau, predefini, surface_brute, surface_nette, perimetre, ep, z0=0):
         d = self.entite("IfcSlab", f"Sol:{type_nom}:{self.nouvel_id()}", PredefinedType=predefini)
         self.placer(d, niveau, "IfcSlabType", type_nom)
+        self.forme(d, [self.boite(0, 0, z0, 30000, 12000, ep)])
         self.quantites(d, {"Width": ep, "Perimeter": perimetre, "GrossArea": surface_brute, "NetArea": surface_nette,
                            "GrossVolume": surface_brute * ep / 1000, "NetVolume": surface_nette * ep / 1000})
         self.pset(d, "Pset_SlabCommon", {"IsExternal": predefini == "ROOF", "LoadBearing": True})
         self.compter("dalles", type_nom, niveau, surface=surface_nette, perimetre=perimetre / 1000, volume=surface_nette * ep / 1000)
 
-    def revetement(self, type_nom, niveau, predefini, surface, perimetre, ep):
+    def revetement(self, type_nom, niveau, predefini, surface, perimetre, ep, rect=None, z=0):
         famille = "plafonds" if predefini == "CEILING" else "revetements_sol"
         c = self.entite("IfcCovering", f"{'Plafond' if predefini == 'CEILING' else 'Revêtement de sol'}:{type_nom}:{self.nouvel_id()}",
                         PredefinedType=predefini)
         self.placer(c, niveau, "IfcCoveringType", type_nom)
+        if rect:  # rectangle (x0, y0, largeur) : la profondeur donne la bonne surface
+            x0, y0, lx = rect
+            self.forme(c, [self.boite(x0, y0, z, lx, surface * 1e6 / lx, ep)])
         self.quantites(c, {"Width": ep, "Perimeter": perimetre, "GrossArea": surface, "NetArea": surface})
         self.compter(famille, type_nom, niveau, surface=surface, perimetre=perimetre / 1000)
 
-    def lineaire(self, classe, classe_type, famille, famille_revit, type_nom, niveau, longueur, section=None, extra_q=None, psets=None):
+    def lineaire(self, classe, classe_type, famille, famille_revit, type_nom, niveau, longueur, section=None, extra_q=None, psets=None, solides=()):
         e = self.entite(classe, f"{famille_revit}:{type_nom}:{self.nouvel_id()}")
         self.placer(e, niveau, classe_type, type_nom)
+        self.forme(e, solides)
         q = {"Length": longueur}
         vol = 0.0
         if section:
@@ -209,13 +267,24 @@ class Generateur:
         self.compter(famille, type_nom, niveau, **valeurs)
         return e
 
-    def volee(self, niveau, contremarches, girons, escalier):
-        """Volée rattachée à un IfcStair (comme Revit) : elle n'est pas directement contenue dans le niveau."""
+    def volee(self, niveau, contremarches, girons, escalier, depart, montee_vers_x=True):
+        """Volée rattachée à un IfcStair (comme Revit) : elle n'est pas directement contenue dans le niveau.
+        Géométrie : profil en marches extrudé sur la largeur d'emmarchement (1,20 m)."""
         attrs = {"RiserHeight": H_ETAGE / 17, "TreadLength": 280.0, "NumberOfTreads": girons}
         attrs["NumberOfRiser" if self.schema == "IFC2X3" else "NumberOfRisers"] = contremarches
         e = self.entite("IfcStairFlight", f"Escalier:Volée béton:{self.nouvel_id()}", **attrs)
         api.run("aggregate.assign_object", self.f, relating_object=escalier, products=[e])
         api.run("type.assign_type", self.f, related_objects=[e], relating_type=self.type_de("IfcStairFlightType", "Volée béton"))
+        h = H_ETAGE / 17
+        pts = [(0, 0)]
+        for k in range(contremarches):
+            pts.append((k * 280, (k + 1) * h))
+            if k < girons:
+                pts.append(((k + 1) * 280, (k + 1) * h))
+        pts.append((girons * 280, contremarches * h - 300))
+        # Repère local : X = sens de montée, Y = verticale, extrusion = largeur d'emmarchement
+        ref, axe = ((1, 0, 0), (0, -1, 0)) if montee_vers_x else ((-1, 0, 0), (0, 1, 0))
+        self.forme(e, [self.profil_extrude(pts, depart, axe, ref, 1200)])
         longueur = girons * 280.0
         self.quantites(e, {"Length": longueur, "GrossVolume": longueur * 1200 * 180 / 1e9})
         self.compter("escaliers", "Volée béton", niveau, contremarches=contremarches, marches=girons, longueur=longueur / 1000)
@@ -225,91 +294,109 @@ class Generateur:
         F1, PF2, PE, P83 = ("IfcWindow", "F1 120x135", 1200, 1350, True), ("IfcDoor", "PF2 90x215", 900, 2150, True), \
             ("IfcDoor", "Porte d'entrée 140x220", 1400, 2200, True), ("IfcDoor", "Porte 83x204", 830, 2040, False)
         trou_doublage = lambda b: [(None, None, b[2], b[3], b[4])]  # le doublage a le même trou, sans menuiserie
+        # Plan : bâtiment de 30 m (x) × 12 m (y). Façade Sud en y = 0, Nord en y = 12 m. Niveaux tous les 2,90 m.
         for i, n in enumerate(NIVEAUX):
             rdc = n == "RDC"
+            z = i * H_ETAGE
             # Façades Sud (3 segments) et Nord (3 segments) : 10 m chacun
             for seg in range(3):
                 sud = [PF2] + ([F1] if not rdc else [])
                 nord = [PE] if (rdc and seg == 1) else [F1, F1]
-                self.mur("Voile BA 20 cm", "Mur de base", n, 10000, 200, True, sud)
-                self.mur("Voile BA 20 cm", "Mur de base", n, 10000, 200, True, nord)
-                self.mur("Doublage 10+80", "Mur de base", n, 10000, 90, True, [t for b in sud for t in trou_doublage(b)])
-                self.mur("Doublage 10+80", "Mur de base", n, 10000, 90, True, [t for b in nord for t in trou_doublage(b)])
-            # Pignons Est / Ouest : 12 m (maçonnerie au RDC pour le local vélos)
-            for _ in range(2):
+                x0 = seg * 10000
+                self.mur("Voile BA 20 cm", "Mur de base", n, 10000, 200, True, sud, (x0, 0, "x"))
+                self.mur("Voile BA 20 cm", "Mur de base", n, 10000, 200, True, nord, (x0, 11800, "x"))
+                self.mur("Doublage 10+80", "Mur de base", n, 10000, 90, True, [t for b in sud for t in trou_doublage(b)], (x0, 200, "x"))
+                self.mur("Doublage 10+80", "Mur de base", n, 10000, 90, True, [t for b in nord for t in trou_doublage(b)], (x0, 11710, "x"))
+            # Pignons Ouest / Est : 12 m (maçonnerie au RDC pour le local vélos)
+            for x_mur, x_doub in ((0, 200), (29800, 29710)):
                 if rdc:
-                    self.mur("Maçonnerie bloc 20 cm", "Mur de base", n, 12000, 200, True)
+                    self.mur("Maçonnerie bloc 20 cm", "Mur de base", n, 12000, 200, True, (), (x_mur, 0, "y"))
                 else:
-                    self.mur("Voile BA 20 cm", "Mur de base", n, 12000, 200, True)
-                    self.mur("Doublage 10+80", "Mur de base", n, 12000, 90, True)
+                    self.mur("Voile BA 20 cm", "Mur de base", n, 12000, 200, True, (), (x_mur, 0, "y"))
+                    self.mur("Doublage 10+80", "Mur de base", n, 12000, 90, True, (), (x_doub, 0, "y"))
             # Refends et cloisons
-            for _ in range(2):
-                self.mur("Voile BA 18 cm", "Mur de base", n, 12000, 180, False, [P83])
-            for lg in (4000, 3500, 3000, 4500, 2500, 3800):
-                self.mur("Cloison 72/48", "Mur de base", n, lg, 72, False, [P83])
+            for x_ref in (9910, 19910):
+                self.mur("Voile BA 18 cm", "Mur de base", n, 12000, 180, False, [P83], (x_ref, 0, "y"))
+            for x0, lg in ((500, 4000), (5000, 3500), (10500, 3000), (14000, 4500), (20500, 2500), (23500, 3800)):
+                self.mur("Cloison 72/48", "Mur de base", n, lg, 72, False, [P83], (x0, 5964, "x"))
             if not rdc:
-                for lg in (5000, 4200, 3600):
-                    self.mur("Cloison 98/48", "Mur de base", n, lg, 98, False)
+                for x0, lg in ((4951, 5000), (14951, 4200), (24951, 3600)):
+                    self.mur("Cloison 98/48", "Mur de base", n, lg, 98, False, (), (x0, 6036, "y"))
 
             # Dalles : dallage au RDC, planchers avec trémie d'escalier (12,5 m²) aux étages
             if rdc:
-                self.dalle("Dallage BA 15 cm", n, "BASESLAB", 360.0, 360.0, 84000, 150)
+                self.dalle("Dallage BA 15 cm", n, "BASESLAB", 360.0, 360.0, 84000, 150, z0=-150)
             else:
-                self.dalle("Plancher BA 20 cm", n, "FLOOR", 360.0, 347.5, 84000, 200)
+                self.dalle("Plancher BA 20 cm", n, "FLOOR", 360.0, 347.5, 84000, 200, z0=z - 200)
             if n == "R+3":
-                self.dalle("Dalle toiture BA 22 cm", n, "ROOF", 360.0, 360.0, 84000, 220)
+                self.dalle("Dalle toiture BA 22 cm", n, "ROOF", 360.0, 360.0, 84000, 220, z0=z + H_MUR)
 
             # Revêtements de sol et plafonds
             if rdc:
-                self.revetement("Résine hall", n, "FLOORING", 64.0, 34000, 5)
-                self.revetement("Carrelage 30x30 local vélos", n, "FLOORING", 72.0, 36000, 10)
+                self.revetement("Résine hall", n, "FLOORING", 64.0, 34000, 5, (290, 290, 8000), z)
+                self.revetement("Carrelage 30x30 local vélos", n, "FLOORING", 72.0, 36000, 10, (20700, 290, 9000), z)
             else:
-                self.revetement("Carrelage 45x45", n, "FLOORING", 138.5, 96000, 10)
-                self.revetement("Parquet stratifié", n, "FLOORING", 176.0, 112000, 8)
-            self.revetement("Faux plafond BA13", n, "CEILING", 248.0 if not rdc else 120.0, 90000, 13)
+                self.revetement("Carrelage 45x45", n, "FLOORING", 138.5, 96000, 10, (290, 290, 13850), z)
+                self.revetement("Parquet stratifié", n, "FLOORING", 176.0, 112000, 8, (14200, 290, 15510), z)
+            self.revetement("Faux plafond BA13", n, "CEILING", 248.0 if not rdc else 120.0, 90000, 13,
+                            (290, 290, 22000 if not rdc else 12000), z + 2500)
             if not rdc:
-                self.revetement("Plafond plâtre lissé", n, "CEILING", 64.5, 38000, 10)
+                self.revetement("Plafond plâtre lissé", n, "CEILING", 64.5, 38000, 10, (22400, 290, 6450), z + 2690)
 
             # Structure
+            haut = z + H_MUR
             if rdc:
-                for _ in range(6):
-                    self.lineaire("IfcColumn", "IfcColumnType", "poteaux", "Poteau béton", "Poteau BA 30x30", n, 2700, section=0.09)
-                for _ in range(2):
-                    self.lineaire("IfcColumn", "IfcColumnType", "poteaux", "Poteau béton", "Poteau BA Ø40", n, 2700, section=0.1257)
-            for _ in range(3):
-                self.lineaire("IfcBeam", "IfcBeamType", "poutres", "Poutre béton", "Poutre BA 20x50", n, 6000, section=0.10)
-            for _ in range(2):
-                self.lineaire("IfcBeam", "IfcBeamType", "poutres", "Poutre béton", "Linteau BA 20x30", n, 2400, section=0.06)
+                for x, y in ((5000, 3000), (15000, 3000), (25000, 3000), (5000, 9000), (15000, 9000), (25000, 9000)):
+                    self.lineaire("IfcColumn", "IfcColumnType", "poteaux", "Poteau béton", "Poteau BA 30x30", n, 2700, section=0.09,
+                                  solides=[self.boite(x - 150, y - 150, 0, 300, 300, 2700)])
+                for x in (12500, 17500):
+                    self.lineaire("IfcColumn", "IfcColumnType", "poteaux", "Poteau béton", "Poteau BA Ø40", n, 2700, section=0.1257,
+                                  solides=[self.cylindre((x, 3000, 0), 200, 2700)])
+            for x in (5000, 15000, 25000):
+                self.lineaire("IfcBeam", "IfcBeamType", "poutres", "Poutre béton", "Poutre BA 20x50", n, 6000, section=0.10,
+                              solides=[self.boite(x - 100, 3000, haut - 500, 200, 6000, 500)])
+            for x0 in (7000, 20600):
+                self.lineaire("IfcBeam", "IfcBeamType", "poutres", "Poutre béton", "Linteau BA 20x30", n, 2400, section=0.06,
+                              solides=[self.boite(x0, 2900, haut - 300, 2400, 200, 300)])
             if not rdc:
+                rive = [self.boite(0, -30, z - 200, 30000, 30, 200), self.boite(0, 12000, z - 200, 30000, 30, 200),
+                        self.boite(-30, -30, z - 200, 30, 12060, 200), self.boite(30000, -30, z - 200, 30, 12060, 200)]
                 self.lineaire("IfcBuildingElementProxy", "IfcBuildingElementProxyType", "bords_dalle", "Bord de dalle",
-                              "Rive de dalle 20 cm", n, 84000)
+                              "Rive de dalle 20 cm", n, 84000, solides=rive)
 
-            # Garde-corps (balcons Sud + escalier) aux étages
+            # Garde-corps vitrés devant les portes-fenêtres de la façade Sud, garde-corps métallique de trémie
             if not rdc:
-                for _ in range(3):
-                    self.lineaire("IfcRailing", "IfcRailingType", "garde_corps", "Garde-corps", "Garde-corps vitré", n, 3200)
-                self.lineaire("IfcRailing", "IfcRailingType", "garde_corps", "Garde-corps", "Garde-corps métallique", n, 5600)
+                for seg in range(3):
+                    centre = seg * 10000 + 10000 / 3
+                    self.lineaire("IfcRailing", "IfcRailingType", "garde_corps", "Garde-corps", "Garde-corps vitré", n, 3200,
+                                  solides=[self.boite(centre - 1600, -170, z, 3200, 20, 1000)])
+                self.lineaire("IfcRailing", "IfcRailingType", "garde_corps", "Garde-corps", "Garde-corps métallique", n, 5600,
+                              solides=[self.boite(23600, 8050, z, 5600, 40, 1000)])
 
-            # Descentes EP : une par angle et par étage
+            # Descentes EP : une par angle et par étage (hors œuvre), collecteurs enterrés au RDC
             classe_tuyau = "IfcFlowSegment" if self.schema == "IFC2X3" else "IfcPipeSegment"
-            for _ in range(4):
+            for x, y in ((-120, -120), (30120, -120), (30120, 12120), (-120, 12120)):
                 self.lineaire(classe_tuyau, "IfcPipeSegmentType", "reseaux_ep", "Canalisation", "Descente EP Ø100", n, H_ETAGE,
-                              psets={"Pset_PipeSegmentTypeCommon": {"NominalDiameter": 100.0}})
+                              psets={"Pset_PipeSegmentTypeCommon": {"NominalDiameter": 100.0}},
+                              solides=[self.cylindre((x, y, z - 200 if not rdc else -600), 50, H_ETAGE if not rdc else H_ETAGE + 400)])
             if rdc:
-                for _ in range(2):
+                for x0 in (-120, 15000):
                     self.lineaire(classe_tuyau, "IfcPipeSegmentType", "reseaux_ep", "Canalisation", "Collecteur EP Ø125", n, 15000,
-                                  psets={"Pset_PipeSegmentTypeCommon": {"NominalDiameter": 125.0}})
+                                  psets={"Pset_PipeSegmentTypeCommon": {"NominalDiameter": 125.0}},
+                                  solides=[self.cylindre((x0, -120, -600), 62.5, 15000, axe=(1, 0, 0), ref=(0, 1, 0))])
 
-            # Escalier : deux volées par étage (9 + 8 contremarches)
+            # Escalier : deux volées par étage (9 + 8 contremarches), dans la trémie côté Est
             if n != "R+3":
-                escalier = self.entite("IfcStair", f"Escalier:Escalier béton:{self.nouvel_id()}")
+                forme_esc = {"ShapeType" if self.schema == "IFC2X3" else "PredefinedType": "HALF_TURN_STAIR"}
+                escalier = self.entite("IfcStair", f"Escalier:Escalier béton:{self.nouvel_id()}", **forme_esc)
                 self.placer(escalier, n)
-                self.volee(n, 9, 8, escalier)
-                self.volee(n, 8, 7, escalier)
+                self.volee(n, 9, 8, escalier, (26200, 9400, z), True)
+                self.volee(n, 8, 7, escalier, (28440, 9500, z + 9 * H_ETAGE / 17), False)
 
         # Objet générique sans type prédéfini (faisait planter l'ancienne version)
         proxy = self.entite("IfcBuildingElementProxy", "Objet générique")
         self.placer(proxy, "RDC")
+        self.forme(proxy, [self.boite(1500, 1500, 0, 600, 600, 900)])
 
     def ecrire(self, sortie):
         """Écriture reproductible : un seul historique de propriétaire, dates fixes (fichier identique à chaque génération)."""

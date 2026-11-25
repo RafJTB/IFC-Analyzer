@@ -4,19 +4,23 @@
 
 <br clear="left" />
 
-Métré d'une maquette IFC **100 % dans le navigateur** : murs, menuiseries, sols et plafonds, structure,
+Métré et **maquette 3D** d'un fichier IFC, **100 % dans le navigateur** : murs, menuiseries, sols et plafonds, structure,
 garde-corps, réseaux EP et escaliers. Aucun serveur, aucune installation, et **le fichier IFC ne quitte jamais le PC**.
+
+![Maquette 3D : la vue reliée au métré](docs/captures/maquette-3d.webp)
 
 ![Murs : tuiles de totaux, tableau par type et détail par niveau](docs/captures/murs.webp)
 
 ## Ce que fait l'appli
 
 - **Ouvre un IFC2x3 ou IFC4** (export Revit, ArchiCAD…) par glisser-déposer ou avec le bouton. Plusieurs fichiers peuvent être ouverts en onglets.
+- **Maquette 3D** reliée au métré : un clic sur un élément donne le métré de son type ; « Voir en 3D » depuis
+  un tableau allume tous les éléments du type. Filtres par niveau et par famille, coupe horizontale, vue de dessus.
 - **Métré par famille et par type** : nombre, surfaces brute et nette, longueurs, volumes, détail par niveau.
 - **Filtres** par niveau, par statut (extérieur / intérieur) et par texte ; tri des colonnes.
 - **Export CSV** lisible par Excel en français, et copie d'une ligne pour la coller dans Excel.
 - **Recherche rapide** `Ctrl K` (un type, une page, une action) ; `Ctrl O` pour ouvrir un fichier.
-- **Analyses récentes** gardées dans le navigateur (les quantités seulement, jamais le fichier IFC).
+- **Analyses récentes** gardées dans le navigateur (quantités et 3D calculée, jamais le fichier IFC).
 - Thèmes sombre et clair, appli installable, utilisable hors connexion.
 
 ## Règles de métré
@@ -52,14 +56,17 @@ index.html             Interface (barre latérale, barre du haut, zone de conten
 styles.css             Design system RJB : verre dépoli, indigo, thèmes sombre et clair
 sw.js                  Service worker : hors connexion, fichiers revérifiés, en-têtes de sécurité
 js/app.js              Point d'entrée : état, navigation, ouverture des fichiers, actions
-js/ifc/worker.js       Analyse dans un Web Worker (l'interface reste fluide)
+js/ifc/worker.js       Analyse dans un Web Worker : le métré d'abord, puis la géométrie 3D (l'interface reste fluide)
 js/ifc/extract.js      Lecture IFC → éléments (unités, niveaux, Psets, quantités, réservations) — fonctions pures
+js/ifc/geometrie.js    Géométrie 3D → tampons fusionnés, un bloc par élément, en mètres — fonction pure
 js/ifc/noms.js         Noms de types (« Famille:Type:Id » de Revit) et classement par famille — fonctions pures
 js/metre/quantites.js  Règles de métré et regroupement par type — fonctions pures
 js/metre/familles.js   Pages, familles, colonnes et tuiles
 js/metre/export.js     Export CSV
-js/ui/*.js             Accueil, page de métré, recherche Ctrl K, effets (lueur, verre liquide), stockage local
+js/ui/vue3d.js         Visionneuse 3D (three.js) : un seul maillage, sélection, niveaux, familles, coupe, clic
+js/ui/*.js             Accueil, page de métré, page 3D, recherche Ctrl K, effets (lueur, verre liquide), stockage local
 vendor/web-ifc/        Moteur de lecture IFC (web-ifc 0.0.78, licence MPL-2.0), servi par le site lui-même
+vendor/three/          Moteur 3D (three.js 0.187.0, licence MIT), chargé seulement à l'ouverture de la page 3D
 assets/exemple/        IFC d'exemple (« Résidence Les Tilleuls », fictive)
 tools/                 Générateur de l'IFC d'exemple (Python, ifcopenshell) et copie de web-ifc
 legacy/                Ancienne version Python / Tkinter, pour référence
@@ -74,13 +81,13 @@ npm test            # tests unitaires puis tests dans le navigateur
 
 - **Unitaires** (`node:test`) : l'appli doit retrouver exactement les nombres et quantités de l'IFC d'exemple,
   en IFC4 et en IFC2x3. Ces valeurs (`tests/fixtures/attendu.json`) sont calculées par le générateur, indépendamment de l'appli.
-- **Navigateur** (Playwright) : parcours complet, filtres, export, recherche, rechargement, téléphone,
-  et **0 violation d'accessibilité** (axe-core) en thème clair et en thème sombre.
+  La géométrie 3D est vérifiée aussi : un bloc par élément, dimensions en mètres, murs percés par leurs réservations.
+- **Navigateur** (Playwright) : parcours complet, filtres, export, recherche, rechargement, téléphone, maquette 3D
+  (affichage, clic, aller-retour avec le métré, coupe), et **0 violation d'accessibilité** (axe-core) en thème clair et en thème sombre.
 
-Régénérer l'IFC d'exemple (le résultat est identique à chaque fois) : `pip install ifcopenshell` puis `npm run exemple`.
+Régénérer l'IFC d'exemple, géométrie 3D comprise (le résultat est identique à chaque fois) : `pip install ifcopenshell` puis `npm run exemple`.
 
 ## Suite prévue
 
 1. **Estimation** : DPGF par lots, prix unitaires, HT / TVA / TTC, export Excel.
-2. **Maquette 3D** : visionneuse reliée aux quantités.
-3. **Versions** : comparaison de deux exports d'une même maquette, et personnalisation (fonds, couleurs).
+2. **Versions** : comparaison de deux exports d'une même maquette (mise en évidence en 3D), et personnalisation (fonds, couleurs).
