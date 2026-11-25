@@ -30,6 +30,7 @@ const TRACES = {
   haut: '<path d="m6 15 6-6 6 6"/>',
   bas: '<path d="m6 9 6 6 6-6"/>',
   fleche: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  chevron: '<path d="m9 6 6 6-6 6"/>',
   exemple: '<path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/>',
   cible: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
   dessus: '<path d="M12 3 3 8l9 5 9-5z"/><path d="M12 13v8"/><path d="m9 18 3 3 3-3"/>',

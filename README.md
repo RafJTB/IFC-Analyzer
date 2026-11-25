@@ -21,6 +21,7 @@ garde-corps, réseaux EP et escaliers. Aucun serveur, aucune installation, et **
 - **Export CSV** lisible par Excel en français, et copie d'une ligne pour la coller dans Excel.
 - **Recherche rapide** `Ctrl K` (un type, une page, une action) ; `Ctrl O` pour ouvrir un fichier.
 - **Analyses récentes** gardées dans le navigateur (quantités et 3D calculée, jamais le fichier IFC).
+- **Même interface que Transcripteur IA** : barre latérale, onglets, barre du haut, boutons et cartes aux mêmes dimensions.
 - Thèmes sombre et clair, appli installable, utilisable hors connexion.
 
 ## Règles de métré
