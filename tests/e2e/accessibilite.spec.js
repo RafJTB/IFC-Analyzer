@@ -49,7 +49,12 @@ test('navigation au clavier : lien d’évitement, focus visible, Ctrl O ouvre l
   await page.keyboard.press('Tab');
   const contour = await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle);
   expect(contour).not.toBe('none');
-  const [choix] = await Promise.all([page.waitForEvent('filechooser'), page.keyboard.press('Control+o')]);
+  // L'interception du sélecteur de fichier est activée de façon asynchrone par Playwright :
+  // un aller-retour avec la page garantit qu'elle est en place avant d'appuyer sur la touche.
+  const attente = page.waitForEvent('filechooser');
+  await page.evaluate(() => 0);
+  await page.keyboard.press('Control+o');
+  const choix = await attente;
   expect(choix.isMultiple()).toBe(true);
 });
 

@@ -61,8 +61,8 @@ export function vueAccueil(etat) {
           <h2>Bonjour !</h2>
           <p>Dépose une maquette IFC : tu obtiens le métré par famille en quelques secondes. Le fichier reste sur ton PC, rien n'est envoyé.</p>
           <div class="actions">
-            <button type="button" class="btn primary big" data-action="ouvrir-fichier">${ic('ouvrir')}Ouvrir un fichier IFC</button>
-            <button type="button" class="btn big" data-action="exemple">${ic('exemple')}Essayer avec l'exemple</button>
+            <button type="button" class="btn primary lg" data-action="ouvrir-fichier">${ic('ouvrir')}Ouvrir un fichier IFC</button>
+            <button type="button" class="btn lg glass" data-action="exemple">${ic('exemple')}Essayer avec l'exemple</button>
           </div>
         </div>
         <div class="hero-art">${illustration()}</div>
@@ -86,9 +86,9 @@ export function vueAccueil(etat) {
     const cc = chiffreCle(p, els);
     return `
       <button type="button" class="fam-card card${n ? '' : ' off'}" data-action="page" data-page="${p.id}" style="--c: var(--${p.couleur})">
-        <span class="top"><span class="sq">${ic(p.icone)}</span><h3>${p.titre}</h3><span class="cnt num">${pluriel(n, 'élément')}</span></span>
+        <span class="top"><span class="sq">${ic(p.icone)}</span><h3>${p.titre}</h3></span>
         <b>${cc ? `${nombre(cc.valeur, cc.decimales)}<small>${cc.unite}</small>` : '—'}</b>
-        <span class="sub">${cc ? echapper(cc.libelle) : 'absent de cette maquette'}</span>
+        <span class="sub">${cc ? `${echapper(cc.libelle)} · ${pluriel(n, 'élément')}` : 'absent de cette maquette'}</span>
       </button>`;
   }).join('');
 
@@ -98,8 +98,8 @@ export function vueAccueil(etat) {
         <h2>Bonjour !</h2>
         <p><b>${echapper(actif.nom)}</b> est analysée : ${pluriel(els.length, 'élément métré', 'éléments métrés')} sur ${pluriel(modele.niveaux.length, 'niveau', 'niveaux')}, en ${nombre(actif.duree / 1000, 1)} s.</p>
         <div class="actions">
-          <button type="button" class="btn primary big" data-action="page" data-page="3d">${ic('cube')}Voir la maquette en 3D</button>
-          <button type="button" class="btn big" data-action="page" data-page="murs">${ic('mur')}Voir le métré des murs</button>
+          <button type="button" class="btn primary lg" data-action="page" data-page="3d">${ic('cube')}Voir la maquette en 3D</button>
+          <button type="button" class="btn lg glass" data-action="page" data-page="murs">${ic('mur')}Voir le métré des murs</button>
         </div>
       </div>
       <div class="hero-art">${illustration()}</div>

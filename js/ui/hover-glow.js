@@ -2,8 +2,8 @@
 // Une seule couche (position fixe, sans clic) est posée sur le bloc survolé : aucun bloc n'est modifié.
 // Couleur : --hover-rgb (couleur d'accent par défaut). Blocs concernés : <html data-hover="all|click|off">.
 
-const BLOCKS = ['.card', '.tile', '.fam-card', '.recent-row', '.model-card', '.dropzone'].join(', ');
-const SKIP = '.btn, .view, .chip, .seg, .toasts, dialog, input, textarea, select';
+const BLOCKS = ['.card', '.tile', '.fam-card', '.recent-row', '.dropzone', '.file-tab', '.chip'].join(', ');
+const SKIP = '.btn, .view, .seg, .toasts, dialog, input, textarea, select';
 const OUTSIDE = '.sidebar, .topbar, .hover-glow';
 
 /**
@@ -26,7 +26,7 @@ let px = -1, py = -1, raf = 0;
 let lastBlock = null, lastColor = null;
 
 // ---------- Couleur automatique : celle du bloc survolé ----------
-const ICONS = '.sq, .dz-ic, .r-ic, .ic, .dot';
+const ICONS = '.sq, .dz-ic, .r-ic, .avatar';
 const TRIPLE = /^\s*(\d{1,3})\s+(\d{1,3})\s+(\d{1,3})\s*$/;
 
 /** « r g b » d'une couleur vive (assez saturée et visible), sinon null. */

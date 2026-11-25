@@ -35,11 +35,12 @@ const pageValide = (p) => PAGES_SPECIALES.includes(p) || PAGES.some((x) => x.id 
 function rendreNav() {
   const actif = etat.modeles.get(etat.actif);
   const compte = (p) => (actif ? actif.modele.elements.filter((e) => p.familles.includes(e.famille)).length : null);
-  const bouton = (id, titre, icone, couleur, n = null) => `
-    <button type="button" data-action="page" data-page="${id}" class="${etat.page === id ? 'active' : ''}" ${etat.page === id ? 'aria-current="page"' : ''} style="--c: var(--${couleur})">
-      <span class="dot">${ic(icone)}</span>${titre}${n != null ? `<span class="cnt">${nombre(n, 0)}</span>` : ''}</button>`;
-  $('nav').innerHTML = `${bouton('accueil', 'Accueil', 'home', 'violet')}${bouton('3d', 'Maquette 3D', 'cube', 'cyan')}
-    <span class="nav-head" aria-hidden="true">Métré</span>${PAGES.map((p) => bouton(p.id, p.titre, p.icone, p.couleur, compte(p))).join('')}`;
+  const bouton = (id, titre, icone, n = null) => `
+    <button type="button" data-action="page" data-page="${id}" class="${etat.page === id ? 'active' : ''}" ${etat.page === id ? 'aria-current="page"' : ''}>
+      ${ic(icone)}<span>${titre}</span>${n != null ? `<span class="cnt">${nombre(n, 0)}</span>` : ''}</button>`;
+  $('nav').innerHTML = `${bouton('accueil', 'Accueil', 'home')}
+    <span class="nav-head" aria-hidden="true">Visualisation</span>${bouton('3d', 'Maquette 3D', 'cube')}
+    <span class="nav-head" aria-hidden="true">Métré</span>${PAGES.map((p) => bouton(p.id, p.titre, p.icone, compte(p))).join('')}`;
 }
 
 function rendreFichiers() {
@@ -48,24 +49,21 @@ function rendreFichiers() {
       <button type="button" class="ft-open" data-action="fichier" data-cle="${echapper(m.cle)}" aria-pressed="${m.cle === etat.actif}" title="${echapper(m.nom)}"><i></i><span>${echapper(m.nom)}</span></button>
       <button type="button" class="ft-close" data-action="fermer-fichier" data-cle="${echapper(m.cle)}" aria-label="Fermer ${echapper(m.nom)}">${ic('fermer')}</button>
     </div>`).join('');
-  $('fichiers').innerHTML = `${onglets || '<span class="muted" style="padding:6px 12px;font-size:12px;white-space:nowrap">Aucun fichier ouvert</span>'}
+  $('fichiers').innerHTML = `${onglets || '<span class="files-vide">Aucun fichier ouvert</span>'}
     <button type="button" class="file-add" data-action="ouvrir-fichier" aria-label="Ouvrir un fichier IFC" title="Ouvrir un fichier IFC (Ctrl O)">${ic('plus')}</button>`;
+  // Carte du bas de la barre latérale : la maquette active (comme la carte du compte du Transcripteur)
   const actif = etat.modeles.get(etat.actif);
   const carte = $('carte-modele');
-  carte.classList.toggle('vide', !actif);
   carte.dataset.action = actif ? 'page' : 'ouvrir-fichier';
   carte.dataset.page = 'accueil';
   carte.innerHTML = actif
-    ? `<span class="ic">${ic('cube')}</span><div><b>${echapper(actif.nom)}</b><span>${echapper(actif.schema)} · ${pluriel(actif.nbElements, 'élément')}</span></div>`
-    : `<span class="ic">${ic('ouvrir')}</span><div><b>Aucune maquette</b><span>Ouvre un fichier IFC</span></div>`;
+    ? `<span class="avatar">${ic('cube')}</span><div><b>${echapper(actif.nom)}</b><small><i></i>${echapper(actif.schema)} · ${pluriel(actif.nbElements, 'élément')}</small></div>${ic('chevron', 'i chev')}`
+    : `<span class="avatar">${ic('ouvrir')}</span><div><b>Ouvrir une maquette</b><small>IFC2x3 ou IFC4, analysée sur ce PC</small></div>${ic('chevron', 'i chev')}`;
 }
 
 function rendreTheme() {
   const clair = document.documentElement.dataset.theme === 'light';
-  const b = $('btn-theme');
-  b.innerHTML = ic(clair ? 'lune' : 'soleil');
-  b.setAttribute('aria-label', clair ? 'Passer en thème sombre' : 'Passer en thème clair');
-  b.title = b.getAttribute('aria-label');
+  $('btn-theme').setAttribute('aria-label', clair ? 'Passer en thème sombre' : 'Passer en thème clair');
 }
 
 /** Redessine la page. *anim* : animation d'arrivée (changement de page). Les défilements sont conservés. */
