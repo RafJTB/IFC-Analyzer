@@ -21,7 +21,7 @@ test('sommaire : une catégorie à la fois, flèches du clavier, catégorie retr
   await expect(page.getByRole('tabpanel')).toContainText('Animations');
   await page.keyboard.press('End');
   await expect(onglet(page, 'À propos')).toBeFocused();
-  await expect(page.getByRole('tabpanel')).toContainText('Version 0.5.1');
+  await expect(page.getByRole('tabpanel')).toContainText('Version 0.5.2');
 
   await page.reload();
   await expect(onglet(page, 'À propos')).toHaveAttribute('aria-selected', 'true');

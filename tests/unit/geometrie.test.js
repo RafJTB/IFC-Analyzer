@@ -35,3 +35,11 @@ test('murs percés par leurs réservations (plus de triangles qu’un mur plein)
   assert.equal(g.nbI[index.get(plein.id)] / 3, 12);
   assert.ok(g.nbI[index.get(voile.id)] / 3 > 12);
 });
+
+test('élément en miroir : déterminant négatif détecté, triangles remis à l’endroit', async () => {
+  const { determinant } = await import('../../js/ifc/geometrie.js');
+  const identite = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  const miroir = [-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  assert.equal(determinant(identite), 1);
+  assert.equal(determinant(miroir), -1);
+});

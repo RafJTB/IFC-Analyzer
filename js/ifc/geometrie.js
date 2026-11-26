@@ -62,7 +62,13 @@ export function extraireGeometrie(api, id, progression = () => {}, estimation = 
         nor[o * 3] = ax / l; nor[o * 3 + 1] = ay / l; nor[o * 3 + 2] = az / l;
         o++;
       }
-      for (let k = 0; k < ix.length; k++) idx[oi++] = ix[k] + base;
+      // Élément en miroir (transformation de déterminant négatif) : les triangles sont retournés, on les remet à l'endroit
+      const inverse = determinant(m) < 0;
+      for (let k = 0; k < ix.length; k += 3) {
+        idx[oi++] = ix[k] + base;
+        idx[oi++] = ix[inverse ? k + 2 : k + 1] + base;
+        idx[oi++] = ix[inverse ? k + 1 : k + 2] + base;
+      }
     }
     blocs.push({ id: mesh.expressID, pos, nor, idx, couleur });
     totalV += nV;
@@ -96,6 +102,9 @@ export function extraireGeometrie(api, id, progression = () => {}, estimation = 
   progression(1);
   return g;
 }
+
+/** Déterminant de la partie 3 × 3 d'une matrice 4 × 4 (colonnes) : négatif pour une symétrie (élément en miroir). */
+export const determinant = (m) => m[0] * (m[5] * m[10] - m[6] * m[9]) - m[4] * (m[1] * m[10] - m[2] * m[9]) + m[8] * (m[1] * m[6] - m[2] * m[5]);
 
 /** Tampons à transférer sans copie entre le worker et la page. */
 export const tamponsDe = (g) => [g.ids, g.debutsV, g.nbV, g.debutsI, g.nbI, g.couleurs, g.positions, g.normales, g.indices].map((t) => t.buffer);

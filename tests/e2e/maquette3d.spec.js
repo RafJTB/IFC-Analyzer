@@ -1,5 +1,6 @@
 // Maquette 3D : affichage, sélection reliée au métré, filtres, coupe, mémoire entre deux visites.
 import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { ouvrir, ouvrirExemple } from './aide.js';
 
 /** Part des pixels dessinés dans la vue 3D (0 = vue vide). */
@@ -108,4 +109,28 @@ test('changer de maquette remet les filtres 3D à zéro (niveaux, familles, coup
   await expect(page.getByRole('button', { name: 'Tous niveaux' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.frow.cache')).toHaveCount(0);
   await expect(page.locator('.side-panel .note.warn')).toHaveCount(0); // toute la maquette a sa 3D
+});
+
+test('un objet isolé à des kilomètres (point topo, famille égarée) ne vide pas la vue 3D', async ({ page }) => {
+  // Copie de l'exemple dont un poteau est placé à 47 km : la caméra doit rester cadrée sur le bâtiment
+  let ifc = readFileSync('assets/exemple/residence-les-tilleuls.ifc', 'utf8');
+  const lignes = Object.fromEntries([...ifc.matchAll(/^#(\d+)=(.*);\s*$/gm)].map((m) => [m[1], m[2]]));
+  const poteau = Object.values(lignes).find((v) => v.startsWith('IFCCOLUMN('));
+  const placement = poteau.match(/#(\d+)/g)[1].slice(1);
+  const axe = lignes[placement].match(/IFCLOCALPLACEMENT\([^,]*,#(\d+)\)/)[1];
+  const point = lignes[axe].match(/IFCAXIS2PLACEMENT3D\(#(\d+)/)[1];
+  ifc = ifc.replace(`#${point}=${lignes[point]};`, `#${point}=IFCCARTESIANPOINT((40000000.,25000000.,0.));`);
+  await page.locator('#choix-fichier').setInputFiles({ name: 'objet-isole.ifc', mimeType: 'application/octet-stream', buffer: Buffer.from(ifc) });
+  await expect(page.locator('.file-tab')).toHaveCount(2);
+  await page.locator('#nav button[data-page="3d"]').click();
+  await expect(page.locator('.v3d-canvas canvas')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const c = document.querySelector('.v3d-canvas canvas');
+    const g = c.getContext('webgl2') || c.getContext('webgl');
+    const px = new Uint8Array(g.drawingBufferWidth * g.drawingBufferHeight * 4);
+    g.readPixels(0, 0, g.drawingBufferWidth, g.drawingBufferHeight, g.RGBA, g.UNSIGNED_BYTE, px);
+    let n = 0;
+    for (let i = 0; i < px.length; i += 4) if (px[i + 3] > 200 && px[i] + px[i + 1] + px[i + 2] > 400) n++;
+    return n / (px.length / 4);
+  }), { timeout: 20000 }).toBeGreaterThan(0.1); // le bâtiment occupe plus de 10 % de la vue (0 % avant la correction)
 });
