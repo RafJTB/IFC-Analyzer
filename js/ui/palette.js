@@ -39,6 +39,7 @@ export function resultats(saisie, etat) {
     { titre: 'Ouvrir un fichier IFC', meta: 'Ctrl O', icone: 'ouvrir', couleur: 'bleu', faire: { action: 'ouvrir-fichier' } },
     { titre: "Ouvrir l'exemple (Résidence Les Tilleuls)", meta: 'Action', icone: 'exemple', couleur: 'ambre', faire: { action: 'exemple' } },
     { titre: 'Changer de thème (clair / sombre)', meta: 'Action', icone: 'lune', couleur: 'violet', faire: { action: 'theme' } },
+    ...(actif ? [{ titre: 'Poser une question à l’assistant', meta: 'Accueil', icone: 'etincelle', couleur: 'violet', faire: { action: 'assistant' } }] : []),
   ];
   for (const a of actions) if (ok(a.titre)) res.push(a);
   return res;

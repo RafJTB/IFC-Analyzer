@@ -212,7 +212,7 @@ export function complements(config, groupe, tous, niveaux = []) {
 
 // Parois intérieures collées à la façade (doublages…) : souvent marquées « extérieures » dans les exports,
 // elles ne doivent pas compter une deuxième fois la surface de façade.
-const RE_DOUBLAGE = /doublage|contre[- ]?cloison|habillage|parement int|lining/;
+export const RE_DOUBLAGE = /doublage|contre[- ]?cloison|habillage|parement int|lining/;
 
 /** Pourcentage de façade vitrée : menuiseries extérieures / surface brute des murs extérieurs (hors doublages). */
 export function pourcentageVitre(elements, niveaux = []) {

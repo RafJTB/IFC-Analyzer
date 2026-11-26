@@ -162,10 +162,6 @@ export class Visionneuse {
     this.opaque = this.transparent = this.selection = this.aretes = this.grille = null;
   }
 
-  /**
-   * Affiche ce qui doit l'être.
-   * @param {{ niveaux?: string[], masquees?: string[], selection?: Set<number>|null, coupe?: number|null }} e
-   */
   /** Sélection à la couleur d'accent choisie dans Personnalisation (rien : la couleur d'origine). */
   couleurSelection(hex) {
     if (!this.matSelection) return;
@@ -177,6 +173,10 @@ export class Visionneuse {
     this.rendre();
   }
 
+  /**
+   * Affiche ce qui doit l'être.
+   * @param {{ niveaux?: string[], masquees?: string[], selection?: Set<number>|null, coupe?: number|null }} e
+   */
   appliquer({ niveaux = [], masquees = [], selection = null, coupe = null }) {
     if (!this.g) return;
     const { g, infos } = this;
@@ -286,5 +286,30 @@ export function webglDisponible() {
     return Boolean(c.getContext('webgl2') || c.getContext('webgl'));
   } catch {
     return false;
+  }
+}
+
+/**
+ * Image de la maquette entière (aperçu de l'accueil et des analyses récentes), rendue hors écran.
+ * Le moteur 3D utilisé est libéré tout de suite après.
+ * @returns {string} data URL (WebP, ou PNG si le navigateur ne sait pas l'écrire)
+ */
+export function apercu(geometrie, infos, largeur = 960, hauteur = 600) {
+  const v = new Visionneuse();
+  try {
+    v.renderer.setPixelRatio(1);
+    v.renderer.setSize(largeur, hauteur, false);
+    v.camera.aspect = largeur / hauteur;
+    v.charger(geometrie, infos);
+    if (v.grille) v.grille.visible = false; // le bâtiment seul, sans le sol
+    v.cadrer();
+    v.renderer.render(v.scene, v.camera);
+    const url = v.renderer.domElement.toDataURL('image/webp', 0.82);
+    return url.startsWith('data:image/webp') ? url : v.renderer.domElement.toDataURL('image/png');
+  } finally {
+    v.vider();
+    v.controls.dispose();
+    v.renderer.dispose();
+    v.renderer.forceContextLoss();
   }
 }

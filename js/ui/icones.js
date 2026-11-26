@@ -49,6 +49,9 @@ const TRACES = {
   session: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
   tableur: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/>',
   image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
+  // Assistant (mêmes icônes que Transcripteur IA)
+  etincelle: '<path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>',
+  envoyer: '<path d="M4 12 20 4l-4 16-4-7z"/><path d="m12 13 8-9"/>',
 };
 
 /** Icône SVG (chaîne HTML). */

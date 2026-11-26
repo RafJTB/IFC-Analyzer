@@ -14,7 +14,11 @@ test("l'exemple s'analyse : synthèse, familles, compteurs de la navigation", as
   const erreurs = await ouvrir(page);
   await ouvrirExemple(page);
   await expect(page.locator('.hero')).toContainText('266 éléments métrés sur 4 niveaux');
-  await expect(page.locator('.fam-card')).toHaveCount(7);
+  await expect(page.locator('.tiles .tile').first()).toContainText('266');
+  await expect(page.locator('.fam-row')).toHaveCount(7);
+  await page.locator('.fam-row').filter({ hasText: 'Menuiseries' }).click();
+  await expect(page.getByRole('heading', { name: 'Menuiseries', level: 2 })).toBeVisible();
+  await page.locator('#nav button[data-page="accueil"]').click();
   await expect(page.locator('#nav button[data-page="murs"] .cnt')).toHaveText('103');
   await expect(page.locator('#nav button[data-page="menuiseries"] .cnt')).toHaveText('76');
   await expect(page.locator('.file-tab')).toHaveCount(1);
@@ -50,7 +54,7 @@ test('ouvrir un vrai fichier (IFC2x3) puis refuser un fichier qui n’est pas un
   await ouvrir(page);
   await page.locator('#choix-fichier').setInputFiles('tests/fixtures/residence-ifc2x3.ifc');
   await expect(page.locator('.hero')).toContainText('266 éléments métrés');
-  await expect(page.locator('.tiles')).toContainText('IFC2X3');
+  await expect(page.locator('.recent-row')).toContainText('IFC2X3');
   await page.locator('#choix-fichier').setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('bonjour') });
   await expect(page.locator('.toast.err')).toContainText('n’est pas un fichier IFC');
 });
@@ -61,4 +65,28 @@ test('un fichier corrompu affiche un message clair, sans bloquer l’appli', asy
   await expect(page.locator('.toast.err')).toBeVisible();
   await expect(page.locator('.analyse')).toHaveCount(0);
   await ouvrirExemple(page);
+});
+
+test('aperçu 3D : dans l’en-tête et en vignette des analyses récentes, retrouvé au rechargement', async ({ page }) => {
+  await ouvrir(page);
+  await ouvrirExemple(page);
+  await expect(page.locator('.hero-3d img')).toBeVisible();
+  await expect(page.locator('.recent-row .r-thumb')).toHaveAttribute('style', /data:image/);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-pret', '1');
+  await expect(page.locator('.hero-3d img')).toHaveAttribute('src', /^data:image\/(webp|png)/);
+});
+
+test('barre du haut : avec plusieurs fichiers ouverts, la recherche garde sa place', async ({ page }) => {
+  await ouvrir(page);
+  await page.locator('#choix-fichier').setInputFiles('tests/fixtures/residence-ifc2x3.ifc');
+  await expect(page.locator('.file-tab')).toHaveCount(1);
+  await page.locator('#choix-fichier').setInputFiles('tests/fixtures/residence-sans-quantites.ifc');
+  await expect(page.locator('.file-tab')).toHaveCount(2);
+  await page.keyboard.press('Control+k'); // une maquette est ouverte : l'exemple s'ouvre depuis la recherche
+  await page.keyboard.type('exemple');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.file-tab')).toHaveCount(3);
+  const largeur = await page.locator('#btn-recherche').evaluate((e) => e.getBoundingClientRect().width);
+  expect(largeur).toBeGreaterThanOrEqual(259);
 });

@@ -7,6 +7,8 @@
 Métré et **maquette 3D** d'un fichier IFC, **100 % dans le navigateur** : murs, menuiseries, sols et plafonds, structure,
 garde-corps, réseaux EP et escaliers. Aucun serveur, aucune installation, et **le fichier IFC ne quitte jamais le PC**.
 
+![Accueil : aperçu 3D, familles et assistant](docs/captures/accueil.webp)
+
 ![Maquette 3D : la vue reliée au métré](docs/captures/maquette-3d.webp)
 
 ![Murs : tuiles de totaux, tableau par type et détail par niveau](docs/captures/murs.webp)
@@ -14,6 +16,9 @@ garde-corps, réseaux EP et escaliers. Aucun serveur, aucune installation, et **
 ## Ce que fait l'appli
 
 - **Ouvre un IFC2x3 ou IFC4** (export Revit, ArchiCAD…) par glisser-déposer ou avec le bouton. Plusieurs fichiers peuvent être ouverts en onglets.
+- **Accueil** inspiré de Transcripteur IA : « Bonjour ! » avec l'aperçu 3D de la maquette, chiffres clés, familles avec leur part
+  des éléments, et un **assistant** : pose une question (« surface des murs extérieurs au R+1 », « fenêtres par niveau »,
+  « % de façade vitrée »…), la réponse est calculée avec le moteur du métré, sans IA et sans rien envoyer, avec un lien vers le détail.
 - **Maquette 3D** reliée au métré : un clic sur un élément donne le métré de son type ; « Voir en 3D » depuis
   un tableau allume tous les éléments du type. Filtres par niveau et par famille, coupe horizontale, vue de dessus.
 - **Métré par famille et par type** : nombre, surfaces brute et nette, longueurs, volumes, détail par niveau.
@@ -70,6 +75,7 @@ js/ifc/noms.js         Noms de types (« Famille:Type:Id » de Revit) et classem
 js/metre/quantites.js  Règles de métré et regroupement par type — fonctions pures
 js/metre/familles.js   Pages, familles, colonnes et tuiles
 js/metre/export.js     Export CSV
+js/metre/assistant.js  Assistant : comprend la question (famille, niveau, extérieur, grandeur, type) et répond avec le métré
 js/ui/vue3d.js         Visionneuse 3D (three.js) : un seul maillage, sélection, niveaux, familles, coupe, clic
 js/ui/perso.js         Personnalisation (fonds, accent, survol, effets), appliquée aussi par js/boot.js avant l'affichage
 js/ui/reglages.js      Paramètres de l'appli (3D, session, format du tableur, animations)
@@ -92,6 +98,7 @@ npm test            # tests unitaires puis tests dans le navigateur
 - **Unitaires** (`node:test`) : l'appli doit retrouver exactement les nombres et quantités de l'IFC d'exemple,
   en IFC4 et en IFC2x3. Ces valeurs (`tests/fixtures/attendu.json`) sont calculées par le générateur, indépendamment de l'appli.
   La géométrie 3D est vérifiée aussi : un bloc par élément, dimensions en mètres, murs percés par leurs réservations.
+  L'assistant est vérifié de la même façon : ses réponses sont comparées à ces valeurs.
 - **Navigateur** (Playwright) : parcours complet, filtres, export, recherche, rechargement, téléphone, maquette 3D
   (affichage, clic, aller-retour avec le métré, coupe), Personnalisation et Paramètres (chaque réglage réellement appliqué et retrouvé
   au rechargement), et **0 violation d'accessibilité** (axe-core) en thème clair et en thème sombre, sur chaque page.
@@ -101,4 +108,5 @@ Régénérer l'IFC d'exemple, géométrie 3D comprise (le résultat est identiqu
 ## Suite prévue
 
 1. **Estimation** : DPGF par lots, prix unitaires, HT / TVA / TTC, export Excel.
-2. **Versions** : comparaison de deux exports d'une même maquette (mise en évidence en 3D).
+2. **Assistant avec IA** (au choix : Claude avec ta clé, ou un modèle local) pour les questions libres, en s'appuyant sur le même moteur de calcul.
+3. **Versions** : comparaison de deux exports d'une même maquette (mise en évidence en 3D).
