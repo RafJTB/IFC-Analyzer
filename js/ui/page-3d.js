@@ -46,9 +46,22 @@ function panneauSelection(etat, l) {
     </div>`;
 }
 
+/** Éléments du métré sans 3D (géométrie absente ou impossible à calculer), par famille. */
+export function sans3d(etat, actif) {
+  const g = etat.geometries.get(actif.cle);
+  if (!g) return [];
+  const avec = new Set();
+  for (let k = 0; k < g.ids.length; k++) if (g.nbI[k] > 0) avec.add(g.ids[k]);
+  const manquants = actif.modele.elements.filter((e) => !avec.has(e.id));
+  return FAMILLES_VUE.map((f) => ({ f, n: manquants.filter((e) => e.famille === f.id).length })).filter((x) => x.n);
+}
+
 function panneauFamilles(etat, actif) {
   const els = actif.modele.elements;
   const masquees = etat.v3d.masquees;
+  const manque = sans3d(etat, actif);
+  const total = manque.reduce((s, x) => s + x.n, 0);
+  const alerte = total ? `<div class="note warn">${ic('alerte')}<span><b>${pluriel(total, 'élément du métré n’a', 'éléments du métré n’ont')} pas de 3D</b>&nbsp;: ${manque.map((x) => `${echapper(x.f.libelle.toLowerCase())} (${nombre(x.n, 0)})`).join(', ')}. Leurs quantités restent justes : seule la vue 3D est incomplète.</span></div>` : '';
   const lignes = FAMILLES_VUE.map((f) => {
     const n = els.filter((e) => e.famille === f.id).length;
     if (!n) return '';
@@ -59,6 +72,7 @@ function panneauFamilles(etat, actif) {
   const coupe = etat.v3d.coupe ?? 1;
   return `
     <div><span class="label">Dans la vue</span><h3>Familles</h3><p class="muted" style="margin-top:4px">Clique sur un élément de la maquette pour voir son métré.</p></div>
+    ${alerte}
     <div class="frows">${lignes}</div>
     <div class="coupe"><label for="coupe-3d"><span class="label">Coupe horizontale</span><b class="num" id="coupe-valeur">${coupe >= 1 ? 'aucune' : `${Math.round(coupe * 100)} %`}</b></label>
       <input type="range" id="coupe-3d" min="0.02" max="1" step="0.01" value="${coupe}" aria-describedby="coupe-aide" />
