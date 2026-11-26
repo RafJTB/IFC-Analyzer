@@ -7,6 +7,9 @@ const GROUPS = [
   ['.seg', 'button', (b) => b.getAttribute('aria-pressed') === 'true'],
   ['#set-nav', 'button', (b) => b.classList.contains('on')],
   ['#bg-cats', '.bg-cat', (b) => b.classList.contains('on')],
+  // Fichiers ouverts (barre du haut) et filtres en pastilles : la pastille de verre seulement quand un seul est choisi
+  ['#fichiers', '.file-tab', (b) => b.classList.contains('on')],
+  ['.chips', '.chip', (b) => b.getAttribute('aria-pressed') === 'true' && b.parentElement.querySelectorAll(':scope > [aria-pressed="true"]').length === 1],
 ];
 
 // Moins d'animations : demandé par le système, ou coupé dans les paramètres de l'appli
@@ -51,7 +54,7 @@ function watch(host, item, isOn) {
   new MutationObserver((muts) => {
     const real = muts.filter((m) => m.target !== pill && !(m.type === 'childList' && [...m.addedNodes, ...m.removedNodes].every((n) => n === pill)));
     if (real.length) later(real.some((m) => m.type === 'attributes'));
-  }).observe(host, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'aria-selected'] });
+  }).observe(host, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'aria-selected', 'aria-pressed'] });
   new ResizeObserver(() => later(false)).observe(host);
   later(false);
   enableDrag(host, st);
