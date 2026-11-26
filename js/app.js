@@ -247,8 +247,11 @@ function majProgression3d(cle) {
 }
 
 // ---------------------------------------------------------------- Fichiers et analyses
+/** Filtres de la vue 3D remis à zéro : ceux d'une maquette ne valent pas pour une autre (niveaux, familles, coupe, sélection). */
+const reinitialiser3d = () => { etat.v3d = { selection: null, niveaux: [], masquees: [], coupe: 1, cadrerSelection: false }; };
+
 function activer(entree) {
-  if (etat.actif !== entree.cle) etat.v3d.selection = null;
+  if (etat.actif !== entree.cle) reinitialiser3d();
   etat.modeles.set(entree.cle, entree);
   etat.actif = entree.cle;
   stockage.memoriserSession([...etat.modeles.keys()], etat.actif);
@@ -403,7 +406,7 @@ function fermer(cle) {
   const m = etat.modeles.get(cle);
   etat.modeles.delete(cle);
   etat.geometries.delete(cle);
-  if (etat.actif === cle) { etat.actif = [...etat.modeles.keys()].pop() ?? null; etat.v3d.selection = null; }
+  if (etat.actif === cle) { etat.actif = [...etat.modeles.keys()].pop() ?? null; reinitialiser3d(); }
   stockage.memoriserSession([...etat.modeles.keys()], etat.actif);
   rendre();
   if (m) toast(`${m.nom} fermé (il reste dans les analyses récentes).`, { action: 'Rouvrir', surAction: () => { activer(m); rendre(); } });

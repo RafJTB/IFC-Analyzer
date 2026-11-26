@@ -93,3 +93,19 @@ test('analyse ancienne sans 3D : message clair, puis 3D préparée en rouvrant l
     lastModified: 1767225600000 });
   await expect(page.locator('.v3d-canvas canvas')).toBeVisible();
 });
+
+test('changer de maquette remet les filtres 3D à zéro (niveaux, familles, coupe)', async ({ page }) => {
+  await page.locator('#nav button[data-page="3d"]').click();
+  await expect(page.locator('.v3d-canvas canvas')).toBeVisible();
+  await page.getByRole('button', { name: 'R+3', exact: true }).click();
+  await page.locator('.frow').filter({ hasText: 'Murs' }).click();
+  await expect(page.locator('.frow.cache')).toHaveCount(1);
+  // Une autre maquette s'ouvre : ses niveaux et familles ne doivent pas hériter des filtres de la précédente
+  await page.locator('#choix-fichier').setInputFiles('tests/fixtures/residence-ifc2x3.ifc');
+  await expect(page.locator('.file-tab')).toHaveCount(2);
+  await page.locator('#nav button[data-page="3d"]').click();
+  await expect(page.locator('.v3d-canvas canvas')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Tous niveaux' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.frow.cache')).toHaveCount(0);
+  await expect(page.locator('.side-panel .note.warn')).toHaveCount(0); // toute la maquette a sa 3D
+});

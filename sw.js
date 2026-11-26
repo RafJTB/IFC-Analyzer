@@ -1,7 +1,7 @@
 // Service worker : l'appli s'installe et s'ouvre hors connexion.
 // Réseau d'abord (fichiers toujours revérifiés : jamais de vieille version coincée), copie locale si pas de réseau.
 // Sécurité : en-têtes que GitHub Pages ne permet pas d'envoyer.
-const VERSION = '0.5.0';
+const VERSION = '0.5.1';
 const CACHE = `ifc-analyzer-${VERSION}`;
 const SOCLE = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest', 'assets/fonds/maquette-filaire.webp', 'icons/icon.svg', 'icons/icon-192.png',
