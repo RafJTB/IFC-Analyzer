@@ -98,6 +98,7 @@ export class Visionneuse {
       this.basY[k] = bas;
       this.hautY[k] = haut;
     }
+    this.zone = zoneBatiment(g);
     // Couleur et transparence de chaque élément
     this.verre = new Uint8Array(n);
     const couleurs = new Float32Array(g.positions.length);
@@ -116,7 +117,8 @@ export class Visionneuse {
     geo.setIndex(new THREE.BufferAttribute(new Uint32Array(g.indices.length), 1));
     this.geo = geo;
     const plans = [this.coupePlan];
-    this.matOpaque = new THREE.MeshLambertMaterial({ vertexColors: true, clippingPlanes: plans, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+    // Double face : un export dont les triangles sont orientés à l'envers reste visible (sinon seuls la sélection et le verre l'étaient)
+    this.matOpaque = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, clippingPlanes: plans, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
     this.matVerre = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: 0.42, depthWrite: false, clippingPlanes: plans, side: THREE.DoubleSide });
     this.matSelection = new THREE.MeshLambertMaterial({ color: ACCENT, emissive: 0x3d3fb8, emissiveIntensity: 0.35, clippingPlanes: plans, side: THREE.DoubleSide });
     // Deux maillages partagent les sommets : opaque et verre (le verre est dessiné après)
@@ -141,12 +143,13 @@ export class Visionneuse {
       this.scene.add(this.aretes);
     }
     // Sol : une grille discrète sous le bâtiment
-    const taille = Math.max(g.max[0] - g.min[0], g.max[2] - g.min[2]) * 1.6 || 10;
+    const z = this.zone;
+    const taille = Math.max(z.max.x - z.min.x, z.max.z - z.min.z) * 1.6 || 10;
     this.grille = new THREE.GridHelper(taille, Math.round(taille / 2), 0x7a80b0, 0x6a70a0);
     this.grille.material.transparent = true;
     this.grille.material.opacity = 0.16;
     this.grille.material.depthWrite = false;
-    this.grille.position.set((g.min[0] + g.max[0]) / 2, g.min[1] - 0.02, (g.min[2] + g.max[2]) / 2);
+    this.grille.position.set((z.min.x + z.max.x) / 2, z.min.y - 0.02, (z.min.z + z.max.z) / 2);
     this.scene.add(this.grille);
     this.etat = null;
     this.appliquer({});
@@ -227,7 +230,7 @@ export class Visionneuse {
     const boite = new THREE.Box3();
     const p = new THREE.Vector3();
     const liste = ids?.size ? [...ids].map((id) => this.indexDe.get(id)).filter((k) => k != null) : null;
-    if (!liste?.length) boite.set(new THREE.Vector3(...g.min), new THREE.Vector3(...g.max));
+    if (!liste?.length) boite.copy(this.zone); // le bâtiment, sans les objets isolés très loin
     else for (const k of liste) for (let v = g.debutsV[k]; v < g.debutsV[k] + g.nbV[k]; v++) boite.expandByPoint(p.fromArray(g.positions, v * 3));
     const centre = boite.getCenter(new THREE.Vector3());
     const rayon = Math.max(boite.getSize(new THREE.Vector3()).length() / 2, 1);
@@ -287,6 +290,44 @@ export function webglDisponible() {
   } catch {
     return false;
   }
+}
+
+/**
+ * Zone du bâtiment : les éléments regroupés autour du bâtiment, sans les objets isolés très loin
+ * (point topographique, famille égarée à des kilomètres…), qui feraient reculer la caméra jusqu'à ne plus rien voir.
+ * Règle : centres des éléments au-delà de 3 écarts interquartiles (et 20 m) de la masse sur un axe → écartés du cadrage.
+ */
+export function zoneBatiment(g) {
+  const n = g.ids.length;
+  const centres = [[], [], []];
+  const bornes = [];
+  for (let k = 0; k < n; k++) {
+    const mn = [Infinity, Infinity, Infinity];
+    const mx = [-Infinity, -Infinity, -Infinity];
+    for (let v = g.debutsV[k]; v < g.debutsV[k] + g.nbV[k]; v++) {
+      for (let a = 0; a < 3; a++) { const c = g.positions[v * 3 + a]; if (c < mn[a]) mn[a] = c; if (c > mx[a]) mx[a] = c; }
+    }
+    bornes.push([mn, mx]);
+    for (let a = 0; a < 3; a++) centres[a].push((mn[a] + mx[a]) / 2);
+  }
+  const limites = centres.map((liste) => {
+    const t = liste.filter(Number.isFinite).sort((x, y) => x - y);
+    if (!t.length) return [-Infinity, Infinity];
+    const q = (p) => t[Math.min(t.length - 1, Math.floor(p * (t.length - 1)))];
+    const ecart = q(0.75) - q(0.25);
+    return [q(0.25) - 3 * ecart - 20, q(0.75) + 3 * ecart + 20];
+  });
+  const boite = new THREE.Box3();
+  let gardes = 0;
+  for (let k = 0; k < n; k++) {
+    const [mn, mx] = bornes[k];
+    if (!Number.isFinite(mn[0]) || centres.some((liste, a) => liste[k] < limites[a][0] || liste[k] > limites[a][1])) continue;
+    boite.expandByPoint(new THREE.Vector3(...mn)).expandByPoint(new THREE.Vector3(...mx));
+    gardes++;
+  }
+  if (!gardes) boite.set(new THREE.Vector3(...g.min), new THREE.Vector3(...g.max));
+  boite.isoles = n - gardes;
+  return boite;
 }
 
 /**

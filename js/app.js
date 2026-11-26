@@ -199,9 +199,10 @@ async function monterVisionneuse() {
 
 // Aperçu 3D de l'accueil : une image de la maquette, calculée une fois puis gardée avec l'analyse
 const apercus = new Set(); // clés déjà traitées (ou en cours) : jamais deux fois
+const VERSION_APERCU = 2; // 2 : cadrage sur le bâtiment, sans les objets isolés (les aperçus plus anciens sont refaits)
 async function assurerApercu(cle) {
   const m = etat.modeles.get(cle);
-  if (!m || m.apercu || apercus.has(cle) || etat.preparation3d.has(cle)) return;
+  if (!m || (m.apercu && m.versionApercu === VERSION_APERCU) || apercus.has(cle) || etat.preparation3d.has(cle)) return;
   apercus.add(cle);
   try {
     const g = etat.geometries.get(cle) ?? await stockage.lireGeometrie(cle);
@@ -210,6 +211,7 @@ async function assurerApercu(cle) {
     if (!module3d.webglDisponible()) return;
     const infos = new Map(m.modele.elements.map((e) => [e.id, { famille: e.famille, niveau: e.niveau, type: e.type, genre: e.m?.genre }]));
     m.apercu = module3d.apercu(g, infos);
+    m.versionApercu = VERSION_APERCU;
     await stockage.enregistrer(m);
     await rafraichirRecents();
     majApercu(cle);
