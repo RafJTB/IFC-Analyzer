@@ -23,7 +23,14 @@ for (const theme of ['dark', 'light']) {
       await ouvrir(page);
       await verifier(page, 'accueil vide');
       await ouvrirExemple(page);
+      await expect(page.locator('.hero-3d img')).toBeVisible();
       await verifier(page, 'accueil avec maquette');
+      await page.locator('#chat-saisie').fill('surface des murs extérieurs');
+      await page.locator('#chat-saisie').press('Enter');
+      await page.locator('#chat-saisie').fill('bonjour');
+      await page.locator('#chat-saisie').press('Enter');
+      await expect(page.locator('#chat .msg.bot')).toHaveCount(2);
+      await verifier(page, 'accueil avec l’assistant');
       for (const p of ['murs', 'menuiseries', 'sols-plafonds', 'escaliers']) {
         await page.locator(`#nav button[data-page="${p}"]`).click();
         await verifier(page, `page ${p}`);

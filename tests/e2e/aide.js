@@ -20,7 +20,7 @@ export async function ouvrir(page, chemin = '/index.html') {
 /** Ouvre l'IFC d'exemple et attend la fin de l'analyse. */
 export async function ouvrirExemple(page) {
   await page.getByRole('button', { name: "Essayer avec l'exemple" }).first().click();
-  await expect(page.locator('.fam-card').first()).toBeVisible();
+  await expect(page.locator('.fam-row').first()).toBeVisible();
 }
 
 /** Valeur du pied de tableau pour une colonne (par son titre). */

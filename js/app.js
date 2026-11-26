@@ -1,7 +1,8 @@
 // Point d'entrée : état de l'appli, navigation, ouverture et analyse des fichiers, actions de l'interface.
 import { PAGES, pageDeFamille } from './metre/familles.js';
 import { versCsv } from './metre/export.js';
-import { vueAccueil } from './ui/accueil.js';
+import { repondre } from './metre/assistant.js';
+import { artEntete, vueAccueil } from './ui/accueil.js';
 import { couleurDe, donneesPage, filtresDe, ligneTexte, vueFamille } from './ui/page-famille.js';
 import { vue3D } from './ui/page-3d.js';
 import { textesEffets, vuePerso } from './ui/page-perso.js';
@@ -28,6 +29,7 @@ const etat = {
   preparation3d: new Map(), //  clé → avancement de la préparation de la 3D (0 à 1)
   sans3d: new Set(), //         clés dont la 3D n'existe pas (analyse ancienne) ou a échoué
   v3d: { selection: null, niveaux: [], masquees: [], coupe: 1, cadrerSelection: false },
+  assistant: { cle: null, messages: [] }, // questions et réponses de l'assistant, pour la maquette affichée
   famillesFonds: 'tous', //    page Personnalisation : famille de fonds affichée
   ongletReglages: ((o) => (ONGLETS.some(([k]) => k === o) ? o : 'analyse'))(ongletReglages('analyse')), // page Paramètres
 };
@@ -77,6 +79,9 @@ function rendreTheme() {
 /** Redessine la page. *anim* : animation d'arrivée (changement de page). Les défilements sont conservés. */
 function rendre({ anim = false, focus = null } = {}) {
   const defil = [...document.querySelectorAll('.view, .table-scroll, .side-panel')].map((e) => [e.className, e.scrollTop]);
+  const saisie = $('chat-saisie'); // question en cours d'écriture : gardée si la page est redessinée
+  const brouillon = saisie?.value ?? '';
+  const saisieActive = saisie && document.activeElement === saisie;
   const page = pageCourante();
   if (etat.page === '3d') vue.innerHTML = vue3D(etat, statut3d());
   else if (etat.page === 'personnalisation') vue.innerHTML = vuePerso(etat.famillesFonds, imagePerso());
@@ -97,6 +102,13 @@ function rendre({ anim = false, focus = null } = {}) {
   initLiquidTabs();
   if (etat.page === '3d') monterVisionneuse();
   if (etat.page === 'parametres') majPlace();
+  if (etat.page === 'accueil') {
+    const chat = $('chat');
+    if (chat) chat.scrollTop = chat.scrollHeight; // la dernière réponse visible
+    if (brouillon && $('chat-saisie')) $('chat-saisie').value = brouillon;
+    if (saisieActive && !focus) $('chat-saisie')?.focus({ preventScroll: true });
+    if (etat.actif) assurerApercu(etat.actif);
+  }
   if (focus) {
     const champ = $(focus);
     if (champ) { champ.focus(); if (champ.type === 'text') { const n = champ.value.length; champ.setSelectionRange(n, n); } }
@@ -182,6 +194,37 @@ async function monterVisionneuse() {
   visionneuse.redimensionner();
   appliquer3d();
   if (etat.v3d.cadrerSelection) { etat.v3d.cadrerSelection = false; visionneuse.cadrer(idsSelection()); }
+}
+
+// Aperçu 3D de l'accueil : une image de la maquette, calculée une fois puis gardée avec l'analyse
+const apercus = new Set(); // clés déjà traitées (ou en cours) : jamais deux fois
+async function assurerApercu(cle) {
+  const m = etat.modeles.get(cle);
+  if (!m || m.apercu || apercus.has(cle) || etat.preparation3d.has(cle)) return;
+  apercus.add(cle);
+  try {
+    const g = etat.geometries.get(cle) ?? await stockage.lireGeometrie(cle);
+    if (!g) return;
+    module3d ??= await import('./ui/vue3d.js');
+    if (!module3d.webglDisponible()) return;
+    const infos = new Map(m.modele.elements.map((e) => [e.id, { famille: e.famille, niveau: e.niveau, type: e.type, genre: e.m?.genre }]));
+    m.apercu = module3d.apercu(g, infos);
+    await stockage.enregistrer(m);
+    await rafraichirRecents();
+    majApercu(cle);
+  } catch { /* pas d'aperçu : la tuile du logo reste affichée */ }
+}
+
+/** L'aperçu arrive : l'en-tête et la vignette sont mis à jour sans redessiner la page (la saisie en cours est gardée). */
+function majApercu(cle) {
+  const m = etat.modeles.get(cle);
+  if (etat.page !== 'accueil' || !m?.apercu) return;
+  if (etat.actif === cle && $('hero-art')) {
+    $('hero-art').outerHTML = artEntete(m.apercu);
+    vue.querySelector('.hero')?.classList.add('avec-3d');
+  }
+  const vignette = vue.querySelector(`.r-thumb[data-cle="${CSS.escape(cle)}"]`);
+  if (vignette) { vignette.outerHTML = `<span class="r-thumb" data-cle="${echapper(cle)}" style="background-image:url('${m.apercu}')"></span>`; }
 }
 
 function clic3d(id) {
@@ -280,6 +323,7 @@ function analyserDansWorker(octets, cle, avec3d = true) {
           etat.geometries.set(cle, data.geometrie);
           stockage.enregistrerGeometrie(cle, data.geometrie);
           if (etat.page === '3d' && etat.actif === cle) rendre();
+          if (etat.page === 'accueil' && etat.actif === cle) assurerApercu(cle);
           return undefined;
         case 'erreur-3d':
           fin();
@@ -432,6 +476,28 @@ async function toutEffacer() {
   });
 }
 
+/** Pose une question à l'assistant : la réponse est calculée sur la maquette affichée. */
+function demander(question) {
+  const actif = etat.modeles.get(etat.actif);
+  const q = String(question ?? '').trim();
+  if (!actif || !q) return;
+  if (etat.assistant.cle !== actif.cle) etat.assistant = { cle: actif.cle, messages: [] };
+  const fil = etat.assistant.messages;
+  fil.push({ de: 'moi', texte: q }, { de: 'bot', reponse: repondre(q, actif.modele) });
+  if (fil.length > 40) fil.splice(0, fil.length - 40);
+  if (etat.page !== 'accueil') etat.page = 'accueil';
+  if ($('chat-saisie')) $('chat-saisie').value = ''; // la question part : la zone de saisie se vide
+  rendre({ focus: 'chat-saisie' });
+}
+
+/** Ouvre une page de métré avec les filtres d'une réponse de l'assistant (statut, niveaux, type sélectionné). */
+function ouvrirVue({ page, famille, statut, niveaux, type }) {
+  const p = PAGES.find((x) => x.id === page);
+  if (!p) return;
+  etat.filtres[p.id] = { ...(etat.filtres[p.id] ?? {}), onglet: famille, statut: statut || 'tous', niveaux: niveaux ? niveaux.split('|') : [], texte: '', selection: type || null };
+  aller(p.id);
+}
+
 /** Catégorie de la page Paramètres (sommaire de gauche). */
 function choisirOnglet(cle) {
   etat.ongletReglages = cle;
@@ -496,6 +562,12 @@ function executer(faire, cible = null) {
     case 'fichier': if (etat.modeles.has(faire.cle)) { activer(etat.modeles.get(faire.cle)); rendre(); } return;
     case 'fermer-fichier': return fermer(faire.cle);
     case 'type': return ouvrirMetre(faire.famille, faire.type); // depuis la recherche
+    // --- Assistant de l'accueil
+    case 'question': return demander(faire.valeur);
+    case 'metre-vue': return ouvrirVue(faire);
+    case 'assistant': // depuis la recherche Ctrl K
+      if (etat.page !== 'accueil') aller('accueil');
+      return $('chat-saisie')?.focus();
     // --- Maquette 3D
     case 'voir-3d':
       if (!f?.selection) return;
@@ -571,7 +643,6 @@ document.addEventListener('keydown', (e) => {
   const mod = e.ctrlKey || e.metaKey;
   if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); palette.ouvrir(); }
   else if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); $('choix-fichier').click(); }
-  else if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.dropzone')) { e.preventDefault(); $('choix-fichier').click(); }
   else if (e.key === 'Escape' && etat.page === '3d' && etat.v3d.selection && !$('palette').open) { etat.v3d.selection = null; rendre(); }
   else if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) && e.target.closest?.('#set-nav')) {
     // Sommaire des paramètres : flèches, Début et Fin (comme des onglets)
@@ -606,6 +677,11 @@ vue.addEventListener('input', (e) => {
   if (!page) return;
   filtresDe(etat, page).texte = e.target.value;
   rendre({ focus: 'filtre-texte' });
+});
+vue.addEventListener('submit', (e) => {
+  if (e.target.id !== 'chat-form') return;
+  e.preventDefault();
+  demander($('chat-saisie').value);
 });
 vue.addEventListener('change', (e) => {
   const t = e.target;
