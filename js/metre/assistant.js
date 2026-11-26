@@ -223,7 +223,7 @@ export function repondre(question, modele) {
   const precision = (r) => (!r.types ? '' : r.types.length === 1 ? ` · ${r.types[0]}` : ` · ${r.types.length} types « ${r.mots.join(' ')} »`);
   const titreCtx = (r) => `${contexte(r.famille, d.genre, d.statut, d.niveaux)}${precision(r)}`;
   // La page Menuiseries montre fenêtres et portes ensemble : le lien le dit quand la réponse ne portait que sur l'une des deux
-  const lien = (r) => ({ libelle: `Voir dans ${pageDeFamille(r.famille).titre}${d.genre ? ' (fenêtres et portes)' : ''}`, page: pageDeFamille(r.famille).id, famille: r.famille, statut: d.statut,
+  const lien = (r) => ({ libelle: d.genre ? 'Voir toutes les menuiseries' : `Voir dans ${pageDeFamille(r.famille).titre}`, page: pageDeFamille(r.famille).id, famille: r.famille, statut: d.statut,
     niveaux: d.niveaux, type: r.types?.length === 1 ? r.types[0] : null });
 
   // Une seule famille : réponse détaillée

@@ -93,8 +93,17 @@ function bulle(m) {
 }
 
 function assistant(modele, messages) {
+  if (!modele) {
+    return `<section class="card pcard assistant" aria-labelledby="h-assistant">
+    <header class="dash-head"><h3 id="h-assistant"><span class="h-ico spark">${ic('etincelle')}</span>Assistant</h3></header>
+    <div class="chat"><div class="chat-hello"><span class="bot-ico" aria-hidden="true">${ic('etincelle')}</span><div>
+      <p>Ouvre une maquette : je réponds à tes questions sur ses quantités (surfaces, longueurs, nombres, par niveau…) en les calculant avec le métré.</p></div></div></div>
+    <form class="chat-form" autocomplete="off"><input placeholder="Ouvre d’abord une maquette" aria-label="Question sur la maquette" disabled />
+      <button class="chat-send" type="button" aria-label="Envoyer la question" disabled>${ic('envoyer')}</button></form>
+  </section>`;
+  }
   const sugg = suggestions(modele);
-  return `<section class="card dash-card assistant" aria-labelledby="h-assistant">
+  return `<section class="card pcard assistant" aria-labelledby="h-assistant">
     <header class="dash-head"><h3 id="h-assistant"><span class="h-ico spark">${ic('etincelle')}</span>Assistant</h3><span class="dash-sub">calculs faits sur ce PC</span></header>
     <div class="chat" id="chat" role="log" aria-live="polite" aria-label="Réponses de l’assistant">
       <div class="chat-hello"><span class="bot-ico" aria-hidden="true">${ic('etincelle')}</span><div>
@@ -117,11 +126,11 @@ export function vueAccueil(etat) {
   const listeRecents = recents(etat.recents, ouverts, etat.actif);
 
   if (!actif) {
-    return `
+    return page(`
       <section class="card hero">
         <div class="hero-txt">
           <h2>Bonjour ! <span aria-hidden="true">👋</span></h2>
-          <p>Le métré et la 3D de tes maquettes IFC, 100 % sur ton ordinateur : le fichier n’est envoyé nulle part.</p>
+          <p>Le métré et la 3D de tes maquettes IFC, 100 % sur ton ordinateur.</p>
           <div class="actions">
             <button type="button" class="btn primary lg" data-action="ouvrir-fichier">${ic('ouvrir')}Ouvrir un fichier IFC${FLECHE}</button>
             <button type="button" class="btn lg glass" data-action="exemple">${ic('exemple')}Essayer avec l'exemple</button>
@@ -133,7 +142,7 @@ export function vueAccueil(etat) {
       <section class="tiles stat-row" aria-label="Chiffres clés">
         ${tuile('cube', 'violet', 'bleu', '—', 'Éléments')}${tuile('couches', 'cyan', 'bleu', '—', 'Niveaux')}${tuile('mur', 'bleu', 'violet', '—', 'm² de murs')}${tuile('fenetre', 'vert', 'cyan', '—', 'Menuiseries')}
       </section>
-      ${listeRecents}`;
+      ${listeRecents}`, assistant(null, []));
   }
 
   const { modele } = actif;
@@ -143,11 +152,11 @@ export function vueAccueil(etat) {
   const sansQ = els.filter((e) => e.source === 'absent').length;
   const messages = etat.assistant?.cle === actif.cle ? etat.assistant.messages : [];
 
-  return `
+  return page(`
     <section class="card hero${actif.apercu ? ' avec-3d' : ''}">
       <div class="hero-txt">
         <h2>Bonjour ! <span aria-hidden="true">👋</span></h2>
-        <p><b>${echapper(actif.nom)}</b> : ${pluriel(els.length, 'élément métré', 'éléments métrés')} sur ${pluriel(modele.niveaux.length, 'niveau', 'niveaux')}, analysé sur ton ordinateur.</p>
+        <p><b>${echapper(actif.nom)}</b> · ${pluriel(els.length, 'élément métré', 'éléments métrés')} sur ${pluriel(modele.niveaux.length, 'niveau', 'niveaux')}.</p>
         <div class="actions">
           <button type="button" class="btn primary lg" data-action="page" data-page="3d">${ic('cube')}Voir la maquette en 3D${FLECHE}</button>
           <button type="button" class="btn lg glass" data-action="ouvrir-fichier">${ic('ouvrir')}Ouvrir un autre fichier</button>
@@ -163,6 +172,9 @@ export function vueAccueil(etat) {
       ${tuile('fenetre', 'vert', 'cyan', nombre(men?.nombre ?? 0, 0), 'Menuiseries')}
     </section>
     ${sansQ ? `<div class="note warn">${ic('alerte')}<span><b>${pluriel(sansQ, 'élément n’a', 'éléments n’ont')} pas de quantités dans le fichier.</b> Dans Revit, coche « Exporter les quantités de base » dans les options d'export IFC, puis exporte à nouveau.</span></div>` : ''}
-    <div class="row-2">${familles(els)}${assistant(modele, messages)}</div>
-    ${listeRecents}`;
+    ${familles(els)}
+    ${listeRecents}`, assistant(modele, messages));
 }
+
+/** Comme le tableau de bord du Transcripteur : la colonne principale défile, le panneau de droite va jusqu'en bas. */
+const page = (principal, panneau) => `<div class="dash-grid"><div class="dash-main">${principal}</div><aside class="dash-panel" aria-label="Assistant">${panneau}</aside></div>`;

@@ -23,7 +23,7 @@ test('une question, une réponse exacte, puis le détail dans la page de métré
   await expect(page.locator('#chat-saisie')).toHaveValue('');
   await expect(page.locator('#chat-saisie')).toBeFocused();
 
-  await derniere(page).getByRole('button', { name: 'Voir dans Menuiseries (fenêtres et portes)' }).click();
+  await derniere(page).getByRole('button', { name: 'Voir toutes les menuiseries' }).click();
   await expect(page.getByRole('heading', { name: 'Menuiseries', level: 2 })).toBeVisible();
   await expect(page.getByRole('button', { name: 'RDC', exact: true })).toHaveAttribute('aria-pressed', 'true');
   // La conversation est gardée en revenant à l'accueil

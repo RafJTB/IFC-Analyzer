@@ -78,7 +78,7 @@ function rendreTheme() {
 
 /** Redessine la page. *anim* : animation d'arrivée (changement de page). Les défilements sont conservés. */
 function rendre({ anim = false, focus = null } = {}) {
-  const defil = [...document.querySelectorAll('.view, .table-scroll, .side-panel')].map((e) => [e.className, e.scrollTop]);
+  const defil = [...document.querySelectorAll('.view, .table-scroll, .side-panel, .dash-main')].map((e) => [e.className, e.scrollTop]);
   const saisie = $('chat-saisie'); // question en cours d'écriture : gardée si la page est redessinée
   const brouillon = saisie?.value ?? '';
   const saisieActive = saisie && document.activeElement === saisie;
@@ -87,6 +87,7 @@ function rendre({ anim = false, focus = null } = {}) {
   else if (etat.page === 'personnalisation') vue.innerHTML = vuePerso(etat.famillesFonds, imagePerso());
   else if (etat.page === 'parametres') vue.innerHTML = vueReglages(etat.ongletReglages, lireReglages(), infosReglages());
   else vue.innerHTML = page ? vueFamille(page, etat) : vueAccueil(etat);
+  vue.classList.toggle('vue-tableau', etat.page === 'accueil'); // colonne principale et panneau défilent chacun de leur côté
   const titre = page?.titre ?? TITRES[etat.page];
   document.title = `${titre ? `${titre} · ` : ''}IFC Analyzer by RJB`;
   if (anim) {
